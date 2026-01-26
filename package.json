@@ -1,0 +1,23 @@
+{
+  "name": "fino-eidnet-collector",
+  "version": "1.0.0",
+  "description": "Focucing on collecting efficienty filing from EDINET",
+  "homepage": "https://github.com/fino-dev/fino-eidnet-collector#readme",
+  "bugs": {
+    "url": "https://github.com/fino-dev/fino-eidnet-collector/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fino-dev/fino-eidnet-collector.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@google/gemini-cli": "^0.25.2"
+  }
+}
