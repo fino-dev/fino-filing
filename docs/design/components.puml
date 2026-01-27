@@ -1,59 +1,55 @@
 @startuml fino-edinet-collector - Component Level
-title fino-edinet-collector - Code Level (Component Detail)
-' !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
-' !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+title fino-edinet-collector - Component Level (Abstracted)
+
 !include <C4/C4_Container>
 !include <C4/C4_Component>
 
 Person(user, "User")
-System_Boundary(edinet_collector_boundary, "Edinet Collector") {
-    Boundary(usecase_boundary, "Usecase") {
 
-        ' Usecase
-        Component(sync_filing_catalog, "Sync Filing Catalog", "usecase")
-        Component(search_filing_catalog, "Search Filing Catalog", "usecase")
-        Component(collect_filing, "Collect Filing", "usecase")
-        Component(list_collected_filing, "List Filing Collection", "usecase")
+System_Boundary(system, "fino-edinet-collector") {
+
+    Boundary(application_boundary, "Application Layer") {
+        Component(edinet, "Edinet Facade", "Public API")
+        Component(collection, "Collection Facade", "Public API")
     }
 
-    Boundary(adapter_boundary, "Adapter") {
-        ' Adapters
-        Component(edinet_api_client, "EDINET API Client", "adapter")
-        Component_Ext(edinet_api, "EDINET API", "external")
-
-        Component(filing_catalog, "Edinet Catalog", "adapter")
-        Boundary(db_boundary, "Database") {
-            ComponentDb(sqlite_db, "SQLite", "local")
-            ComponentDb_Ext(dynamo_db, "DynamoDB", "aws")
-        }
-
-        Component(filing_collection, "Filing Collection", "adapter")
-        Boundary(storage_boundary, "Storage") {
-            Component(local_storage, "Folder", "local") 
-            Component_Ext(s3_storage, "S3", "aws") 
-        }
+    Boundary(domain_boundary, "Domain Layer") {
+        Component(collection_model, "Collection Model", "Domain Model")
+        Component(filing_model, "Filing Model", "Domain Model")
     }
 
-    ' User Relation
-    Rel(user, sync_filing_catalog, "")
-    Rel(user, search_filing_catalog, "")
-    Rel(user, collect_filing, "")
-    Rel(user, list_collected_filing, "")
+    Boundary(adapter_boundary, "Adapters") {
+        Component(edinet_adapter, "Edinet Adapter", "Adapter")
+        Component(storage_adapter, "Filing Storage Adapter", "Adapter")
+        Component(metadata_adapter, "Metadata Store Adapter", "Adapter")
 
-    ' Usecase Relation
-    Rel(sync_filing_catalog, edinet_api_client, "")
-    Rel(sync_filing_catalog, filing_catalog, "")
-    Rel(search_filing_catalog, filing_catalog, "")
-    Rel(collect_filing, edinet_api_client, "")
-    Rel(collect_filing, filing_catalog, "")
-    Rel(collect_filing, filing_collection, "")
-    Rel(list_collected_filing, filing_catalog, "")
-    Rel(list_collected_filing, filing_collection, "")
+        Component_Ext(edinet_api, "Edinet APIs", "external")
+        Component_Ext(filing_storage, "Filing Storage", "external")
+        ComponentDb_Ext(metadata_store, "Metadata Store", "external")
+    }
 
-    ' Infrastructure Relation
-    Rel(edinet_api_client, edinet_api, "")
-    Rel(filing_catalog, db_boundary, "")
-    Rel(filing_collection, storage_boundary, "")
+    ' User interactions
+    Rel(user, edinet, "sync_catalog & collect")
+    Rel(user, collection, "search & get")
+
+    ' Application to Domain
+    Rel(edinet, collection_model, "")
+    Rel(collection, collection_model, "")
+
+    ' Application to Adapter
+    Rel(edinet, edinet_adapter, "")
+
+    ' domain to domain
+    Rel(filing_model, collection_model, "")
+
+    ' Domain to Adapter
+    Rel(collection_model, storage_adapter, "")
+    Rel(collection_model, metadata_adapter, "")
+
+    ' Adapter to external
+    Rel(edinet_adapter, edinet_api, "")
+    Rel(storage_adapter, filing_storage, "")
+    Rel(metadata_adapter, metadata_store, "")
 }
 
 skinparam linetype ortho

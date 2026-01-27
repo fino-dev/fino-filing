@@ -1,131 +1,157 @@
-@startuml fino-edinet-collector-class-structured
+@startuml fino-edinet-collector - Coding Level
+title fino-edinet-collector - Class Diagram (Derived from Final Component Graph)
+
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 
-title fino-edinet-collector - Class Interface (Structured by Layer)
-
 ' ========================
-' application layer
+' Application Layer (Public API)
 ' ========================
 package "application" {
 
-  class Edinet <<Facade>> {
-    + sync() : None
-    + search(
-        company: str = None,
-        date_from: date = None,
-        date_to: date = None,
-        doc_type: str = None
-      ) : list[Filing]
-    + download(
-        filings: list[Filing],
-        path: Path
-      ) : None
+  class Edinet {
+    - adapter: EdinetAdapter
+    - collection: Collection
+
+    + sync_catalog() : None
+    + collect(**conditions) : CollectResult
   }
 
-  class SyncDocumentsUseCase <<UseCase>> {
-    + execute() : None
-  }
+  class Collection {
+    - model: CollectionModel
 
-  class SearchDocumentsUseCase <<UseCase>> {
-    + execute(
-        company: str = None,
-        date_from: date = None,
-        date_to: date = None,
-        doc_type: str = None
-      ) : list[Filing]
-  }
-
-  class DownloadDocumentsUseCase <<UseCase>> {
-    + execute(
-        filings: list[Filing],
-        path: Path
-      ) : None
+    + search(**conditions) : list[Filing]
+    + get(document_id: str) : Filing
+    + all() : list[Filing]
   }
 }
 
 ' ========================
-' domain layer
+' Domain Layer
 ' ========================
 package "domain" {
 
-  class Filing <<Entity>> {
+  class CollectionModel {
+    - storage: StorageAdapter
+    - metadata: MetadataAdapter
+
+    + add(filing: Filing) : None
+    + search(**conditions) : list[Filing]
+    + get(document_id: str) : Filing
+    + all() : list[Filing]
+  }
+
+  class Filing {
     + document_id: str
     + edinet_code: str
     + filer_name: str
     + doc_type: str
     + submit_date: date
-    + file_url: str
+    + path: Path
 
-    + is_valid() : bool
+    + open() : IO
+    + extract() : list[Path]
+    + is_archive() : bool
   }
 
-  interface FilingRepository <<Interface>> {
-    + save(filing: Filing) : None
-    + bulk_save(filings: list[Filing]) : None
-    + find_by_conditions(
-        company: str = None,
-        date_from: date = None,
-        date_to: date = None,
-        doc_type: str = None
-      ) : list[Filing]
-    + exists(document_id: str) : bool
+  class CollectResult {
+    + filings: list[Filing]
+    + collection: Collection
   }
 }
 
 ' ========================
-' adapters layer
+' Adapters (Interfaces)
 ' ========================
-package "adapters" {
+package "adapters.interfaces" {
 
-  class SQLiteFilingRepository <<Repository>> {
-    + save(filing: Filing) : None
-    + bulk_save(filings: list[Filing]) : None
-    + find_by_conditions(
-        company: str = None,
-        date_from: date = None,
-        date_to: date = None,
-        doc_type: str = None
-      ) : list[Filing]
-    + exists(document_id: str) : bool
+  interface EdinetAdapter {
+    + fetch_catalog() : list[dict]
+    + fetch_document(document_id: str) : bytes
   }
 
-  class DynamoFilingRepository <<Repository>> {
-    + save(filing: Filing) : None
-    + bulk_save(filings: list[Filing]) : None
-    + find_by_conditions(
-        company: str = None,
-        date_from: date = None,
-        date_to: date = None,
-        doc_type: str = None
-      ) : list[Filing]
-    + exists(document_id: str) : bool
+  interface StorageAdapter {
+    + save(document_id: str, content: bytes) : Path
+    + open(path: Path) : IO
   }
 
-  class EdinetApiClient <<HTTP Client>> {
-    + fetch_document_list(date: date) : list[dict]
-    + download_document(document_id: str) : bytes
+  interface MetadataAdapter {
+    + save(filing: Filing) : None
+    + search(**conditions) : list[Filing]
+    + get(document_id: str) : Filing
   }
 }
 
 ' ========================
-' relationships (same as component)
+' Adapters (Implementations)
+' ========================
+package "adapters.implementations" {
+
+  class EdinetApiAdapter {
+  }
+
+  class LocalFileStorageAdapter {
+  }
+
+  class S3StorageAdapter {
+  }
+
+  class SQLiteMetadataAdapter {
+  }
+
+  class DynamoMetadataAdapter {
+  }
+}
+
+' ========================
+' Config
+' ========================
+package "config" {
+
+  class EdinetConfig {
+    + api_key: str
+    + base_url: str
+  }
+
+  class StorageConfig {
+    + type: str
+    + root_path: Path
+  }
+
+  class MetadataConfig {
+    + type: str
+    + connection: str
+  }
+}
+
+' ========================
+' Relationships
 ' ========================
 
-Edinet --> SyncDocumentsUseCase
-Edinet --> SearchDocumentsUseCase
-Edinet --> DownloadDocumentsUseCase
+Edinet --> Collection
+Edinet --> EdinetAdapter
 
-SyncDocumentsUseCase --> FilingRepository
-SyncDocumentsUseCase --> EdinetApiClient
+Collection --> CollectionModel
 
-SearchDocumentsUseCase --> FilingRepository
-DownloadDocumentsUseCase --> FilingRepository
+CollectionModel --> StorageAdapter
+CollectionModel --> MetadataAdapter
 
-SQLiteFilingRepository ..|> FilingRepository
-DynamoFilingRepository ..|> FilingRepository
+CollectResult --> Filing
+CollectResult --> Collection
 
-FilingRepository --> Filing
+EdinetApiAdapter ..|> EdinetAdapter
+
+LocalFileStorageAdapter ..|> StorageAdapter
+S3StorageAdapter ..|> StorageAdapter
+
+SQLiteMetadataAdapter ..|> MetadataAdapter
+DynamoMetadataAdapter ..|> MetadataAdapter
+
+MetadataAdapter --> Filing
+
+Edinet --> EdinetConfig
+CollectionModel --> StorageConfig
+CollectionModel --> MetadataConfig
 
 @enduml
