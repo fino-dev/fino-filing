@@ -1,61 +1,29 @@
 # Packageのインターフェース
 
-## 公開クラス
+## ユースケース
 
-### EdinetCollector
-
-#### メソッド
-
-- sync_catalog
-- search_catalog
-- collect
-- list_collection
+### 1. Getting Started Usecase
 
 ```python
-class EdinetCollector:
+# simple local usecase
+import fino-eidnet-collector as fec
 
-    def sync_catalog(self) -> None:
-        """EDINETの書類一覧をローカルDBに同期する"""
+# decide wheare to collect filings. it's depending on your usecase and environmnet
+collection = fec.Collection(root_path="~/.edinet_file")
 
-    def search_catalog(
-        self,
-        *,
-        company: str | None = None,
-        date_from: date | None = None,
-        date_to: date | None = None,
-        doc_type: str | None = None,
-    ) -> list[Document]:
-        """条件に基づいて書類一覧を検索する"""
+edinet = fec.Edinet(api_key="hogehgoehogheohoge", collection=collection)
+edinet.sync_catalog()
 
-    def collect(
-        self,
-        documents: list[Document],
-        output_dir: str | None = None,
-    ) -> list[CollectedDocument]:
-        """指定された書類をダウンロードして保存する"""
+result = edinet.collect(form_type=FormatType.ANNUAL)
+result.filings[0] # Filing Class with file path
+filing = filings[0]
+filing_name = filing.name
+filing_path = filing.path # easy to access file from result
+file = filing.open()
 
-    def list_collection(self) -> list[CollectedDocument]:
-        """これまでに収集した書類一覧を返す"""
-```
 
-#### ユースケース
+collection.search(sec_code="1111")
+collection.get(docd="hgoehgeo")
 
-##### 書類収集のながれ(メイン機能)
-
-```python
-from fino_edinet_collector import EdinetCollector
-
-collector = EdinetCollector(api_key="YOUR_API_KEY")
-
-# 一覧を同期
-collector.sync_catalog()
-
-# トヨタの有価証券報告書を検索
-docs = collector.search(
-    company="トヨタ",
-    doc_type="有価証券報告書"
-)
-
-# ダウンロード
-collector.collect(docs, output_dir="./data")
+result.collection # provide same collection object from collect func result
 ```

@@ -7,49 +7,53 @@ title fino-edinet-collector - Code Level (Component Detail)
 
 Person(user, "User")
 System_Boundary(edinet_collector_boundary, "Edinet Collector") {
- 
-    ' Usecase
-    Component(sync_filing_catalog, "Sync Filing Catalog", "usecase")
-    Component(search_filing_catalog, "Search Filing Catalog", "usecase")
-    Component(collect_filing, "Collect Filing", "usecase")
-    Component(list_collected_filing, "List Filing Collection", "usecase")
+    Boundary(usecase_boundary, "Usecase") {
 
-    ' Adapters
-    Component(edinet_api_client, "EDINET API Client", "adapter")
-    Component_Ext(edinet_api, "EDINET API", "external")
-
-    Component(filing_catalog, "Edinet Catalog", "adapter")
-    Boundary(db_boundary, "Database") {
-        ComponentDb(sqlite_db, "SQLite", "local")
-        ComponentDb_Ext(dynamo_db, "DynamoDB", "aws")
+        ' Usecase
+        Component(sync_filing_catalog, "Sync Filing Catalog", "usecase")
+        Component(search_filing_catalog, "Search Filing Catalog", "usecase")
+        Component(collect_filing, "Collect Filing", "usecase")
+        Component(list_collected_filing, "List Filing Collection", "usecase")
     }
 
-    Component(filing_collection, "Filing Collection", "adapter")
-    Boundary(storage_boundary, "Storage") {
-        Component(local_storage, "Folder", "local") 
-        Component_Ext(s3_storage, "S3", "aws") 
+    Boundary(adapter_boundary, "Adapter") {
+        ' Adapters
+        Component(edinet_api_client, "EDINET API Client", "adapter")
+        Component_Ext(edinet_api, "EDINET API", "external")
+
+        Component(filing_catalog, "Edinet Catalog", "adapter")
+        Boundary(db_boundary, "Database") {
+            ComponentDb(sqlite_db, "SQLite", "local")
+            ComponentDb_Ext(dynamo_db, "DynamoDB", "aws")
+        }
+
+        Component(filing_collection, "Filing Collection", "adapter")
+        Boundary(storage_boundary, "Storage") {
+            Component(local_storage, "Folder", "local") 
+            Component_Ext(s3_storage, "S3", "aws") 
+        }
     }
 
     ' User Relation
-    Rel(user, sync_filing_catalog, "Uses")
-    Rel(user, search_filing_catalog, "Uses")
-    Rel(user, collect_filing, "Uses")
-    Rel(user, list_collected_filing, "Uses")
+    Rel(user, sync_filing_catalog, "")
+    Rel(user, search_filing_catalog, "")
+    Rel(user, collect_filing, "")
+    Rel(user, list_collected_filing, "")
 
     ' Usecase Relation
-    Rel(sync_filing_catalog, edinet_api_client, "Requests")
-    Rel(sync_filing_catalog, filing_catalog, "Reads and Writes")
-    Rel(search_filing_catalog, filing_catalog, "Reads")
-    Rel(collect_filing, edinet_api_client, "Downloads")
-    Rel(collect_filing, filing_catalog, "List")
-    Rel(collect_filing, filing_collection, "Stores")
-    Rel(list_collected_filing, filing_catalog, "Reads")
-    Rel(list_collected_filing, filing_collection, "Reads")
+    Rel(sync_filing_catalog, edinet_api_client, "")
+    Rel(sync_filing_catalog, filing_catalog, "")
+    Rel(search_filing_catalog, filing_catalog, "")
+    Rel(collect_filing, edinet_api_client, "")
+    Rel(collect_filing, filing_catalog, "")
+    Rel(collect_filing, filing_collection, "")
+    Rel(list_collected_filing, filing_catalog, "")
+    Rel(list_collected_filing, filing_collection, "")
 
     ' Infrastructure Relation
-    Rel(edinet_api_client, edinet_api, "Requests")
-    Rel(filing_catalog, db_boundary, "Reads and Writes")
-    Rel(filing_collection, storage_boundary, "Stores")
+    Rel(edinet_api_client, edinet_api, "")
+    Rel(filing_catalog, db_boundary, "")
+    Rel(filing_collection, storage_boundary, "")
 }
 
 skinparam linetype ortho
