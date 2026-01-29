@@ -1,12 +1,12 @@
-@startuml fino-edinet-collector - Component Level
-title fino-edinet-collector - Component Level (Abstracted)
+@startuml fino-filing - Component Level
+title fino-filing - Component Level (Abstracted)
 
 !include <C4/C4_Container>
 !include <C4/C4_Component>
 
 Person(user, "User")
 
-System_Boundary(system, "fino-edinet-collector") {
+System_Boundary(system, "fino-filing") {
 
     Boundary(application_boundary, "Application Layer") {
         Component(edinet, "Edinet Facade", "Public API")

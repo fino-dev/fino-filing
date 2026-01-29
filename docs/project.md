@@ -1,7 +1,8 @@
-# fino-edinet-collector
+# fino-filing
 
 ## 概要
-fino-edinet-collector は、EDINET API を利用して開示書類を効率的に収集・検索・ダウンロードするための Python ライブラリである。
+
+fino-filing は、EDINET API を利用して開示書類を効率的に収集・検索・ダウンロードするための Python ライブラリである。
 
 OSS利用者・データ分析者・Pythonエンジニアを主な利用者と想定する。
 
@@ -10,6 +11,7 @@ CLIは提供せず、Pythonコードから import して利用するライブラ
 ---
 
 ## 目的
+
 - EDINET APIを簡単に扱えるクライアントを提供する
 - 書類一覧APIの結果を内部データストアに同期し、柔軟な検索を可能にする
 - 企業別・期間別・書類種別など多様な条件でドキュメントを収集可能にする

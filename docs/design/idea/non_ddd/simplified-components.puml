@@ -1,12 +1,12 @@
-@startuml fino-edinet-collector - Simplified Components
-title fino-edinet-collector - Simplified Architecture (DDD concepts removed)
+@startuml fino-filing - Simplified Components
+title fino-filing - Simplified Architecture (DDD concepts removed)
 
 !include <C4/C4_Container>
 !include <C4/C4_Component>
 
 Person(user, "User")
 
-System_Boundary(system, "fino-edinet-collector") {
+System_Boundary(system, "fino-filing") {
 
     Boundary(services, "Services") {
         Component(edinet_service, "EdinetService", "ビジネスロジック")

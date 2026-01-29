@@ -1,5 +1,5 @@
-@startuml fino-edinet-collector - Simplified Class Diagram
-title fino-edinet-collector - Simplified Class Diagram (DDD concepts removed)
+@startuml fino-filing - Simplified Class Diagram
+title fino-filing - Simplified Class Diagram (DDD concepts removed)
 
 skinparam linetype ortho
 skinparam classAttributeIconSize 0

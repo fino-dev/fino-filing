@@ -1,5 +1,5 @@
-@startuml fino-edinet-collector - Coding Level
-title fino-edinet-collector - Class Diagram (Derived from Final Component Graph)
+@startuml fino-filing - Coding Level
+title fino-filing - Class Diagram (Derived from Final Component Graph)
 
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
