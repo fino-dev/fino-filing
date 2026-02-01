@@ -6,50 +6,39 @@ title fino-filing - Component Level (Abstracted)
 
 Person(user, "User")
 
-System_Boundary(system, "fino-filing") {
-
-    Boundary(application_boundary, "Application Layer") {
-        Component(edinet, "Edinet Facade", "Public API")
-        Component(collection, "Collection Facade", "Public API")
+System_Boundary(fino_filing, "fino-filing") {
+    Boundary(filing_collection_boundary, "Filing Collection") {
+        Component(filing_collection, "Filing Collection")
+    }
+    Boundary(edger_collector_boundary, "Edger Collector") {
+        Component(edger_collector, "Edger Collector")
+        Component_Ext(edger_api, "Edger APIs", "External Api")
+    }
+    Boundary(edinet_collector_boundary, "Edinet Collector") {
+        Component(edinet_collector, "Edinet Collector")
+        Component_Ext(edinet_api, "Edinet APIs", "External Api")
+    }
+    Boundary(edinet_plugin_boundary, "Edinet plugin") {
+        Component(edinet_indexer, "Edinet Indexer")
+        ComponentDb_Ext(edinet_metadata_store, "Edinet Metadata Store", "Database")
     }
 
-    Boundary(domain_boundary, "Domain Layer") {
-        Component(collection_model, "Collection Model", "Domain Model")
-        Component(filing_model, "Filing Model", "Domain Model")
-    }
+    ' user connection
+    Rel(user, filing_collection, "Manage")
+    Rel(user, edger_collector, "Collect")
+    Rel(user, edinet_collector, "Collect")
 
-    Boundary(adapter_boundary, "Adapters") {
-        Component(edinet_adapter, "Edinet Adapter", "Adapter")
-        Component(storage_adapter, "Filing Storage Adapter", "Adapter")
-        Component(metadata_adapter, "Metadata Store Adapter", "Adapter")
+    ' filing collection connection
+    Rel( edger_collector, filing_collection, "Download")
+    Rel(edinet_collector, filing_collection, "Download")
 
-        Component_Ext(edinet_api, "Edinet APIs", "external")
-        Component_Ext(filing_storage, "Filing Storage", "external")
-        ComponentDb_Ext(metadata_store, "Metadata Store", "external")
-    }
+    ' edger connection
+    Rel(edger_collector, edger_api, "Fetch")
 
-    ' User interactions
-    Rel(user, edinet, "sync_catalog & collect")
-    Rel(user, collection, "search & get")
-
-    ' Application to Domain
-    Rel(edinet, collection_model, "")
-    Rel(collection, collection_model, "")
-
-    ' Application to Adapter
-    Rel(edinet, edinet_adapter, "")
-
-    ' domain to domain
-    Rel(filing_model, collection_model, "")
-
-    ' Domain to Adapter
-    Rel(collection_model, storage_adapter, "")
-    Rel(collection_model, metadata_adapter, "")
-
-    ' Adapter to external
-    Rel(edinet_adapter, edinet_api, "")
-    Rel(storage_adapter, filing_storage, "")
-    Rel(metadata_adapter, metadata_store, "")
+    ' edinet connection
+    Rel(edinet_collector, edinet_indexer, "Manage index")
+    Rel(edinet_collector, edinet_api, "Fetch")
+    Rel(edinet_indexer, edinet_metadata_store, "Store metadata")
 }
 
 skinparam linetype ortho
