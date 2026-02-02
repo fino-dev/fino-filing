@@ -8,15 +8,33 @@ skinparam packageStyle rectangle
 ' top to bottom direction
 left to right direction
 
-package "Collection Boudary" {
+package "Collection Boundary" {
     class Collection <public> {
+        - root: Path
+        - spec: Spec
+        - index: IndexStore
+        + add(file)
+        + rescan()
+        + find(**conditions)
     }
-    class CollectionSpec {
-        + partition: list[str]
-        + file_name: list[str]
+
+    package "Spec Layer" {
+        interface Spec {
+            + recover_semantic_core(entity)
+            + compute_fingerprint(core)
+        }
+    class EdinetSpec
+    class DefaultSpec
     }
-    class EdinetSpecAttribute {}
-    class EdgerSpecAttribute {}
+
+    package "Index Layer (Cache)" {
+        class IndexStore {
+            + upsert(entity)
+            + search(**conditions)
+            + clear()
+        }
+        class SQLiteIndex
+    }
 }
 
 package "Collector Boudary" {
@@ -58,6 +76,13 @@ EdinetClient o-- EdinetResponseMapper
 
 EdgerClient o-- EdgerQueryStrategy
 EdgerClient o-- EdgerResponseMapper
+
+
+Collection o-- Spec
+Collection o-- IndexStore
+
+Spec <|.. EdinetSpec
+Spec <|.. DefaultSpec
 
 
 ' package "Collection Boundary" {
@@ -126,5 +151,23 @@ EdgerClient o-- EdgerResponseMapper
 ' PartitionStrategy <|.. CustomPartitionStrategy
 ' Collection ..> Filing : creates
 
+package "Collection Core" {
+    class FilingEntity {
+        - file_path: Path
+        - meta_path: Path
+        + load_meta()
+        + save_meta(meta)
+        + semantic_core()
+        + fingerprint()
+    }
+}
+
+
+Collection *-- FilingEntity
+
+
+IndexStore <|-- SQLiteIndex
+
+@enduml
 
 @enduml
