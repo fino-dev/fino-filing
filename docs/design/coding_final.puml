@@ -11,6 +11,12 @@ left to right direction
 package "Collection Boudary" {
     class Collection <public> {
     }
+    class CollectionSpec {
+        + partition: list[str]
+        + file_name: list[str]
+    }
+    class EdinetSpecAttribute {}
+    class EdgerSpecAttribute {}
 }
 
 package "Collector Boudary" {
@@ -54,71 +60,71 @@ EdgerClient o-- EdgerQueryStrategy
 EdgerClient o-- EdgerResponseMapper
 
 
-package "Collection Boundary" {
-    class Collection <<public>> {
-        + add(filing, content)
-        + find(**filters)
-        + get(filing_id)
-        + list_all()
-        + export_catalog()
-    }
+' package "Collection Boundary" {
+'     class Collection <<public>> {
+'         + add(filing, content)
+'         + find(**filters)
+'         + get(filing_id)
+'         + list_all()
+'         + export_catalog()
+'     }
     
-    interface CatalogStore {
-        + index(metadata)
-        + search(**filters)
-        + get_metadata(filing_id)
-    }
+'     interface CatalogStore {
+'         + index(metadata)
+'         + search(**filters)
+'         + get_metadata(filing_id)
+'     }
     
-    class SQLiteCatalog {
-        - conn: Connection
-        + index(metadata)
-        + search(**filters)
-    }
+'     class SQLiteCatalog {
+'         - conn: Connection
+'         + index(metadata)
+'         + search(**filters)
+'     }
     
-    class DuckDBCatalog {
-        - conn: Connection
-        + index(metadata)
-        + search(**filters)
-    }
+'     class DuckDBCatalog {
+'         - conn: Connection
+'         + index(metadata)
+'         + search(**filters)
+'     }
     
-    interface Storage {
-        + save(path, content)
-        + load(path)
-        + exists(path)
-    }
+'     interface Storage {
+'         + save(path, content)
+'         + load(path)
+'         + exists(path)
+'     }
     
-    class PartitionSpec {
-        - strategy: PartitionStrategy
-        + compute_path(metadata)
-    }
+'     class PartitionSpec {
+'         - strategy: PartitionStrategy
+'         + compute_path(metadata)
+'     }
     
-    interface PartitionStrategy {
-        + generate_path(metadata)
-    }
+'     interface PartitionStrategy {
+'         + generate_path(metadata)
+'     }
     
-    class DatePartitionStrategy
-    class CompanyPartitionStrategy
-    class CustomPartitionStrategy
+'     class DatePartitionStrategy
+'     class CompanyPartitionStrategy
+'     class CustomPartitionStrategy
     
-    class Filing <<ValueObject>> {
-        + filing_id: str
-        + source: str
-        + metadata: dict
-        + get_content()
-        + to_xbrl()
-    }
-}
+'     class Filing <<ValueObject>> {
+'         + filing_id: str
+'         + source: str
+'         + metadata: dict
+'         + get_content()
+'         + to_xbrl()
+'     }
+' }
 
-Collection o-- CatalogStore
-Collection o-- Storage
-Collection o-- PartitionSpec
-CatalogStore <|.. SQLiteCatalog
-CatalogStore <|.. DuckDBCatalog
-PartitionSpec o-- PartitionStrategy
-PartitionStrategy <|.. DatePartitionStrategy
-PartitionStrategy <|.. CompanyPartitionStrategy
-PartitionStrategy <|.. CustomPartitionStrategy
-Collection ..> Filing : creates
+' Collection o-- CatalogStore
+' Collection o-- Storage
+' Collection o-- PartitionSpec
+' CatalogStore <|.. SQLiteCatalog
+' CatalogStore <|.. DuckDBCatalog
+' PartitionSpec o-- PartitionStrategy
+' PartitionStrategy <|.. DatePartitionStrategy
+' PartitionStrategy <|.. CompanyPartitionStrategy
+' PartitionStrategy <|.. CustomPartitionStrategy
+' Collection ..> Filing : creates
 
 
 @enduml
