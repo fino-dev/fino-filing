@@ -1,5 +1,5 @@
 def main():
-    print("Hello from fino-eidnet-collector!")
+    print("Hello from fino-filing!")
 
 
 if __name__ == "__main__":

@@ -1,14 +1,14 @@
 {
-  "name": "fino-eidnet-collector",
+  "name": "fino-filing",
   "version": "1.0.0",
   "description": "Focucing on collecting efficienty filing from EDINET",
-  "homepage": "https://github.com/fino-dev/fino-eidnet-collector#readme",
+  "homepage": "https://github.com/fino-dev/fino-filing#readme",
   "bugs": {
-    "url": "https://github.com/fino-dev/fino-eidnet-collector/issues"
+    "url": "https://github.com/fino-dev/fino-filing/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fino-dev/fino-eidnet-collector.git"
+    "url": "git+https://github.com/fino-dev/fino-filing.git"
   },
   "license": "ISC",
   "author": "",
