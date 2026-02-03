@@ -77,12 +77,12 @@ class IndexDB:
         self.conn.execute("DELETE FROM filings")
         self.conn.commit()
 
-    def rebuild(self, registry_mgr):
+    def rebuild(self, registry_manager):
         """Registry から DB再構築"""
         self.clear()
 
         count = 0
-        for registry in registry_mgr.scan_all():
+        for registry in registry_manager.scan_all():
             for memento in registry.filings:
                 self.conn.execute(
                     """

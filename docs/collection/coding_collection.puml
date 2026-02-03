@@ -5,7 +5,7 @@ skinparam classAttributeIconSize 0
 package "Collection Core" {
     class Collection <<Facade>> {
         - index_db: IndexDB
-        - registry_mgr: RegistryManager
+        - registry_manager: RegistryManager
         - storage: Storage
         - spec: CollectionSpec
         
@@ -38,14 +38,14 @@ package "Index Layer (Cache)" {
         + search(**filters): List[dict]
         + get(filing_id): dict
         + clear()
-        + rebuild(registry_mgr)
+        + rebuild(registry_manager)
     }
     
     class SQLiteIndex {
         - conn: Connection
         + index(filing)
         + search(**filters)
-        + rebuild(registry_mgr)
+        + rebuild(registry_manager)
     }
 }
 

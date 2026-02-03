@@ -11,9 +11,9 @@ spec = CollectionSpec(
     id_strategy=StandardIDStrategy(),
     registry_strategy=DateBasedPlacement(),
 )
-registry_mgr = RegistryManager(storage, spec)
+registry_manager = RegistryManager(storage, spec)
 
-collection = Collection(storage, index_db, registry_mgr, spec)
+collection = Collection(storage, index_db, registry_manager, spec)
 
 # Filing追加(Collectorから)
 from fino_filing.edinet import EdinetCollector
@@ -39,7 +39,7 @@ os.remove("./index.db")
 # 新しいDB作成
 index_db = IndexDB("./index.db")
 
-collection = Collection(storage, index_db, registry_mgr, spec)
+collection = Collection(storage, index_db, registry_manager, spec)
 
 # Registry から再構築
 collection.rebuild_index()
@@ -88,5 +88,5 @@ spec = CollectionSpec(
     registry_strategy=HybridPlacement(),
 )
 
-collection = Collection(storage, index_db, registry_mgr, spec)
+collection = Collection(storage, index_db, registry_manager, spec)
 ```

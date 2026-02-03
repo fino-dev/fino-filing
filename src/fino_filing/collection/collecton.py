@@ -11,12 +11,12 @@ class Collection:
         self,
         storage,
         index_db: IndexDB,
-        registry_mgr: RegistryManager,
+        registry_manager: RegistryManager,
         spec: CollectionSpec,
     ):
         self.storage = storage
         self.index_db = index_db
-        self.registry_mgr = registry_mgr
+        self.registry_manager = registry_manager
         self.spec = spec
 
     # ========== 追加系 ==========
@@ -45,7 +45,7 @@ class Collection:
 
         # 4. Registry登録
         directory = path.rsplit("/", 1)[0]
-        self.registry_mgr.register(filing_with_path, directory)
+        self.registry_manager.register(filing_with_path, directory)
 
         return path
 
@@ -74,7 +74,7 @@ class Collection:
     def rebuild_index(self):
         """Index DB再構築(Registry から)"""
         print("Rebuilding index from registries...")
-        self.index_db.rebuild(self.registry_mgr)
+        self.index_db.rebuild(self.registry_manager)
         print("Index rebuild complete")
 
     def verify_integrity(self) -> dict:
