@@ -36,7 +36,7 @@ class IndexDB:
             (filing_id, source, source_id, checksum, document_type, 
              submit_date, company_name, _path)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+            """,
             (
                 filing.filing_id,
                 filing.source,
