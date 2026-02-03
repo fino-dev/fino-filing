@@ -15,7 +15,7 @@ registry_mgr = RegistryManager(storage, spec)
 
 collection = Collection(storage, index_db, registry_mgr, spec)
 
-# Filing追加（Collectorから）
+# Filing追加(Collectorから)
 from fino_filing.edinet import EdinetCollector
 
 collector = EdinetCollector(collection, api_key="...")

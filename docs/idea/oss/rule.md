@@ -6,20 +6,20 @@
 
 以下の3層構成を採用する：
 
-- domain  
+- domain
   - 純粋なドメインモデル
   - Entity / ValueObject / Repository Interface を配置
   - 外部ライブラリやDBには依存しない
 
-- application  
+- application
   - ユースケースを実装する層
   - domainのモデルとRepository interfaceを使用する
-  - Facadeクラス（Edinet）はこの層に配置する
+  - Facadeクラス(Edinet)はこの層に配置する
 
-- adapters  
+- adapters
   - 外部システムとの接続を担当
   - EDINET API クライアント
-  - 永続化実装（SQLite, DynamoDBなど）
+  - 永続化実装(SQLite, DynamoDBなど)
   - domain/application に依存してよいが、逆方向の依存は禁止
 
 依存方向：
@@ -32,8 +32,8 @@ domain ← application ← adapters
 - Repositoryのインターフェースは domain 層に定義する
 - 実装クラスは adapters 層に配置する
 - 実装は以下を想定する：
-  - Local: SQLite（デフォルト）
-  - Cloud: DynamoDB（将来拡張）
+  - Local: SQLite(デフォルト)
+  - Cloud: DynamoDB(将来拡張)
 
 ---
 
@@ -43,7 +43,7 @@ domain ← application ← adapters
 
 - 初回はEDINET APIからフル同期
 - 2回目以降は差分同期を基本とする
-- 既存データは原則上書きしない（document_id単位で冪等性を確保）
+- 既存データは原則上書きしない(document_id単位で冪等性を確保)
 - API上で削除されたデータもローカルからは削除しない
 
 ---

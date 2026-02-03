@@ -12,7 +12,7 @@ Person(user, "User")
 System_Boundary(collection, "FilingCollection") {
     Component(facade, "Collection", "Facade", "統一API・整合性検証")
     
-    Component(index, "IndexDB", "Cache-Aside", "高速検索（SQLite）")
+    Component(index, "IndexDB", "Cache-Aside", "高速検索(SQLite)")
     Component(registry, "RegistryManager", "Memento", "分散metadata管理")
     Component(storage, "Storage", "Repository", "Payload抽象化")
     

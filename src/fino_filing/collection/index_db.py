@@ -2,7 +2,7 @@ import sqlite3
 
 
 class IndexDB:
-    """Index DB（キャッシュ層）"""
+    """Index DB(キャッシュ層)"""
 
     def __init__(self, db_path: str):
         self.conn = sqlite3.connect(db_path)
@@ -51,7 +51,7 @@ class IndexDB:
         self.conn.commit()
 
     def search(self, **filters) -> list[dict]:
-        """検索（高速）"""
+        """検索(高速)"""
         conditions = []
         params = []
 
@@ -73,7 +73,7 @@ class IndexDB:
         return dict(row) if row else None
 
     def clear(self):
-        """全削除（再構築前）"""
+        """全削除(再構築前)"""
         self.conn.execute("DELETE FROM filings")
         self.conn.commit()
 

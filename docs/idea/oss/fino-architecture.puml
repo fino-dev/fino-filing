@@ -46,7 +46,7 @@ package "Public API" <<Cloud>> #E8F5E9 {
     + with_custom_field(name, value) : Self
     + build() : CollectionSpec
     --
-    Builderパターン（Typerスタイル）
+    Builderパターン(Typerスタイル)
     メソッドチェーンで段階的構築
   }
 }
@@ -57,8 +57,8 @@ package "Public API" <<Cloud>> #E8F5E9 {
 package "Domain Models" <<Rectangle>> #FFF3E0 {
   note as N2
     **ドメインモデル** (Pydanticベース)
-    - 値オブジェクト（イミュータブル）
-    - エンティティ（識別子あり）
+    - 値オブジェクト(イミュータブル)
+    - エンティティ(識別子あり)
     - 型安全性、バリデーション
   end note
   
@@ -243,7 +243,7 @@ package "Plugin Interfaces" <<Frame>> #E3F2FD {
 package "Internal Implementation\n(fino._internal)" <<Rectangle>> #ECEFF1 {
   note as N4
     **内部実装** (Pydanticスタイル)
-    - 非公開API（_プレフィックス）
+    - 非公開API(_プレフィックス)
     - リファクタリング自由
     - 後方互換性の制約なし
   end note
@@ -267,7 +267,7 @@ package "Internal Implementation\n(fino._internal)" <<Rectangle>> #ECEFF1 {
       + from_dict(data: dict) : Filing
       + batch_from_catalog(catalog: list[dict]) : list[FilingMetadata]
       --
-      Factoryパターン（Pydanticスタイル）
+      Factoryパターン(Pydanticスタイル)
     }
     
     class EdinetClientFactory {
@@ -306,7 +306,7 @@ package "Internal Implementation\n(fino._internal)" <<Rectangle>> #ECEFF1 {
       + save(path: Path, content: bytes) : Path
       + load(path: Path) : bytes
       --
-      Strategyパターン（FastAPIスタイル）
+      Strategyパターン(FastAPIスタイル)
     }
     
     class LocalFileStorage {

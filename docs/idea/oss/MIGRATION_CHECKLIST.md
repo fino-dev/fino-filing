@@ -36,10 +36,12 @@
 ### 既存コードの移動
 
 **application層 → 公開API**
+
 - [ ] `application.Edinet` → `fino.client.Edinet`
 - [ ] `application.Collection` → `fino.client.Collection`
 
 **domain層 → models/types**
+
 - [ ] `domain.Filing` → `fino.models.Filing`
 - [ ] `domain.FilingMetadata` → `fino.models.FilingMetadata`
 - [ ] `domain.Period` → `fino.models.Period`
@@ -50,7 +52,8 @@
 - [ ] `domain.DocumentType` → `fino.types.DocumentType`
 - [ ] `domain.DocumentTypeEnum` → `fino.types.DocumentTypeEnum`
 
-**adapters層 → plugins + _internal**
+**adapters層 → plugins + \_internal**
+
 - [ ] `adapters.interfaces.EdinetAdapter` → `fino._internal.adapters.edinet.EdinetApiAdapter`
 - [ ] `adapters.interfaces.StorageAdapter` → `fino.plugins.storage.StoragePlugin`
 - [ ] `adapters.interfaces.MetadataAdapter` → `fino.plugins.metadata.MetadataPlugin`
@@ -61,6 +64,7 @@
 - [ ] `adapters.implementations.DynamoMetadataAdapter` → `fino._internal.strategies.metadata.DynamoDBMetadata`
 
 **config層 → config**
+
 - [ ] `config.EdinetConfig` → `fino.config.EdinetConfig`
 - [ ] `config.StorageConfig` → `fino.config.StorageConfig`
 - [ ] `config.MetadataConfig` → `fino.config.MetadataConfig`
@@ -75,15 +79,12 @@
   - [ ] フィールドに`Field()`でdescription追加
   - [ ] `open()`メソッドの保持
   - [ ] `validate()`をPydantic validatorに変更
-  
 - [ ] `Period` → `BaseModel` with `frozen=True`
   - [ ] `@field_validator`でstart_date <= end_dateを検証
   - [ ] `duration_days()`メソッド追加
-  
 - [ ] `DocumentType` → `BaseModel` with `frozen=True`
-  - [ ] `from_code()`クラスメソッド追加（Factory）
+  - [ ] `from_code()`クラスメソッド追加(Factory)
   - [ ] `label_ja`フィールド追加
-  
 - [ ] `CollectionSpec` → `BaseModel` with `frozen=True`
   - [ ] `@model_validator`でdoc_id/format_type必須検証
   - [ ] `generate_path()`メソッド保持
@@ -101,13 +102,10 @@
 - [ ] `EdinetConfig` → `BaseSettings`
   - [ ] `env_prefix = "FINO_EDINET_"`
   - [ ] `from_env()`クラスメソッド
-  
 - [ ] `StorageConfig` → `BaseSettings`
   - [ ] `env_prefix = "FINO_STORAGE_"`
-  
 - [ ] `MetadataConfig` → `BaseSettings`
   - [ ] `env_prefix = "FINO_METADATA_"`
-  
 - [ ] `FinoConfig` → `BaseModel`
   - [ ] 全サブ設定を統合
   - [ ] `from_file(path: Path)`でTOML読み込み
@@ -123,11 +121,9 @@
   - [ ] `from_metadata()` - メタデータからFiling生成
   - [ ] `from_dict()` - 辞書からFiling生成
   - [ ] `batch_from_catalog()` - カタログからバッチ生成
-  
 - [ ] `EdinetClientFactory`の実装
   - [ ] `create(config)` - 設定からクライアント生成
   - [ ] `from_env()` - 環境変数からクライアント生成
-  
 - [ ] `DocumentType.from_code()`の実装
   - [ ] コードから型へのマッピング
   - [ ] 不明なコードは`OTHER`にフォールバック
@@ -140,32 +136,30 @@
   - [ ] `with_custom_field(name, value)` - カスタムフィールド追加
   - [ ] `build()` - CollectionSpec構築
   - [ ] デフォルト値の設定
-  - [ ] バリデーション（doc_id/format_type必須）
+  - [ ] バリデーション(doc_id/format_type必須)
 
 ### Strategy Pattern
 
 **ストレージストラテジー**
+
 - [ ] `LocalFileStorage`の実装
   - [ ] `save()`, `load()`, `exists()`, `delete()`, `list()`
   - [ ] パス管理、ディレクトリ自動作成
-  
 - [ ] `S3Storage`の実装
   - [ ] boto3統合
   - [ ] エラーハンドリング
-  
-- [ ] `GCSStorage`の実装（オプション）
+- [ ] `GCSStorage`の実装(オプション)
   - [ ] google-cloud-storage統合
 
 **メタデータストラテジー**
+
 - [ ] `SQLiteMetadata`の実装
   - [ ] テーブル定義、インデックス
   - [ ] CRUD操作、検索機能
-  
 - [ ] `PostgreSQLMetadata`の実装
   - [ ] SQLAlchemy統合
   - [ ] コネクションプール
-  
-- [ ] `DynamoDBMetadata`の実装（オプション）
+- [ ] `DynamoDBMetadata`の実装(オプション)
   - [ ] boto3統合
 
 ### Plugin Pattern
@@ -174,7 +168,6 @@
   - [ ] `register_storage()`, `register_metadata()`
   - [ ] `get_storage()`, `get_metadata()`
   - [ ] `discover_plugins()` - エントリーポイント発見
-  
 - [ ] プラグインインターフェースの定義
   - [ ] `StoragePlugin` (Protocol)
   - [ ] `MetadataPlugin` (Protocol)
@@ -215,12 +208,11 @@
 ### シンプルなAPI設計
 
 - [ ] `Edinet`クラス
-  - [ ] デフォルトコンストラクタ（引数なしで動作）
+  - [ ] デフォルトコンストラクタ(引数なしで動作)
   - [ ] `sync_catalog()` - カタログ同期
   - [ ] `search(**conditions)` - 検索
   - [ ] `collect(**conditions)` - 収集
   - [ ] `get(document_id)` - 取得
-  
 - [ ] `Collection`クラス
   - [ ] `search(**conditions)` - 検索
   - [ ] `get(document_id)` - 取得
@@ -231,7 +223,7 @@
 
 - [ ] 全ての公開関数・メソッドに型ヒント
 - [ ] 戻り値の型ヒント
-- [ ] ジェネリクスの活用（`list[Filing]`等）
+- [ ] ジェネリクスの活用(`list[Filing]`等)
 - [ ] `py.typed`ファイルの配置
 
 ---
@@ -290,7 +282,7 @@
 ### エラーハンドリング
 
 - [ ] API呼び出しのリトライ
-- [ ] 部分的な失敗の処理（`CollectResult`）
+- [ ] 部分的な失敗の処理(`CollectResult`)
 - [ ] ロギングの統合
 - [ ] デバッグ情報の出力
 
@@ -308,9 +300,9 @@
 
 ### 統合テスト
 
-- [ ] EDINET API統合テスト（モック使用）
-- [ ] ストレージ統合テスト（各バックエンド）
-- [ ] メタデータストア統合テスト（各バックエンド）
+- [ ] EDINET API統合テスト(モック使用)
+- [ ] ストレージ統合テスト(各バックエンド)
+- [ ] メタデータストア統合テスト(各バックエンド)
 - [ ] エンドツーエンドテスト
 
 ### プラグインテスト
@@ -362,13 +354,14 @@
   - [ ] `pydantic >= 2.0`
   - [ ] `pydantic-settings`
   - [ ] `httpx`
-  - [ ] オプショナル依存関係（boto3, sqlalchemy等）
+  - [ ] オプショナル依存関係(boto3, sqlalchemy等)
 - [ ] エントリーポイントの定義
+
   ```toml
   [project.entry-points."fino.storage"]
   local = "fino._internal.strategies.storage:LocalFileStorage"
   s3 = "fino._internal.strategies.storage:S3Storage"
-  
+
   [project.entry-points."fino.metadata"]
   sqlite = "fino._internal.strategies.metadata:SQLiteMetadata"
   postgresql = "fino._internal.strategies.metadata:PostgreSQLMetadata"
@@ -455,7 +448,7 @@
 ## 完了条件
 
 - [ ] 全てのチェック項目が完了
-- [ ] テストが全てパス（カバレッジ >= 80%）
+- [ ] テストが全てパス(カバレッジ >= 80%)
 - [ ] `mypy --strict`がエラーなし
 - [ ] ドキュメントが完備
 - [ ] PyPIに公開済み
@@ -465,22 +458,22 @@
 
 ## 推定工数
 
-| Phase | 工数 | 備考 |
-|-------|------|------|
-| Phase 1-2 | 5-7日 | パッケージ再編成、Pydantic化 |
-| Phase 3 | 3-5日 | デザインパターン実装 |
-| Phase 4-5 | 3-4日 | 公開API整備、内部実装 |
-| Phase 6 | 2-3日 | 例外処理統一 |
-| Phase 7 | 5-7日 | テスト整備 |
-| Phase 8 | 3-4日 | ドキュメント |
-| Phase 9-12 | 2-3日 | パッケージング、リリース |
-| **合計** | **23-33日** | 約1-1.5ヶ月 |
+| Phase      | 工数        | 備考                         |
+| ---------- | ----------- | ---------------------------- |
+| Phase 1-2  | 5-7日       | パッケージ再編成、Pydantic化 |
+| Phase 3    | 3-5日       | デザインパターン実装         |
+| Phase 4-5  | 3-4日       | 公開API整備、内部実装        |
+| Phase 6    | 2-3日       | 例外処理統一                 |
+| Phase 7    | 5-7日       | テスト整備                   |
+| Phase 8    | 3-4日       | ドキュメント                 |
+| Phase 9-12 | 2-3日       | パッケージング、リリース     |
+| **合計**   | **23-33日** | 約1-1.5ヶ月                  |
 
 ---
 
 ## 優先順位
 
-### 高（MVP）
+### 高(MVP)
 
 1. Phase 1-2: パッケージ再編成、Pydantic化
 2. Phase 3: Factory/Builder実装
@@ -495,7 +488,7 @@
 8. Phase 6: 例外処理統一
 9. Phase 7: 包括的なテスト
 
-### 低（将来）
+### 低(将来)
 
 10. Phase 9-12: パッケージング、リリース
 11. 追加プラグインの実装

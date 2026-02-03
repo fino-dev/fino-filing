@@ -6,7 +6,7 @@ from typing import Optional
 
 @dataclass(frozen=True)  # Immutable
 class Filing:
-    """Filing Entity（不変ID保持）"""
+    """Filing Entity(不変ID保持)"""
 
     filing_id: str  # 不変ID
     source: str  # edinet, edgar, tdnet
@@ -20,7 +20,7 @@ class Filing:
     _content_cache: Optional[bytes] = None
 
     def get_content(self) -> bytes:
-        """Payload取得（遅延ロード）"""
+        """Payload取得(遅延ロード)"""
         if self._content_cache is None:
             path = self.metadata.get("_path")
             if not path or not self._storage:
@@ -35,7 +35,7 @@ class Filing:
         return actual == self.checksum
 
     def to_dict(self) -> dict:
-        """辞書形式（Registry保存用）"""
+        """辞書形式(Registry保存用)"""
         return {
             "filing_id": self.filing_id,
             "source": self.source,

@@ -1,12 +1,11 @@
-from fino_filing.collection.registry import RegistryManager
-
 from fino_filing.collection.index_db import IndexDB
 from fino_filing.collection.models import Filing
+from fino_filing.collection.registry import RegistryManager
 from fino_filing.collection.spec import CollectionSpec
 
 
 class Collection:
-    """Collection Facade（統一API）"""
+    """Collection Facade(統一API)"""
 
     def __init__(
         self,
@@ -23,7 +22,7 @@ class Collection:
     # ========== 追加系 ==========
 
     def add(self, filing: Filing, content: bytes) -> str:
-        """Filing追加（DB + Registry 両方に登録）"""
+        """Filing追加(DB + Registry 両方に登録)"""
         # 1. Checksum検証
         import hashlib
 
@@ -51,15 +50,15 @@ class Collection:
         return path
 
     def _compute_path(self, filing: Filing) -> str:
-        """パス計算（Partition戦略使用）"""
-        # 簡易実装（本来は別のPartition strategyが必要）
+        """パス計算(Partition戦略使用)"""
+        # 簡易実装(本来は別のPartition strategyが必要)
         submit_date = filing.submit_date
         return f"{filing.source}/{submit_date.year}/{submit_date.month:02d}/{filing.filing_id}.zip"
 
     # ========== 検索系 ==========
 
     def find(self, **filters) -> list[Filing]:
-        """検索（Index DB使用）"""
+        """検索(Index DB使用)"""
         results = self.index_db.search(**filters)
         return [Filing.from_dict(r, self.storage) for r in results]
 
@@ -73,7 +72,7 @@ class Collection:
     # ========== 管理系 ==========
 
     def rebuild_index(self):
-        """Index DB再構築（Registry から）"""
+        """Index DB再構築(Registry から)"""
         print("Rebuilding index from registries...")
         self.index_db.rebuild(self.registry_mgr)
         print("Index rebuild complete")
@@ -106,7 +105,7 @@ class Collection:
         return issues
 
     def migrate(self, new_storage):
-        """Storage移行（Local → S3等）"""
+        """Storage移行(Local → S3等)"""
         print("Migrating storage...")
 
         count = 0

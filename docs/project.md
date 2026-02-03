@@ -32,4 +32,4 @@ docs = client.search(company="トヨタ", doc_type="有価証券報告書")
 client.download(docs, path="./data")
 ```
 
-利用者は基本的に Facade クラス（Edinet）経由で操作する。
+利用者は基本的に Facade クラス(Edinet)経由で操作する。

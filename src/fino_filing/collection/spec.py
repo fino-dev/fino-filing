@@ -19,7 +19,7 @@ class StandardIDStrategy:
     """標準ID戦略: {source}:{source_id}:{checksum_short}"""
 
     def generate_id(self, source: str, source_id: str, checksum: str) -> str:
-        # checksum先頭8文字のみ使用（衝突リスク低い）
+        # checksum先頭8文字のみ使用(衝突リスク低い)
         checksum_short = checksum[:8]
         return f"{source}:{source_id}:{checksum_short}"
 
@@ -85,7 +85,7 @@ class DateBasedPlacement:
 
 
 class SourceBasedPlacement:
-    """Sourceベース: {source}/.fino_registry.json（全てroot直下）"""
+    """Sourceベース: {source}/.fino_registry.json(全てroot直下)"""
 
     def __init__(self, registry_filename: str = ".fino_registry.json"):
         self.registry_filename = registry_filename

@@ -2,7 +2,7 @@
 
 ## 概要
 
-このドキュメントは、4つの成功したPython OSSライブラリ（FastAPI、Pydantic、pytest、Typer）の設計思想を分析し、その知見をfinoライブラリの設計に適用したアーキテクチャ再設計の詳細ガイドです。
+このドキュメントは、4つの成功したPython OSSライブラリ(FastAPI、Pydantic、pytest、Typer)の設計思想を分析し、その知見をfinoライブラリの設計に適用したアーキテクチャ再設計の詳細ガイドです。
 
 ---
 
@@ -10,24 +10,25 @@
 
 ### 主要な変更点
 
-| 項目 | 変更前 | 変更後 | 参考OSS |
-|-----|--------|--------|---------|
-| **パッケージ構造** | 層ベース (application/domain/adapters) | 公開/内部分離 (fino/ + _internal/) | Pydantic |
-| **公開API** | 全てのクラスが公開 | `__init__.py`で明示的エクスポート | Typer |
-| **拡張性** | 固定的なアダプター実装 | プラグインシステム | pytest |
-| **デザインパターン** | 暗黙的 | 明示的（Factory/Builder/Strategy/Plugin） | 全て |
-| **型安全性** | 基本的な型ヒント | Pydanticモデル、バリデーション | Pydantic |
-| **依存性の方向** | 不明確 | 内向き（公開API → 内部実装） | Pydantic |
+| 項目                 | 変更前                                 | 変更後                                  | 参考OSS  |
+| -------------------- | -------------------------------------- | --------------------------------------- | -------- |
+| **パッケージ構造**   | 層ベース (application/domain/adapters) | 公開/内部分離 (fino/ + \_internal/)     | Pydantic |
+| **公開API**          | 全てのクラスが公開                     | `__init__.py`で明示的エクスポート       | Typer    |
+| **拡張性**           | 固定的なアダプター実装                 | プラグインシステム                      | pytest   |
+| **デザインパターン** | 暗黙的                                 | 明示的(Factory/Builder/Strategy/Plugin) | 全て     |
+| **型安全性**         | 基本的な型ヒント                       | Pydanticモデル、バリデーション          | Pydantic |
+| **依存性の方向**     | 不明確                                 | 内向き(公開API → 内部実装)              | Pydantic |
 
 ---
 
 ## レイヤーアーキテクチャの詳細
 
-### Layer 1: Public API (fino/__init__.py)
+### Layer 1: Public API (fino/**init**.py)
 
 **役割**: ユーザーが直接使用するインターフェース
 
 **公開クラス**:
+
 - `Edinet`: メインクライアント
 - `Collection`: コレクション管理
 - `CollectionSpecBuilder`: ビルダー
@@ -37,6 +38,7 @@
 - `FinoConfig`: 設定
 
 **設計思想** (Typerスタイル):
+
 ```python
 # fino/__init__.py
 from .client import Edinet as Edinet
@@ -61,6 +63,7 @@ __all__ = [
 ```
 
 **利点**:
+
 - セマンティックバージョニングで後方互換性保証
 - ユーザーが使うべきAPIが明確
 - リファクタリングが容易
@@ -74,60 +77,65 @@ __all__ = [
 #### 値オブジェクト (Value Objects)
 
 **`Filing`** - イミュータブルな開示書類
+
 ```python
 from pydantic import BaseModel, Field
 
 class Filing(BaseModel):
-    """開示書類（値オブジェクト）"""
+    """開示書類(値オブジェクト)"""
     document_id: str = Field(..., description="文書ID")
     partition: tuple[str, ...] = Field(..., description="パーティション")
     file_name: str = Field(..., description="ファイル名")
     path: Path = Field(..., description="保存パス")
     format_type: FormatType = Field(..., description="フォーマット種別")
     metadata: FilingMetadata = Field(..., description="メタデータ")
-    
+
     model_config = {"frozen": True}  # イミュータブル
-    
+
     def open(self) -> IO[bytes]:
         """ファイルを開く"""
         ...
 ```
 
 **設計判断**:
-- `frozen=True`でイミュータブル化（金融データの改ざん防止）
+
+- `frozen=True`でイミュータブル化(金融データの改ざん防止)
 - Pydanticで自動バリデーション
 - 型ヒントで静的解析可能
 
 **`Period`** - イミュータブルな期間
+
 ```python
 class Period(BaseModel):
-    """期間（値オブジェクト）"""
+    """期間(値オブジェクト)"""
     start_date: date
     end_date: date
-    
+
     model_config = {"frozen": True}
-    
+
     @field_validator("end_date")
     @classmethod
     def validate_end_after_start(cls, v: date, info: ValidationInfo) -> date:
         if "start_date" in info.data and v < info.data["start_date"]:
             raise ValueError("end_date must be >= start_date")
         return v
-    
+
     def duration_days(self) -> int:
         return (self.end_date - self.start_date).days
 ```
 
 **設計判断**:
-- バリデーションロジックをモデルに組み込む（Pydanticスタイル）
-- ビジネスルール（開始日 <= 終了日）を型レベルで保証
+
+- バリデーションロジックをモデルに組み込む(Pydanticスタイル)
+- ビジネスルール(開始日 <= 終了日)を型レベルで保証
 
 #### エンティティ (Entities)
 
 **`FilingMetadata`** - 識別子を持つメタデータ
+
 ```python
 class FilingMetadata(BaseModel):
-    """開示書類メタデータ（エンティティ）"""
+    """開示書類メタデータ(エンティティ)"""
     seq_number: str
     doc_id: str  # 主キー
     parent_doc_id: str | None = None
@@ -138,10 +146,10 @@ class FilingMetadata(BaseModel):
     filing_name: str
     document_type: DocumentType
     available_format_types: list[FormatType]
-    
+
     def __hash__(self) -> int:
         return hash(self.doc_id)  # 識別子でハッシュ
-    
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FilingMetadata):
             return False
@@ -149,8 +157,9 @@ class FilingMetadata(BaseModel):
 ```
 
 **設計判断**:
+
 - `doc_id`を識別子として使用
-- 等価性を識別子ベースで判定（DDD原則）
+- 等価性を識別子ベースで判定(DDD原則)
 
 ---
 
@@ -161,60 +170,63 @@ class FilingMetadata(BaseModel):
 #### プラグインシステムの設計 (pytestスタイル)
 
 **`StoragePlugin`** - ストレージバックエンド
+
 ```python
 from abc import ABC, abstractmethod
 from typing import Protocol
 
 class StoragePlugin(Protocol):
     """ストレージプラグインインターフェース"""
-    
+
     def save(self, path: Path, content: bytes) -> Path:
         """ファイルを保存"""
         ...
-    
+
     def load(self, path: Path) -> bytes:
         """ファイルを読み込み"""
         ...
-    
+
     def exists(self, path: Path) -> bool:
         """ファイルの存在確認"""
         ...
-    
+
     def delete(self, path: Path) -> None:
         """ファイルを削除"""
         ...
-    
+
     def list(self, prefix: Path) -> list[Path]:
         """ファイル一覧を取得"""
         ...
 ```
 
 **設計判断**:
-- `Protocol`を使用（ダックタイピング、Pydanticスタイル）
-- 最小限のインターフェース（5メソッド）
+
+- `Protocol`を使用(ダックタイピング、Pydanticスタイル)
+- 最小限のインターフェース(5メソッド)
 - 実装クラスは継承不要
 
 **`MetadataPlugin`** - メタデータストア
+
 ```python
 class MetadataPlugin(Protocol):
     """メタデータプラグインインターフェース"""
-    
+
     def save(self, filing: Filing) -> None:
         """メタデータを保存"""
         ...
-    
+
     def save_batch(self, filings: list[Filing]) -> None:
         """バッチ保存"""
         ...
-    
+
     def search(self, **conditions) -> list[Filing]:
         """検索"""
         ...
-    
+
     def get(self, document_id: str) -> Filing:
         """ID指定で取得"""
         ...
-    
+
     def count(self, **conditions) -> int:
         """件数取得"""
         ...
@@ -223,42 +235,44 @@ class MetadataPlugin(Protocol):
 #### プラグイン登録システム (pytestスタイル)
 
 **`PluginRegistry`**
+
 ```python
 class PluginRegistry:
     """プラグイン登録・管理"""
     _storage_plugins: dict[str, type[StoragePlugin]] = {}
     _metadata_plugins: dict[str, type[MetadataPlugin]] = {}
-    
+
     @classmethod
     def register_storage(cls, name: str, plugin: type[StoragePlugin]) -> None:
         """ストレージプラグイン登録"""
         cls._storage_plugins[name] = plugin
-    
+
     @classmethod
     def register_metadata(cls, name: str, plugin: type[MetadataPlugin]) -> None:
         """メタデータプラグイン登録"""
         cls._metadata_plugins[name] = plugin
-    
+
     @classmethod
     def get_storage(cls, name: str) -> type[StoragePlugin]:
         """ストレージプラグイン取得"""
         return cls._storage_plugins[name]
-    
+
     @classmethod
     def discover_plugins(cls) -> None:
         """エントリーポイントからプラグイン発見"""
         import importlib.metadata
-        
+
         for entry_point in importlib.metadata.entry_points(group="fino.storage"):
             plugin = entry_point.load()
             cls.register_storage(entry_point.name, plugin)
-        
+
         for entry_point in importlib.metadata.entry_points(group="fino.metadata"):
             plugin = entry_point.load()
             cls.register_metadata(entry_point.name, plugin)
 ```
 
 **使用例**:
+
 ```python
 # プラグイン自動発見
 PluginRegistry.discover_plugins()
@@ -273,6 +287,7 @@ storage = storage_cls(bucket="my-bucket")
 ```
 
 **`setup.py`でのプラグイン定義**:
+
 ```python
 setup(
     name="fino-s3-storage",
@@ -285,13 +300,14 @@ setup(
 ```
 
 **設計判断**:
-- エントリーポイントベースの自動発見（pytestスタイル）
-- 実行時登録もサポート（柔軟性）
+
+- エントリーポイントベースの自動発見(pytestスタイル)
+- 実行時登録もサポート(柔軟性)
 - プラグイン名前空間で衝突回避
 
 ---
 
-### Layer 4: Internal Implementation (fino._internal)
+### Layer 4: Internal Implementation (fino.\_internal)
 
 **役割**: 非公開の内部実装
 
@@ -322,11 +338,12 @@ fino/_internal/
 #### Factory Pattern (Pydanticスタイル)
 
 **`FilingFactory`**
+
 ```python
 # fino/_internal/factories/filing.py
 class FilingFactory:
     """Filing生成ファクトリー"""
-    
+
     @staticmethod
     def from_metadata(
         metadata: FilingMetadata,
@@ -337,7 +354,7 @@ class FilingFactory:
         path = spec.generate_path(metadata)
         partition = tuple(spec.render_partition(metadata))
         file_name = spec.render_file_name(metadata, format_type)
-        
+
         return Filing(
             document_id=metadata.doc_id,
             partition=partition,
@@ -346,7 +363,7 @@ class FilingFactory:
             format_type=format_type,
             metadata=metadata,
         )
-    
+
     @staticmethod
     def from_dict(data: dict) -> Filing:
         """辞書からFilingを生成"""
@@ -359,7 +376,7 @@ class FilingFactory:
             format_type=FormatType(data["format_type"]),
             metadata=metadata,
         )
-    
+
     @staticmethod
     def batch_from_catalog(catalog: list[dict]) -> list[FilingMetadata]:
         """カタログからメタデータバッチ生成"""
@@ -367,37 +384,39 @@ class FilingFactory:
 ```
 
 **設計判断**:
-- 静的メソッドで状態を持たない（Pydanticスタイル）
-- 複数の生成方法を提供（from_metadata, from_dict, batch）
+
+- 静的メソッドで状態を持たない(Pydanticスタイル)
+- 複数の生成方法を提供(from_metadata, from_dict, batch)
 - Pydanticのバリデーションを活用
 
 #### Strategy Pattern (FastAPIスタイル)
 
 **ストレージストラテジー実装**
+
 ```python
 # fino/_internal/strategies/storage.py
 class LocalFileStorage:
     """ローカルファイルストレージ実装"""
-    
+
     def __init__(self, root_path: Path):
         self.root_path = root_path
         self.root_path.mkdir(parents=True, exist_ok=True)
-    
+
     def save(self, path: Path, content: bytes) -> Path:
         full_path = self.root_path / path
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(content)
         return full_path
-    
+
     def load(self, path: Path) -> bytes:
         return (self.root_path / path).read_bytes()
-    
+
     def exists(self, path: Path) -> bool:
         return (self.root_path / path).exists()
-    
+
     def delete(self, path: Path) -> None:
         (self.root_path / path).unlink(missing_ok=True)
-    
+
     def list(self, prefix: Path) -> list[Path]:
         full_prefix = self.root_path / prefix
         if not full_prefix.exists():
@@ -407,25 +426,26 @@ class LocalFileStorage:
 
 class S3Storage:
     """S3ストレージ実装"""
-    
+
     def __init__(self, bucket: str, prefix: str = "", **kwargs):
         import boto3
         self.bucket = bucket
         self.prefix = prefix
         self.client = boto3.client("s3", **kwargs)
-    
+
     def save(self, path: Path, content: bytes) -> Path:
         key = f"{self.prefix}/{path}" if self.prefix else str(path)
         self.client.put_object(Bucket=self.bucket, Key=key, Body=content)
         return Path(key)
-    
+
     # ... 他のメソッド実装
 ```
 
 **設計判断**:
-- 各ストレージ実装が独立（Strategy Pattern）
-- 同じインターフェース（StoragePlugin）を実装
-- 実行時に切り替え可能（FastAPIスタイル）
+
+- 各ストレージ実装が独立(Strategy Pattern)
+- 同じインターフェース(StoragePlugin)を実装
+- 実行時に切り替え可能(FastAPIスタイル)
 
 ---
 
@@ -434,6 +454,7 @@ class S3Storage:
 #### 設定管理 (Pydantic BaseSettings)
 
 **`FinoConfig`**
+
 ```python
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
@@ -444,12 +465,12 @@ class EdinetConfig(BaseSettings):
     base_url: str = "https://api.edinet-fsa.go.jp"
     timeout: int = 30
     retry_count: int = 3
-    
+
     model_config = {
         "env_prefix": "FINO_EDINET_",
         "env_file": ".env",
     }
-    
+
     @classmethod
     def from_env(cls) -> "EdinetConfig":
         return cls()
@@ -460,7 +481,7 @@ class FinoConfig(BaseModel):
     edinet: EdinetConfig
     storage: StorageConfig
     metadata: MetadataConfig
-    
+
     @classmethod
     def from_file(cls, path: Path) -> "FinoConfig":
         """ファイルから読み込み"""
@@ -468,7 +489,7 @@ class FinoConfig(BaseModel):
         with open(path, "rb") as f:
             data = tomli.load(f)
         return cls.model_validate(data)
-    
+
     @classmethod
     def from_env(cls) -> "FinoConfig":
         """環境変数から読み込み"""
@@ -480,6 +501,7 @@ class FinoConfig(BaseModel):
 ```
 
 **設計判断**:
+
 - Pydantic BaseSettingsで環境変数を自動読み込み
 - 型安全な設定管理
 - TOML/環境変数の両方をサポート
@@ -529,11 +551,13 @@ class PluginError(FinoException):
 **目的**: オブジェクト生成ロジックの一元化
 
 **実装**:
+
 - `FilingFactory`: メタデータからFilingを生成
 - `EdinetClientFactory`: 設定からクライアントを生成
 - `DocumentType.from_code()`: コードから型を生成
 
 **利点**:
+
 - 生成ロジックが一箇所に集約
 - テストでモックオブジェクト作成が容易
 - バリデーションを確実に実行
@@ -543,6 +567,7 @@ class PluginError(FinoException):
 **目的**: 複雑なオブジェクトの段階的構築
 
 **実装**: `CollectionSpecBuilder`
+
 ```python
 spec = (
     CollectionSpecBuilder()
@@ -554,6 +579,7 @@ spec = (
 ```
 
 **利点**:
+
 - メソッドチェーンで直感的
 - デフォルト値を段階的にオーバーライド
 - ビルド時にバリデーション実行
@@ -563,10 +589,12 @@ spec = (
 **目的**: アルゴリズムの切り替え
 
 **実装**:
+
 - `StorageStrategy`: ストレージバックエンドの切り替え
 - `MetadataStrategy`: メタデータストアの切り替え
 
 **利点**:
+
 - 実行時に戦略を切り替え可能
 - 新しい実装を追加しやすい
 - テストで戦略をモックに差し替え可能
@@ -578,6 +606,7 @@ spec = (
 **実装**: `PluginRegistry`、エントリーポイント
 
 **利点**:
+
 - ユーザーが独自のバックエンドを追加可能
 - コアライブラリを変更せずに拡張
 - プラグイン発見を自動化
@@ -589,6 +618,7 @@ spec = (
 **実装**: `EdinetApiAdapter`
 
 **利点**:
+
 - EDINET APIの詳細を隠蔽
 - API変更時の影響を局所化
 - テストでモックに差し替え可能
@@ -611,11 +641,12 @@ Internal Implementation (_internal)
 
 ### 依存性逆転の原則 (DIP)
 
-- `Edinet`は`StoragePlugin`に依存（抽象）
-- `LocalFileStorage`は`StoragePlugin`を実装（具象）
+- `Edinet`は`StoragePlugin`に依存(抽象)
+- `LocalFileStorage`は`StoragePlugin`を実装(具象)
 - `Edinet`は`LocalFileStorage`を知らない
 
 **利点**:
+
 - 内部実装を変更しても公開APIは影響なし
 - テストで依存関係を差し替え可能
 - モジュール間の結合度が低い
@@ -627,6 +658,7 @@ Internal Implementation (_internal)
 ### Pydanticモデルの活用
 
 **自動バリデーション**:
+
 ```python
 filing_metadata = FilingMetadata(
     seq_number="123",
@@ -641,6 +673,7 @@ filing_metadata = FilingMetadata(
 ```
 
 **型チェック対応**:
+
 - `py.typed`ファイルでmypy対応
 - 全てのパブリックAPIに型ヒント
 - ジェネリクスで型安全性を確保
@@ -658,6 +691,7 @@ def process_filings(filings: list[Filing]) -> dict[str, Filing]:
 ### シンプルなAPI (Typerスタイル)
 
 **最小限のコード**:
+
 ```python
 import fino
 
@@ -702,6 +736,7 @@ except fino.ValidationError as e:
 ### プラグインシステム
 
 **ユーザーがカスタムストレージを追加**:
+
 ```python
 # my_custom_storage.py
 class RedisStorage:
@@ -709,11 +744,11 @@ class RedisStorage:
     def __init__(self, host: str, port: int):
         import redis
         self.client = redis.Redis(host=host, port=port)
-    
+
     def save(self, path: Path, content: bytes) -> Path:
         self.client.set(str(path), content)
         return path
-    
+
     # ... 他のメソッド
 
 # 登録
@@ -724,6 +759,7 @@ edinet = fino.Edinet(storage="redis", storage_options={"host": "localhost", "por
 ```
 
 **setup.pyでプラグイン配布**:
+
 ```python
 # fino-redis-storage/setup.py
 setup(
@@ -742,13 +778,13 @@ setup(
 
 ### 設計原則の適用
 
-| 原則 | 適用方法 | 参考OSS |
-|-----|----------|---------|
-| **公開/内部分離** | `_internal/`ディレクトリ | Pydantic |
-| **型安全性** | Pydanticモデル、型ヒント | Pydantic |
-| **シンプルさ** | 最小限のAPI、デフォルト設定 | Typer |
-| **拡張性** | プラグインシステム | pytest |
-| **依存性注入** | Strategy Pattern | FastAPI |
+| 原則              | 適用方法                    | 参考OSS  |
+| ----------------- | --------------------------- | -------- |
+| **公開/内部分離** | `_internal/`ディレクトリ    | Pydantic |
+| **型安全性**      | Pydanticモデル、型ヒント    | Pydantic |
+| **シンプルさ**    | 最小限のAPI、デフォルト設定 | Typer    |
+| **拡張性**        | プラグインシステム          | pytest   |
+| **依存性注入**    | Strategy Pattern            | FastAPI  |
 
 ### 期待される効果
 

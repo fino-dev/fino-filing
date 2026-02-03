@@ -26,7 +26,7 @@ class FilingMemento:
 
 
 class Registry:
-    """Directory-local registry（1ディレクトリ分）"""
+    """Directory-local registry(1ディレクトリ分)"""
 
     def __init__(self, directory: str, registry_path: str):
         self.directory = directory
@@ -34,7 +34,7 @@ class Registry:
         self.filings: List[FilingMemento] = []
 
     def add(self, memento: FilingMemento):
-        """Filing追加（重複チェック）"""
+        """Filing追加(重複チェック)"""
         if any(f.filing_id == memento.filing_id for f in self.filings):
             # 既存の場合は更新
             self.filings = [
@@ -69,7 +69,7 @@ class Registry:
 
 
 class RegistryManager:
-    """Registry管理（Mementoパターン）"""
+    """Registry管理(Mementoパターン)"""
 
     def __init__(self, storage, spec):
         self.storage = storage
@@ -111,9 +111,9 @@ class RegistryManager:
                 print(f"Warning: Failed to load registry {registry_path}: {e}")
 
     def rebuild_from_payloads(self):
-        """Payloadから全Registry再構築（災害復旧用）"""
+        """Payloadから全Registry再構築(災害復旧用)"""
         # 全payloadスキャン → checksum計算 → registry再生成
-        # 実装は複雑になるため省略（概念のみ提示）
+        # 実装は複雑になるため省略(概念のみ提示)
         raise NotImplementedError("Disaster recovery feature")
 
 
@@ -139,7 +139,7 @@ class FilingMemento:
 
 
 class Registry:
-    """Directory-local registry（1ディレクトリ分）"""
+    """Directory-local registry(1ディレクトリ分)"""
 
     def __init__(self, directory: str, registry_path: str):
         self.directory = directory
@@ -147,7 +147,7 @@ class Registry:
         self.filings: List[FilingMemento] = []
 
     def add(self, memento: FilingMemento):
-        """Filing追加（重複チェック）"""
+        """Filing追加(重複チェック)"""
         if any(f.filing_id == memento.filing_id for f in self.filings):
             # 既存の場合は更新
             self.filings = [
@@ -182,7 +182,7 @@ class Registry:
 
 
 class RegistryManager:
-    """Registry管理（Mementoパターン）"""
+    """Registry管理(Mementoパターン)"""
 
     def __init__(self, storage, spec):
         self.storage = storage
@@ -224,7 +224,7 @@ class RegistryManager:
                 print(f"Warning: Failed to load registry {registry_path}: {e}")
 
     def rebuild_from_payloads(self):
-        """Payloadから全Registry再構築（災害復旧用）"""
+        """Payloadから全Registry再構築(災害復旧用)"""
         # 全payloadスキャン → checksum計算 → registry再生成
-        # 実装は複雑になるため省略（概念のみ提示）
+        # 実装は複雑になるため省略(概念のみ提示)
         raise NotImplementedError("Disaster recovery feature")
