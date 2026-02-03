@@ -1,7 +1,18 @@
 [project]
 name = "fino-filing"
 version = "0.1.0"
-description = "Add your description here"
+description = "Collection manager & Collector for Financial Filings"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
+
+
+[dependency-groups]
+lint = ["ruff>=0.14.8"]
+test = ["pytest>=9.0.2", "moto[s3]>=5.0.0"]
+typing = ["boto3-stubs[s3]>=1.35.0"]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "typing" },
+]
