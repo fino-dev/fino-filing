@@ -6,7 +6,7 @@
 
 ```python
 # simple local usecase
-import fino-eidnet-collector as fec
+import fino-filing as fec
 
 # decide wheare to collect filings. it's depending on your usecase and environmnet
 collection = fec.Collection(root_path="~/.edinet_file")

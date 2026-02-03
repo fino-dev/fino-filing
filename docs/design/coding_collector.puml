@@ -1,0 +1,51 @@
+@startuml fino-filing - Coding Level
+title fino-filing - Class Diagram (Derived from Components Diagram)
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+' top to bottom direction
+left to right direction
+
+package "Collector Boudary" {
+    abstract BaseCollector {
+    }
+    package "Edinet Boundary" {
+        class EdinetCollector <public> {
+        }
+        class EdinetClient <public> {}
+        class EdinetQueryStrategy {
+        }
+        class EdinetResponseMapper {
+        }
+    }
+    package "Edger Boundary" {
+        class EdgerCollector <public> {
+        }
+        class EdgerClient <public> {}
+        class EdgerQueryStrategy {
+        }
+        class EdgerResponseMapper {
+        }
+    }
+}
+
+' position
+Collection -[hidden]d-> BaseCollector
+' connection
+Collection o-- BaseCollector
+
+EdinetCollector --|> BaseCollector
+EdgerCollector --|> BaseCollector
+
+EdinetCollector o-- EdinetClient
+EdgerCollector o-- EdgerClient
+
+EdinetClient o-- EdinetQueryStrategy
+EdinetClient o-- EdinetResponseMapper
+
+EdgerClient o-- EdgerQueryStrategy
+EdgerClient o-- EdgerResponseMapper
+
+@enduml
