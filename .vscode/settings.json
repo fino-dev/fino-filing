@@ -1,7 +1,125 @@
 {
-    "markdown.editor.defaultFormatter": "esbenp.prettier-vscode",
-    "markdown.editor.formatOnSave": true,
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // ===============================
+  // Editor Formatter
+  // ===============================
+  "editor.formatOnSave": true,
+  // ===============================
+  // Python (Lambda関数用 - Ruff)
+  // ===============================
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
     }
+  },
+  "python.pythonPath": ".venv/bin/python",
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  // Jupyter 実行時のカレントディレクトリを固定
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
+  // ===============================
+  // Markdown Formatter
+  // ===============================
+  "markdown.editor.defaultFormatter": "esbenp.prettier-vscode",
+  "markdown.editor.formatOnSave": true,
+  // ===============================
+  // Editor Theme
+  // ===============================
+    "workbench.colorCustomizations": {
+    // アクティブタブとフォーカス
+    "tab.activeBackground": "#1a1a1a",
+    "tab.activeForeground": "#ff9f1c",
+    "tab.activeBorder": "#ff9f1c",
+    "tab.inactiveBackground": "#0a0a0a",
+    "tab.inactiveForeground": "#6b7280",
+
+    // サイドバー
+    "sideBar.background": "#0a0a0a",
+    "sideBar.foreground": "#d1d5db",
+    "sideBar.border": "#1a1a1a",
+    "sideBarTitle.foreground": "#ffb347",
+    "sideBarSectionHeader.background": "#1a1a1a",
+    "sideBarSectionHeader.foreground": "#ffd6a0",
+
+    // アクティビティバー
+    "activityBar.background": "#000000",
+    "activityBar.foreground": "#a76509",
+    "activityBar.inactiveForeground": "#5c4636",
+    "activityBar.border": "#1a1a1a",
+    "activityBarBadge.background": "#ff9f1c",
+    "activityBarBadge.foreground": "#000000",
+
+    // ステータスバー
+    "statusBar.background": "#ed9f3a",
+    "statusBar.foreground": "#000000",
+    "statusBar.border": "#d97706",
+    "statusBar.debuggingBackground": "#f59e0b",
+    "statusBar.noFolderBackground": "#1a1a1a",
+
+    // エディター
+    "editor.background": "#0a0a0a",
+    "editor.foreground": "#e5e7eb",
+    "editor.lineHighlightBackground": "#1a1a1a",
+    "editor.selectionBackground": "#ff9f1c40",
+    "editor.selectionHighlightBackground": "#ff9f1c20",
+    "editorCursor.foreground": "#ff9f1c",
+    "editorWhitespace.foreground": "#262626",
+    "editorLineNumber.foreground": "#9a4b0f",
+    "editorLineNumber.activeForeground": "#ff9f1c",
+
+    // エディターグループ
+    "editorGroup.border": "#ff9f1c",
+    "editorGroupHeader.tabsBackground": "#000000",
+    "editorGroupHeader.tabsBorder": "#7c2d12",
+
+    // パネル
+    "panel.background": "#0a0a0a",
+    "panel.border": "#7c2d12",
+    "panelTitle.activeBorder": "#ff9f1c",
+    "panelTitle.activeForeground": "#ff9f1c",
+    "panelTitle.inactiveForeground": "#6b7280",
+
+    // タイトルバー
+    "titleBar.activeForeground": "#ffb347",
+    "titleBar.border": "#7c2d12",
+
+    // ボタンとインプット
+    "button.background": "#ff9f1c",
+    "button.foreground": "#000000",
+    "button.hoverBackground": "#f59e0b",
+    "input.background": "#1a1a1a",
+    "input.border": "#262626",
+    "input.foreground": "#e5e7eb",
+    "inputOption.activeBackground": "#ff9f1c40",
+    "inputOption.activeBorder": "#ff9f1c",
+
+    // リストとツリー
+    "list.activeSelectionBackground": "#ff9f1c40",
+    "list.activeSelectionForeground": "#ff9f1c",
+    "list.hoverBackground": "#1a1a1a",
+    "list.inactiveSelectionBackground": "#1a1a1a",
+    "list.focusBackground": "#ff9f1c40",
+    "list.focusForeground": "#ff9f1c",
+
+    // スクロールバー
+    "scrollbarSlider.background": "#262626aa",
+    "scrollbarSlider.hoverBackground": "#404040bb",
+    "scrollbarSlider.activeBackground": "#ff9f1c",
+
+    // 通知
+    "notificationCenter.border": "#ff9f1c",
+    "notificationCenterHeader.background": "#1a1a1a",
+    "notifications.background": "#1a1a1a",
+    "notifications.border": "#262626",
+
+    // ターミナル
+    "terminal.background": "#0a0a0a",
+    "terminal.foreground": "#d1d5db",
+    "terminal.ansiYellow": "#ff9f1c",
+    "terminal.ansiBrightYellow": "#ffb347",
+    "terminal.ansiBlue": "#c2410c",
+    "terminal.ansiBrightBlue": "#ea580c"
+    },
+  "makefile.configureOnOpen": false
 }
