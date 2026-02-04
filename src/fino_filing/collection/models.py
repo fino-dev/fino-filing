@@ -21,7 +21,6 @@ class CoreFiling(ABC):
     document_type: str
 
     # 内部管理用
-    _path: Optional[str] = None
     _storage: Optional[Any] = None
     _content_cache: Optional[bytes] = None
 
@@ -31,9 +30,9 @@ class CoreFiling(ABC):
     def get_content(self) -> bytes:
         """Payload取得（遅延ロード）"""
         if self._content_cache is None:
-            if not self._path or not self._storage:
-                raise ValueError("Cannot load content: missing path or storage")
-            self._content_cache = self._storage.load(self._path)
+            if not self._storage:
+                raise ValueError("Cannot load content: missing storage")
+            self._content_cache = self._storage.load(self.filing_id)
         return self._content_cache
 
     def verify_checksum(self) -> bool:
@@ -82,7 +81,6 @@ class EdinetFiling(CoreFiling):
             "checksum": self.checksum,
             "submit_date": self.submit_date.isoformat(),
             "document_type": self.document_type,
-            "_path": self._path,
         }
 
         # EDINET固有フィールド
@@ -136,6 +134,59 @@ class EdinetFiling(CoreFiling):
         else:
             return "TEXT"
 
+    @classmethod
+    def from_dict(cls, data: dict, storage: Any = None) -> "EdinetFiling":
+        """辞書からEdinetFiling復元"""
+        return _edinet_from_dict(data, storage)
+
+
+def _edinet_from_dict(data: dict, storage: Any = None) -> EdinetFiling:
+    """EdinetFiling復元ヘルパー"""
+    filing_data = data.copy()
+    if isinstance(filing_data.get("submit_date"), str):
+        filing_data["submit_date"] = datetime.fromisoformat(filing_data["submit_date"])
+    for dt_field in ("period_start", "period_end"):
+        val = filing_data.get(dt_field)
+        if val and isinstance(val, str):
+            filing_data[dt_field] = datetime.fromisoformat(val)
+
+    core_fields = {
+        "filing_id",
+        "source",
+        "checksum",
+        "submit_date",
+        "document_type",
+        "edinet_code",
+        "sec_code",
+        "jcn",
+        "filer_name",
+        "ordinance_code",
+        "form_code",
+        "doc_description",
+        "period_start",
+        "period_end",
+    }
+    custom = {k: v for k, v in filing_data.items() if k not in core_fields}
+
+    return EdinetFiling(
+        filing_id=filing_data["filing_id"],
+        source="edinet",
+        checksum=filing_data["checksum"],
+        submit_date=filing_data["submit_date"],
+        document_type=filing_data["document_type"],
+        edinet_code=filing_data.get("edinet_code"),
+        sec_code=filing_data.get("sec_code"),
+        jcn=filing_data.get("jcn"),
+        filer_name=filing_data.get("filer_name"),
+        ordinance_code=filing_data.get("ordinance_code"),
+        form_code=filing_data.get("form_code"),
+        doc_description=filing_data.get("doc_description"),
+        period_start=filing_data.get("period_start"),
+        period_end=filing_data.get("period_end"),
+        _storage=storage,
+        custom_fields=custom,
+    )
+
 
 @dataclass
 class Filing(CoreFiling):
@@ -149,7 +200,6 @@ class Filing(CoreFiling):
             "checksum": self.checksum,
             "submit_date": self.submit_date.isoformat(),
             "document_type": self.document_type,
-            "_path": self._path,
         }
         return {**base, **self.custom_fields}
 
@@ -192,7 +242,6 @@ class Filing(CoreFiling):
             "checksum",
             "submit_date",
             "document_type",
-            "_path",
         }
         custom = {k: v for k, v in filing_data.items() if k not in core_fields}
 
@@ -202,7 +251,6 @@ class Filing(CoreFiling):
             checksum=filing_data["checksum"],
             submit_date=filing_data["submit_date"],
             document_type=filing_data["document_type"],
-            _path=filing_data.get("_path"),
             _storage=storage,
             custom_fields=custom,
         )
@@ -232,7 +280,6 @@ class EdgarFiling(CoreFiling):
             "checksum": self.checksum,
             "submit_date": self.submit_date.isoformat(),
             "document_type": self.document_type,
-            "_path": self._path,
         }
 
         edgar_fields = {
@@ -282,3 +329,66 @@ class EdgarFiling(CoreFiling):
             return "BOOLEAN"
         else:
             return "TEXT"
+
+    @classmethod
+    def from_dict(cls, data: dict, storage: Any = None) -> "EdgarFiling":
+        """辞書からEdgarFiling復元"""
+        return _edgar_from_dict(data, storage)
+
+
+def _edgar_from_dict(data: dict, storage: Any = None) -> EdgarFiling:
+    """EdgarFiling復元ヘルパー"""
+    filing_data = data.copy()
+    if isinstance(filing_data.get("submit_date"), str):
+        filing_data["submit_date"] = datetime.fromisoformat(filing_data["submit_date"])
+    for dt_field in ("filing_date", "period_of_report"):
+        val = filing_data.get(dt_field)
+        if val and isinstance(val, str):
+            filing_data[dt_field] = datetime.fromisoformat(val)
+
+    core_fields = {
+        "filing_id",
+        "source",
+        "checksum",
+        "submit_date",
+        "document_type",
+        "cik",
+        "accession_number",
+        "company_name",
+        "form_type",
+        "filing_date",
+        "period_of_report",
+        "sic_code",
+        "state_of_incorporation",
+        "fiscal_year_end",
+    }
+    custom = {k: v for k, v in filing_data.items() if k not in core_fields}
+
+    return EdgarFiling(
+        filing_id=filing_data["filing_id"],
+        source="edgar",
+        checksum=filing_data["checksum"],
+        submit_date=filing_data["submit_date"],
+        document_type=filing_data["document_type"],
+        cik=filing_data.get("cik"),
+        accession_number=filing_data.get("accession_number"),
+        company_name=filing_data.get("company_name"),
+        form_type=filing_data.get("form_type"),
+        filing_date=filing_data.get("filing_date"),
+        period_of_report=filing_data.get("period_of_report"),
+        sic_code=filing_data.get("sic_code"),
+        state_of_incorporation=filing_data.get("state_of_incorporation"),
+        fiscal_year_end=filing_data.get("fiscal_year_end"),
+        _storage=storage,
+        custom_fields=custom,
+    )
+
+
+def filing_from_dict(data: dict, storage: Any = None) -> CoreFiling:
+    """sourceに応じて適切なFilingクラスで復元"""
+    source = data.get("source", "")
+    if source == "edinet":
+        return EdinetFiling.from_dict(data, storage)
+    if source == "edgar":
+        return EdgarFiling.from_dict(data, storage)
+    return Filing.from_dict(data, storage)

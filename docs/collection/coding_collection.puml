@@ -5,24 +5,21 @@ skinparam classAttributeIconSize 0
 package "Collection Core" {
     class Collection <<Facade>> {
         - index_db: IndexDB
-        - registry_manager: RegistryManager
         - storage: Storage
-        - spec: CollectionSpec
         
         + add(filing, content)
         + get(filing_id): Filing
         + find(**filters): List[Filing]
+        + exists(filing_id): bool
         + rebuild_index()
         + verify_integrity()
         + migrate(new_storage)
     }
     
-    class Filing <<Entity>> {
+    class CoreFiling <<Entity>> {
         + filing_id: str
         + source: str
-        + source_id: str
         + checksum: str
-        + metadata: dict
         - _storage: Storage
         - _content_cache: bytes
         
@@ -33,136 +30,36 @@ package "Collection Core" {
 }
 
 package "Index Layer (Cache)" {
-    interface IndexDB {
+    class IndexDB {
         + index(filing)
         + search(**filters): List[dict]
         + get(filing_id): dict
         + clear()
-        + rebuild(registry_manager)
-    }
-    
-    class SQLiteIndex {
-        - conn: Connection
-        + index(filing)
-        + search(**filters)
-        + rebuild(registry_manager)
-    }
-}
-
-package "Registry Layer (Source of Truth)" {
-    class RegistryManager <<Memento>> {
-        - storage: Storage
-        - spec: CollectionSpec
-        
-        + register(filing, directory)
-        + load_registry(directory): Registry
-        + scan_all(): Iterator[Registry]
-        + rebuild_from_payloads()
-    }
-    
-    class Registry {
-        + directory: str
-        + filings: List[FilingMemento]
-        + save()
-        + load()
-    }
-    
-    class FilingMemento {
-        + filing_id: str
-        + source: str
-        + source_id: str
-        + checksum: str
-        + filename: str
-        + created_at: datetime
+        + rebuild(storage)
     }
 }
 
 package "Storage Layer (Repository)" {
-    interface Storage <<Repository>> {
-        + save(path, content)
-        + load(path): bytes
-        + exists(path): bool
-        + list(prefix): Iterator[str]
-        + checksum(path): str
+    interface Storage <<Protocol>> {
+        + save(filing_id, content, metadata): str
+        + load(filing_id): bytes
+        + exists(filing_id): bool
+        + list_all(): Iterator[str]
+        + get_path(filing_id): str
+        + get_metadata(filing_id): dict
     }
     
-    class LocalStorage {
+    class FlatLocalStorage {
         - base_dir: Path
-    }
-    
-    class S3Storage {
-        - bucket: str
-        - prefix: str
-    }
-}
-
-package "Spec Layer (Strategy)" {
-    class CollectionSpec {
-        + id_strategy: FilingIDStrategy
-        + registry_strategy: RegistryPlacementStrategy
-    }
-    
-    interface FilingIDStrategy {
-        + generate_id(source, source_id, checksum): str
-        + parse_id(filing_id): dict
-    }
-    
-    interface RegistryPlacementStrategy {
-        + get_registry_path(filing_metadata): str
-        + scan_pattern(): str
-    }
-    
-    class DateBasedPlacement {
-        + get_registry_path()
-    }
-    
-    class SourceBasedPlacement {
-        + get_registry_path()
-    }
-}
-
-package "Commands" {
-    interface Command {
-        + execute()
-    }
-    
-    class RebuildCommand {
-        + execute()
-    }
-    
-    class VerifyCommand {
-        + execute()
-    }
-    
-    class MigrateCommand {
-        + execute()
+        - registry_path: Path
     }
 }
 
 ' Relations
 Collection *-- IndexDB
-Collection *-- RegistryManager
 Collection *-- Storage
-Collection *-- CollectionSpec
-Collection ..> Filing : creates
-Collection ..> Command : uses
+Collection ..> CoreFiling : creates
 
-IndexDB <|.. SQLiteIndex
-Storage <|.. LocalStorage
-Storage <|.. S3Storage
-
-RegistryManager o-- Storage
-RegistryManager o-- CollectionSpec
-RegistryManager ..> Registry : manages
-Registry *-- FilingMemento
-
-CollectionSpec o-- FilingIDStrategy
-CollectionSpec o-- RegistryPlacementStrategy
-RegistryPlacementStrategy <|.. DateBasedPlacement
-RegistryPlacementStrategy <|.. SourceBasedPlacement
-
-Command <|.. RebuildCommand
-Command <|.. VerifyCommand
-Command <|.. MigrateCommand
+Storage <|.. FlatLocalStorage
 
 @enduml

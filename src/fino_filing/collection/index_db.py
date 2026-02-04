@@ -1,8 +1,11 @@
+import logging
 import sqlite3
 from datetime import datetime
-from typing import Any
+from typing import Any, Protocol
 
 from fino_filing.collection.models import CoreFiling
+
+logger = logging.getLogger(__name__)
 
 
 class IndexDB:
@@ -57,6 +60,7 @@ class IndexDB:
     def index(self, filing: CoreFiling):
         """Filing索引（動的スキーマ対応）"""
         # 1. コアフィールド挿入
+        path_val = getattr(filing, "_path", None)
         self.conn.execute(
             """
             INSERT OR REPLACE INTO filings
@@ -69,7 +73,7 @@ class IndexDB:
                 filing.checksum,
                 filing.submit_date.isoformat(),
                 filing.document_type,
-                filing._path,
+                path_val,
             ),
         )
 
@@ -252,3 +256,114 @@ class IndexDB:
             schema[row[0]] = row[1]
 
         return schema
+
+    def get(self, filing_id: str) -> dict | None:
+        """filing_idで1件取得"""
+        cursor = self.conn.execute(
+            """
+            SELECT f.*,
+                   GROUP_CONCAT(ff.field_name || ':' || COALESCE(ff.field_value, 'NULL')) as dynamic_fields
+            FROM filings f
+            LEFT JOIN filing_fields ff ON f.filing_id = ff.filing_id
+            WHERE f.filing_id = ?
+            GROUP BY f.filing_id
+            """,
+            (filing_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        data = dict(row)
+        if data.get("dynamic_fields"):
+            for field_pair in data["dynamic_fields"].split(","):
+                if ":" in field_pair:
+                    name, value = field_pair.split(":", 1)
+                    data[name] = None if value == "NULL" else value
+        if "dynamic_fields" in data:
+            del data["dynamic_fields"]
+        return data
+
+    def clear(self) -> None:
+        """全データ削除（rebuild用）"""
+        self.conn.execute("DELETE FROM filing_fields")
+        self.conn.execute("DELETE FROM filings")
+        self.conn.commit()
+
+    def rebuild(self, storage: "StorageProtocol") -> None:
+        """Storageのlist_all + metadataからIndexDB再構築"""
+        logger.info("Rebuilding index from storage...")
+        self.clear()
+
+        count = 0
+        for filing_id in storage.list_all():
+            metadata = storage.get_metadata(filing_id)
+            if not metadata:
+                logger.warning("No metadata for filing_id=%s, skipping", filing_id)
+                continue
+
+            self._index_from_dict(metadata)
+            count += 1
+
+        self.conn.commit()
+        logger.info("Rebuilt index with %d filings", count)
+
+    def _index_from_dict(self, data: dict) -> None:
+        """dictから索引（rebuild用）"""
+        core_fields = {
+            "filing_id",
+            "source",
+            "checksum",
+            "submit_date",
+            "document_type",
+            "_path",
+        }
+
+        self.conn.execute(
+            """
+            INSERT OR REPLACE INTO filings
+            (filing_id, source, checksum, submit_date, document_type, _path)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                data["filing_id"],
+                data["source"],
+                data["checksum"],
+                data["submit_date"]
+                if isinstance(data["submit_date"], str)
+                else data["submit_date"].isoformat(),
+                data.get("document_type"),
+                data.get("_path"),
+            ),
+        )
+        self.conn.execute(
+            "DELETE FROM filing_fields WHERE filing_id = ?", (data["filing_id"],)
+        )
+
+        for field_name, field_value in data.items():
+            if field_name in core_fields or field_name.startswith("_"):
+                continue
+
+            field_type = self._infer_field_type(field_value)
+            if field_value is None:
+                str_value = None
+            elif isinstance(field_value, datetime):
+                str_value = field_value.isoformat()
+            else:
+                str_value = str(field_value)
+
+            self.conn.execute(
+                """
+                INSERT INTO filing_fields (filing_id, field_name, field_value, field_type)
+                VALUES (?, ?, ?, ?)
+                """,
+                (data["filing_id"], field_name, str_value, field_type),
+            )
+
+
+class StorageProtocol(Protocol):
+    """rebuild用のStorage Protocol（list_all, get_metadata）"""
+
+    def list_all(self): ...
+
+    def get_metadata(self, filing_id: str) -> dict | None: ...

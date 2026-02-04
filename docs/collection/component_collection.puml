@@ -13,25 +13,13 @@ System_Boundary(collection, "FilingCollection") {
     Component(facade, "Collection", "Facade", "統一API・整合性検証")
     
     Component(index, "IndexDB", "Cache-Aside", "高速検索(SQLite)")
-    Component(registry, "RegistryManager", "Memento", "分散metadata管理")
-    Component(storage, "Storage", "Repository", "Payload抽象化")
-    
-    Component(spec, "CollectionSpec", "Strategy", "ID生成・Registry配置")
+    Component(storage, "Storage", "Repository", "Payload抽象化・Registry内包")
     Component(filing, "Filing", "Entity", "不変ID保持")
-    
-    Component(commands, "Commands", "Command Pattern", "rebuild/verify/migrate")
 }
 
 Rel(user, facade, "Uses")
 Rel(facade, index, "検索")
-Rel(facade, registry, "復元・検証")
-Rel(facade, storage, "Payload読込")
-Rel(facade, spec, "戦略適用")
-Rel(facade, commands, "実行")
-
-Rel(index, registry, "再構築時参照")
-Rel(registry, storage, "同一ディレクトリ")
-Rel(commands, index, "操作")
-Rel(commands, registry, "操作")
+Rel(facade, storage, "Payload読込・保存")
+Rel(facade, filing, "復元")
 
 @enduml
