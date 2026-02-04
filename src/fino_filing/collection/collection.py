@@ -1,23 +1,20 @@
 from fino_filing.collection.index_db import IndexDB
 from fino_filing.collection.models import Filing
 from fino_filing.collection.registry import RegistryManager
-from fino_filing.collection.spec import CollectionSpec
 
 
 class Collection:
-    """Collection Facade(統一API)"""
+    """Collection Facade"""
 
     def __init__(
         self,
         storage,
         index_db: IndexDB,
         registry_manager: RegistryManager,
-        spec: CollectionSpec,
     ):
         self.storage = storage
         self.index_db = index_db
         self.registry_manager = registry_manager
-        self.spec = spec
 
     # ========== 追加系 ==========
 
