@@ -29,7 +29,7 @@ package "Collection Core" {
     }
 }
 
-package "Index Layer (Cache)" {
+package "Index Layer" {
     class IndexDB {
         + index(filing)
         + search(**filters): List[dict]

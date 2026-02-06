@@ -1,9 +1,11 @@
 import hashlib
 import logging
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
 
 from fino_filing.collection.index_db import IndexDB
 from fino_filing.collection.models import CoreFiling, filing_from_dict
+from fino_filing.collection.storage import FlatLocalStorage
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,24 @@ logger = logging.getLogger(__name__)
 class Collection:
     """Collection Facade（Filing IDの一意性保証・検索インデックス提供）"""
 
-    def __init__(self, storage: Any, index_db: IndexDB) -> None:
+    def __init__(
+        self, storage: Optional[Any] = None, index_db: Optional[IndexDB] = None
+    ) -> None:
+        # Default configuration
+        if storage is None or index_db is None:
+            default_dir = Path.cwd() / ".fino" / "collection"
+            default_dir.mkdir(parents=True, exist_ok=True)
+            logger.info("Using default collection directory: %s", default_dir)
+
+            if storage is None:
+                storage = FlatLocalStorage(default_dir)
+                logger.info("Initialized default FlatLocalStorage")
+
+            if index_db is None:
+                index_db_path = default_dir / "index.db"
+                index_db = IndexDB(str(index_db_path))
+                logger.info("Initialized default IndexDB at %s", index_db_path)
+
         self.storage = storage
         self.index_db = index_db
 
