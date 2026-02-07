@@ -5,7 +5,13 @@ skinparam classAttributeIconSize 0
 package "Collection Boundary" {
 
     class Collection <<Facade>> {
-        }
+        - _storage: Storage
+        - _catalog: Catalog
+
+        + add(filing: Filing, content: bytes) -> str
+        + get(id: str) -> Filing | None
+        + find(expr: Expr, limit: int, offset: int, order_by: str, desc: boot) -> list[Filing]
+    }
 
     package "Storage Layer" {
         interface Storage <<Protocol>> {
