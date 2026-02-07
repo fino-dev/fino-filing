@@ -43,7 +43,6 @@ class Filing(metaclass=ModelMeta):
     created_at = Field(
         "created_at", datetime, indexed=True, description="Created timestamp"
     )
-    path = Field("path", str, indexed=True, description="Storage path")
 
     def __init__(self, **kwargs):
         """
@@ -102,6 +101,14 @@ class Filing(metaclass=ModelMeta):
             self._content_cache = self._storage.load(id_)
 
         return self._content_cache
+
+    def _check_checksum(self, content: bytes) -> str:
+        """
+        Checksumを計算する
+        Returns:
+            str (Checksum)
+        """
+        return hashlib.sha256(content).hexdigest()
 
     def verify_checksum(self) -> bool:
         """

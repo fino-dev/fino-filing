@@ -1,6 +1,6 @@
 from typing import Any
 
-from fino_filing.collection.expr import Expr
+from fino_filing import Expr
 
 
 class Field:

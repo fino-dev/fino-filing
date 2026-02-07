@@ -5,13 +5,14 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-from fino_filing.collection.catalog import Catalog
-from fino_filing.collection.filing import Filing
-from fino_filing.collection.storage.flat_local import LocalStorage
+from fino_filing import Expr, Filing
+
+from .catalog import Catalog
+from .storage import Storage
+from .storage.flat_local import LocalStorage
 
 if TYPE_CHECKING:
-    from fino_filing.collection.expr import Expr
-    from fino_filing.collection.storage import Storage
+    pass
 
 logger = logging.getLogger(__name__)
 
