@@ -9,7 +9,7 @@ import duckdb
 
 if TYPE_CHECKING:
     from .expr import Expr
-    from .models import Filing
+    from .filing import Filing
 
 
 class Catalog:
@@ -46,10 +46,10 @@ class Catalog:
         # 基本テーブル作成
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS filings (
-                filing_id VARCHAR PRIMARY KEY,
+                id VARCHAR PRIMARY KEY,
                 source VARCHAR NOT NULL,
                 checksum VARCHAR NOT NULL,
-                filing_name VARCHAR NOT NULL,
+                name VARCHAR NOT NULL,
                 is_zip BOOLEAN NOT NULL,
                 created_at TIMESTAMP NOT NULL,
                 path VARCHAR NOT NULL,
@@ -81,10 +81,10 @@ class Catalog:
         indexed_fields = filing.get_indexed_fields()
 
         core_values = {
-            "filing_id": data.get("filing_id"),
+            "id": data.get("id"),
             "source": data.get("source"),
             "checksum": data.get("checksum"),
-            "filing_name": data.get("filing_name"),
+            "name": data.get("name"),
             "is_zip": data.get("is_zip", False),
             "created_at": data.get("created_at"),
             "path": data.get("path"),
@@ -92,10 +92,10 @@ class Catalog:
 
         # 必須フィールド検証
         for key in [
-            "filing_id",
+            "id",
             "source",
             "checksum",
-            "filing_name",
+            "name",
             "created_at",
             "path",
         ]:
@@ -115,14 +115,14 @@ class Catalog:
         self.conn.execute(
             """
             INSERT OR REPLACE INTO filings 
-            (filing_id, source, checksum, filing_name, is_zip, created_at, path, data)
+            (id, source, checksum, name, is_zip, created_at, path, data)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             [
-                core_values["filing_id"],
+                core_values["id"],
                 core_values["source"],
                 core_values["checksum"],
-                core_values["filing_name"],
+                core_values["name"],
                 core_values["is_zip"],
                 core_values["created_at"],
                 core_values["path"],
@@ -145,10 +145,10 @@ class Catalog:
             data = filing.to_dict()
 
             core_values = {
-                "filing_id": data.get("filing_id"),
+                "id": data.get("id"),
                 "source": data.get("source"),
                 "checksum": data.get("checksum"),
-                "filing_name": data.get("filing_name"),
+                "name": data.get("name"),
                 "is_zip": data.get("is_zip", False),
                 "created_at": data.get("created_at"),
                 "path": data.get("path"),
@@ -163,10 +163,10 @@ class Catalog:
 
             rows.append(
                 [
-                    core_values["filing_id"],
+                    core_values["id"],
                     core_values["source"],
                     core_values["checksum"],
-                    core_values["filing_name"],
+                    core_values["name"],
                     core_values["is_zip"],
                     core_values["created_at"],
                     core_values["path"],
@@ -177,7 +177,7 @@ class Catalog:
         self.conn.executemany(
             """
             INSERT OR REPLACE INTO filings 
-            (filing_id, source, checksum, filing_name, is_zip, created_at, path, data)
+            (id, source, checksum, name, is_zip, created_at, path, data)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             rows,
@@ -185,21 +185,21 @@ class Catalog:
 
         self.conn.commit()
 
-    def get(self, filing_id: str) -> dict | None:
+    def get(self, id_: str) -> dict | None:
         """
         ID指定取得
 
         Args:
-            filing_id: Filing ID
+            id_: Filing ID
 
         Returns:
             Filing辞書 or None
         """
         result = self.conn.execute(
             """
-            SELECT data FROM filings WHERE filing_id = ?
+            SELECT data FROM filings WHERE id = ?
         """,
-            [filing_id],
+            [id_],
         ).fetchone()
 
         if not result:
@@ -241,10 +241,10 @@ class Catalog:
 
         # 物理カラムか判定
         physical_columns = {
-            "filing_id",
+            "id",
             "source",
             "checksum",
-            "filing_name",
+            "name",
             "is_zip",
             "created_at",
             "path",

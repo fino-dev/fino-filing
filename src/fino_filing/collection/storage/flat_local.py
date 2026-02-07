@@ -42,7 +42,7 @@ class FlatLocalStorage:
         with open(self.registry_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-    def save(self, filing_id: str, content: bytes, metadata: dict | None = None) -> str:
+    def save(self, id_: str, content: bytes, metadata: dict | None = None) -> str:
         """保存（ファイル名=checksum）"""
         checksum = hashlib.sha256(content).hexdigest()
         filename = f"{checksum}.zip"
@@ -50,35 +50,35 @@ class FlatLocalStorage:
         file_path = self.base_dir / filename
         file_path.write_bytes(content)
 
-        self._index[filing_id] = filename
+        self._index[id_] = filename
         if metadata is not None:
-            self._metadata[filing_id] = metadata
+            self._metadata[id_] = metadata
         self._save_registry()
 
         return str(file_path)
 
-    def load(self, filing_id: str) -> bytes:
+    def load(self, id_: str) -> bytes:
         """読み込み"""
-        filename = self._index.get(filing_id)
+        filename = self._index.get(id_)
         if not filename:
-            raise FileNotFoundError(f"Filing {filing_id} not found in registry")
+            raise FileNotFoundError(f"Filing {id_} not found in registry")
 
         file_path = self.base_dir / filename
         return file_path.read_bytes()
 
-    def exists(self, filing_id: str) -> bool:
+    def exists(self, id_: str) -> bool:
         """存在確認"""
-        return filing_id in self._index
+        return id_ in self._index
 
     def list_all(self) -> Iterator[str]:
-        """全filing_id列挙"""
+        """全id列挙"""
         return iter(self._index.keys())
 
-    def get_path(self, filing_id: str) -> str | None:
+    def get_path(self, id_: str) -> str | None:
         """物理パス取得"""
-        filename = self._index.get(filing_id)
+        filename = self._index.get(id_)
         return str(self.base_dir / filename) if filename else None
 
-    def get_metadata(self, filing_id: str) -> dict | None:
+    def get_metadata(self, id_: str) -> dict | None:
         """Registryに格納されたmetadata取得"""
-        return self._metadata.get(filing_id)
+        return self._metadata.get(id_)

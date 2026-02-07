@@ -4,20 +4,20 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from fino_filing.collection import Collection, FlatLocalStorage, IndexDB
-from fino_filing.collection.models import Filing
+from fino_filing.collection import Collection, Filing, FlatLocalStorage
+from fino_filing.collection.catalog import Catalog
 
 
 def test_collection_init() -> None:
-    """Collection(storage, index_db)で初期化できる"""
+    """Collection(storage, catalog)で初期化できる"""
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)
         storage = FlatLocalStorage(base / "data")
-        index_db = IndexDB(str(base / "index.db"))
-        collection = Collection(storage, index_db)
+        catalog = Catalog(str(base / "index.db"))
+        collection = Collection(storage, catalog)
 
-        assert collection.storage is storage
-        assert collection.index_db is index_db
+        assert collection._storage is storage
+        assert collection._catalog is catalog
 
 
 def test_collection_add_get() -> None:
@@ -25,26 +25,26 @@ def test_collection_add_get() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)
         storage = FlatLocalStorage(base / "data")
-        index_db = IndexDB(str(base / "index.db"))
-        collection = Collection(storage, index_db)
+        catalog = Catalog(str(base / "index.db"))
+        collection = Collection(storage, catalog)
 
         content = b"test content"
         import hashlib
 
         checksum = hashlib.sha256(content).hexdigest()
         filing = Filing(
-            filing_id="test:001:abc12345",
+            id="test:001:abc12345",
             source="test",
             checksum=checksum,
-            submit_date=datetime(2024, 1, 15),
-            document_type="120",
+            name="test.zip",
+            is_zip=True,
+            created_at=datetime(2024, 1, 15),
         )
 
         path = collection.add(filing, content)
         assert path
-        assert collection.exists("test:001:abc12345")
 
         got = collection.get("test:001:abc12345")
         assert got is not None
-        assert got.filing_id == filing.filing_id
+        assert got.get("id") == filing.get("id")
         assert got.get_content() == content

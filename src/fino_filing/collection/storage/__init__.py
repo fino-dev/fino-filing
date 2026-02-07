@@ -7,9 +7,9 @@ from .flat_local import FlatLocalStorage
 
 
 class Storage(Protocol):
-    """Storage抽象化（filing_idで参照、物理配置に無関心）"""
+    """Storage抽象化（idで参照、物理配置に無関心）"""
 
-    def save(self, filing_id: str, content: bytes, metadata: dict | None = None) -> str:
+    def save(self, id_: str, content: bytes, metadata: dict | None = None) -> str:
         """
         Filing保存
 
@@ -18,27 +18,27 @@ class Storage(Protocol):
         """
         ...
 
-    def load(self, filing_id: str) -> bytes:
-        """Filing読み込み（filing_idで直接アクセス）"""
+    def load(self, id_: str) -> bytes:
+        """Filing読み込み（idで直接アクセス）"""
         ...
 
-    def exists(self, filing_id: str) -> bool:
+    def exists(self, id_: str) -> bool:
         """存在確認"""
         ...
 
     def list_all(self) -> Iterator[str]:
-        """全filing_id列挙"""
+        """全id列挙"""
         ...
 
-    def get_path(self, filing_id: str) -> str | None:
+    def get_path(self, id_: str) -> str | None:
         """
         実際の物理パス取得（デバッグ用）
         Collectionは通常これを使わない
         """
         ...
 
-    def get_metadata(self, filing_id: str) -> dict | None:
-        """Registryに格納されたmetadata取得（rebuild用）"""
+    def get_metadata(self, id_: str) -> dict | None:
+        """Registryに格納されたmetadata取得"""
         ...
 
 

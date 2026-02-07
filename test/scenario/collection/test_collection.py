@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-from fino_filing.collection import Collection, FlatLocalStorage, IndexDB
+from fino_filing.collection import Catalog, Collection, FlatLocalStorage
 
 
 class TestCollection:
@@ -11,12 +11,12 @@ class TestCollection:
         assert isinstance(collection, Collection)
 
     def test_collection_init(self) -> None:
-        """Collection(storage, index_db)で初期化できる"""
+        """Collection(storage, catalog)で初期化できる"""
         with tempfile.TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             storage = FlatLocalStorage(base / "data")
-            index_db = IndexDB(str(base / "index.db"))
-            collection = Collection(storage, index_db)
+            catalog = Catalog(str(base / "index.db"))
+            collection = Collection(storage, catalog)
 
-            assert collection.storage is storage
-            assert collection.index_db is index_db
+            assert collection._storage is storage
+            assert collection._catalog is catalog

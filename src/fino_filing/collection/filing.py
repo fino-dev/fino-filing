@@ -29,16 +29,16 @@ class Filing(metaclass=ModelMeta):
             revenue = Field(float)
 
         # スキーマレス
-        filing = Filing(filing_id="...", source="custom")
+        filing = Filing(id="...", source="custom")
         filing.set("custom_field", "value")
     """
 
     # ========== Core Fields（物理カラム化推奨） ==========
 
-    filing_id = Field("filing_id", str, indexed=True, description="Filing ID")
+    id = Field("id", str, indexed=True, description="Filing ID")
     source = Field("source", str, indexed=True, description="Data source")
     checksum = Field("checksum", str, indexed=True, description="SHA256 checksum")
-    filing_name = Field("filing_name", str, indexed=True, description="File name")
+    name = Field("name", str, indexed=True, description="File name")
     is_zip = Field("is_zip", bool, indexed=True, description="ZIP flag")
     created_at = Field(
         "created_at", datetime, indexed=True, description="Created timestamp"
@@ -95,11 +95,11 @@ class Filing(metaclass=ModelMeta):
             if not self._storage:
                 raise ValueError("Storage not set")
 
-            path = self._data.get("path")
-            if not path:
-                raise ValueError("Path not set")
+            id_ = self._data.get("id")
+            if not id_:
+                raise ValueError("id is not set")
 
-            self._content_cache = self._storage.load(path)
+            self._content_cache = self._storage.load(id_)
 
         return self._content_cache
 
@@ -165,9 +165,9 @@ class Filing(metaclass=ModelMeta):
         return [field.name for field in cls._fields.values() if field.indexed]
 
     def __repr__(self):
-        filing_id = self._data.get("filing_id", "???")
+        id_ = self._data.get("id", "???")
         source = self._data.get("source", "???")
-        return f"{self.__class__.__name__}(filing_id={filing_id!r}, source={source!r})"
+        return f"{self.__class__.__name__}(id={id_!r}, source={source!r})"
 
 
 # ========== Template Models ==========
