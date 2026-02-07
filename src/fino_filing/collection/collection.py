@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-from fino_filing.collection.index_db import IndexDB
 from fino_filing.collection.models import CoreFiling, filing_from_dict
 from fino_filing.collection.storage import FlatLocalStorage
 
