@@ -52,10 +52,6 @@ class Filing(metaclass=ModelMeta):
         # データストア（フラット）
         self._data = {}
 
-        # 内部管理用
-        self._storage = kwargs.pop("_storage", None)
-        self._content_cache = None
-
         # kwargs から値を設定
         for key, value in kwargs.items():
             self._data[key] = value
@@ -102,7 +98,7 @@ class Filing(metaclass=ModelMeta):
 
         return self._content_cache
 
-    def _check_checksum(self, content: bytes) -> str:
+    def make_checksum(self, content: bytes) -> str:
         """
         Checksumを計算する
         Returns:

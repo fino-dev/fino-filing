@@ -5,9 +5,11 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-from fino_filing import Expr, Filing
+from fino_filing.filing.expr import Expr
+from fino_filing.filing.filing import Filing
 
 from .catalog import Catalog
+from .locator import Locator
 from .storage import Storage
 from .storage.flat_local import LocalStorage
 
@@ -24,6 +26,7 @@ class Collection:
         self,
         storage: Optional[Storage] = None,
         catalog: Optional[Catalog] = None,
+        locator: Optional[Locator] = None,
     ) -> None:
         # Default configuration
         if storage is None or catalog is None:

@@ -1,4 +1,4 @@
-from fino_filing import Filing
+from fino_filing.filing.filing import Filing
 
 
 class Locator:
