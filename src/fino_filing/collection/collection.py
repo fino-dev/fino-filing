@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from fino_filing.collection.catalog import Catalog
 from fino_filing.collection.filing import Filing
-from fino_filing.collection.storage import FlatLocalStorage
+from fino_filing.collection.storage.flat_local import LocalStorage
 
 if TYPE_CHECKING:
     from fino_filing.collection.expr import Expr
@@ -21,7 +21,7 @@ class Collection:
 
     def __init__(
         self,
-        storage: Optional["Storage"] = None,
+        storage: Optional[Storage] = None,
         catalog: Optional[Catalog] = None,
     ) -> None:
         # Default configuration
@@ -31,8 +31,8 @@ class Collection:
             logger.info("Using default collection directory: %s", default_dir)
 
             if storage is None:
-                storage = FlatLocalStorage(default_dir)
-                logger.info("Initialized default FlatLocalStorage")
+                storage = LocalStorage(default_dir)
+                logger.info("Initialized default LocalStorage")
 
             if catalog is None:
                 catalog_path = default_dir / "index.db"

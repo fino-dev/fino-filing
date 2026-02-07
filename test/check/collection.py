@@ -4,7 +4,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from fino_filing.collection import Collection, Filing, FlatLocalStorage
+from fino_filing.collection import Collection, Filing, LocalStorage
 from fino_filing.collection.catalog import Catalog
 
 
@@ -12,7 +12,7 @@ def test_collection_init() -> None:
     """Collection(storage, catalog)で初期化できる"""
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)
-        storage = FlatLocalStorage(base / "data")
+        storage = LocalStorage(base / "data")
         catalog = Catalog(str(base / "index.db"))
         collection = Collection(storage, catalog)
 
@@ -24,7 +24,7 @@ def test_collection_add_get() -> None:
     """add/getでFilingを保存・取得できる"""
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)
-        storage = FlatLocalStorage(base / "data")
+        storage = LocalStorage(base / "data")
         catalog = Catalog(str(base / "index.db"))
         collection = Collection(storage, catalog)
 

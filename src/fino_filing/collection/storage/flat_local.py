@@ -10,8 +10,8 @@ from typing import Iterator
 logger = logging.getLogger(__name__)
 
 
-class FlatLocalStorage:
-    """完全フラット構造（単一ディレクトリ・単一Registry）"""
+class LocalStorage:
+    """完全フラット構造 ローカルFS実装（単一ディレクトリ・単一Registry）"""
 
     def __init__(self, base_dir: str | Path) -> None:
         self.base_dir = Path(base_dir)

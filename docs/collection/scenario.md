@@ -1,10 +1,10 @@
 ## 基本的な利用
 
 ```python
-from fino_filing.collection import Collection, FlatLocalStorage, Catalog
+from fino_filing.collection import Collection, LocalStorage, Catalog
 
 # 初期化
-storage = FlatLocalStorage("./data")
+storage = LocalStorage("./data")
 catalog = Catalog("./index.db")
 collection = Collection(storage, catalog)
 

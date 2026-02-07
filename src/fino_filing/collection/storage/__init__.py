@@ -3,7 +3,7 @@
 
 from typing import Iterator, Protocol
 
-from .flat_local import FlatLocalStorage
+from .flat_local import LocalStorage
 
 
 class Storage(Protocol):
@@ -44,5 +44,5 @@ class Storage(Protocol):
 
 __all__ = [
     "Storage",
-    "FlatLocalStorage",
+    "LocalStorage",
 ]
