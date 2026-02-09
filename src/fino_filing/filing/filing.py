@@ -136,19 +136,6 @@ class Filing(metaclass=FilingMeta):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """
-        フィールド取得
-
-        Args:
-            key: フィールド名
-            default: デフォルト値
-
-        Returns:
-            フィールド値
-        """
-        return self._data.get(key, default)
-
     def make_checksum(self, content: bytes) -> str:
         """
         Checksumを計算する
