@@ -194,7 +194,18 @@ class Field:
             return self
         else:
             # インスタンスからのアクセス: filing.filer_name
-            return obj._data.get(self.name)
+            # 1. instance._data に値があればそれを返す
+            if self.name in obj._data:
+                return obj._data[self.name]
+            
+            # 2. クラスのdefault値があればそれを返す
+            if hasattr(objtype or type(obj), "_defaults"):
+                defaults = getattr(objtype or type(obj), "_defaults")
+                if self.name in defaults:
+                    return defaults[self.name]
+            
+            # 3. どちらもなければNone
+            return None
 
     def __set__(self, obj, value):
         """値の設定"""

@@ -26,11 +26,14 @@ class FilingMeta(type):
     def __new__(mcs, name, bases, attrs):
         # 1. attrsからFieldを収集（明示的代入）
         fields: dict[str, Field] = {}
+        defaults: dict[str, Any] = {}
 
-        # 2. 親クラスのFieldを継承
+        # 2. 親クラスのFieldとdefaultを継承
         for base in bases:
             if hasattr(base, "_fields"):
                 fields.update(base._fields)
+            if hasattr(base, "_defaults"):
+                defaults.update(base._defaults)
 
         # 3. 子クラスのFieldを収集（親を上がく）（Annotatedではなくdefaultで定義されたFieldを収集）
         for key, value in attrs.items():
@@ -55,11 +58,19 @@ class FilingMeta(type):
                         # Fieldのフィールド名が未設定の場合は、必須のためattr_nameを設定
                         if not meta.name:
                             meta.name = attr_name
+
+                        # 型定義がAnnotatedである場合（型アノテーション）のクラス属性に、デフォルト値が設定されている場合は、それをdefaultsに保存
+                        if hasattr(cls, attr_name):
+                            current_value = getattr(cls, attr_name)
+                            if not isinstance(current_value, Field):
+                                defaults[attr_name] = current_value
+
                         setattr(cls, attr_name, meta)
                         fields[attr_name] = meta
                         break
 
         cls._fields = fields
+        cls._defaults = defaults
 
         return cls
 
@@ -110,9 +121,9 @@ class Filing(metaclass=FilingMeta):
         # データストア（フラット）
         self._data = {}
 
-        # kwargs から値を設定
+        # kwargs から値を設定（descriptor経由）
         for key, value in kwargs.items():
-            self._data[key] = value
+            setattr(self, key, value)
 
     def get(self, key: str, default: Any = None) -> Any:
         """
