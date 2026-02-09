@@ -35,9 +35,13 @@ class FilingMeta(type):
             if hasattr(base, "_defaults"):
                 defaults.update(base._defaults)
 
-        # 3. 子クラスのFieldを収集（親を上がく）（Annotatedではなくdefaultで定義されたFieldを収集）
+        # 3. 子クラスのFieldを収集（Annotatedではなくdefaultで定義されたFieldを収集）
         for key, value in attrs.items():
             if isinstance(value, Field):
+                if key in fields:
+                    raise TypeError(
+                        f"Field {key} is already defined in base classes, it cannot be overridden"
+                    )
                 if not value.name:
                     value.name = key
                 fields[key] = value
@@ -52,22 +56,29 @@ class FilingMeta(type):
             hints = {}
 
         for attr_name, hint in hints.items():
-            if get_origin(hint) is Annotated:
-                for meta in get_args(hint)[1:]:
-                    if isinstance(meta, Field):
-                        # Fieldのフィールド名が未設定の場合は、必須のためattr_nameを設定
-                        if not meta.name:
-                            meta.name = attr_name
+            if get_origin(hint) is not Annotated:
+                continue
+            for meta in get_args(hint)[1:]:
+                if not isinstance(meta, Field):
+                    continue
 
-                        # 型定義がAnnotatedである場合（型アノテーション）のクラス属性に、デフォルト値が設定されている場合は、それをdefaultsに保存
-                        if hasattr(cls, attr_name):
-                            current_value = getattr(cls, attr_name)
-                            if not isinstance(current_value, Field):
-                                defaults[attr_name] = current_value
+                # 型定義がAnnotatedである場合（型アノテーション）のクラス属性に、デフォルト値が設定されている場合は、それをdefaultsに保存
+                if hasattr(cls, attr_name):
+                    current_value = getattr(cls, attr_name)
+                    if not isinstance(current_value, Field):
+                        defaults[attr_name] = current_value
 
-                        setattr(cls, attr_name, meta)
-                        fields[attr_name] = meta
-                        break
+                # すでにFieldが定義されている場合は、再設定しない
+                if attr_name in fields:
+                    break
+
+                # Fieldのフィールド名が未設定の場合は、必須のためattr_nameを設定
+                if not meta.name:
+                    meta.name = attr_name
+
+                setattr(cls, attr_name, meta)
+                fields[attr_name] = meta
+                break
 
         cls._fields = fields
         cls._defaults = defaults
