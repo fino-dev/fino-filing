@@ -27,21 +27,22 @@ class FilingMeta(type):
         # 1. attrsからFieldを収集（明示的代入）
         fields: dict[str, Field] = {}
 
+        # 2. 親クラスのFieldを継承
+        for base in bases:
+            if hasattr(base, "_fields"):
+                fields.update(base._fields)
+
+        # 3. 子クラスのFieldを収集（親を上がく）（Annotatedではなくdefaultで定義されたFieldを収集）
         for key, value in attrs.items():
             if isinstance(value, Field):
                 if not value.name:
                     value.name = key
                 fields[key] = value
 
-        # 2. 親クラスのFieldを継承
-        for base in bases:
-            if hasattr(base, "_fields"):
-                fields.update(base._fields)
-
-        # 3. クラス作成
+        # 4. クラス作成
         cls = super().__new__(mcs, name, bases, attrs)
 
-        # 4. Annotated[T, Field(...)]からFieldを抽出・注入
+        # 5. Annotated[T, Field(...)]からFieldを抽出・注入
         try:
             hints = get_type_hints(cls, include_extras=True)
         except Exception:
@@ -51,6 +52,7 @@ class FilingMeta(type):
             if get_origin(hint) is Annotated:
                 for meta in get_args(hint)[1:]:
                     if isinstance(meta, Field):
+                        # Fieldのフィールド名が未設定の場合は、必須のためattr_nameを設定
                         if not meta.name:
                             meta.name = attr_name
                         setattr(cls, attr_name, meta)
