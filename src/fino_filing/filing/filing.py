@@ -129,6 +129,8 @@ class Filing(metaclass=FilingMeta):
         Args:
             **kwargs: フィールド値
         """
+        filingのインスタンス化でchecksumの生成をするためにcontentを受け取るようにするべきか
+        id, source, name等はCOllectionに保存する場合には必須要素としたいが、Collectorや独自定義などでインスタン化したい場合には必須ではないということでよいか
         # データストア（フラット）
         self._data = {}
 
