@@ -53,7 +53,7 @@ class Field:
             Expr
         """
 
-        if self.idexed:
+        if self.indexed:
             sql = f"{self.name} {op} ?"
         else:
             sql = f"json_extract(data, '$.{self.name}') {op} ?"
