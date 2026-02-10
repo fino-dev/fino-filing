@@ -132,7 +132,11 @@ class Filing(metaclass=FilingMeta):
         # データストア（フラット）
         self._data = {}
 
-        # kwargs から値を設定（descriptor経由）
+        # メタクラスで収集した _defaults を先に適用
+        for key, value in getattr(self.__class__, "_defaults", {}).items():
+            setattr(self, key, value)
+
+        # kwargs から値を設定（descriptor経由）。kwargs が優先。
         for key, value in kwargs.items():
             setattr(self, key, value)
 
