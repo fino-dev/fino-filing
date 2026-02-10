@@ -1,12 +1,13 @@
 [project]
 name = "fino-filing"
 version = "0.1.0"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 description = "Collection manager & Collector for Financial Filings"
+authors = [{ name = "akidoki", email = "odukaki@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "duckdb>=1.4.4",
-]
+dependencies = ["duckdb>=1.4.4"]
 
 [build-system]
 requires = ["hatchling"]
@@ -17,10 +18,28 @@ packages = ["src/fino_filing"]
 
 [dependency-groups]
 lint = ["ruff>=0.14.8"]
-test = ["pytest>=9.0.2", "moto[s3]>=5.0.0"]
+test = [
+    "pytest>=9.0.2",
+    "moto[s3]>=5.0.0",
+    "mypy>=1.19.1",
+]
 typing = ["boto3-stubs[s3]>=1.35.0"]
 dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typing" },
 ]
+
+# mypy
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = "docs_src.*"
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = "shellingham"
+ignore_missing_imports = true # ignore missing stub pakcage @see https://ohke.hateblo.jp/entry/2020/10/03/230000
