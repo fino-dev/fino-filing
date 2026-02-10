@@ -103,8 +103,7 @@ class Filing(metaclass=FilingMeta):
             filer_name: Annotated[str, Field("filer_name", description="提出者名")]
             revenue: Annotated[float, Field("revenue", description="売上")]
 
-        # スキーマレス
-        filing = Filing(id="...", source="custom")
+        filing = Filing(id="...", source="custom", content=content)
         filing.set("custom_field", "value")
     """
 
@@ -124,19 +123,21 @@ class Filing(metaclass=FilingMeta):
         Field("created_at", datetime, indexed=True, description="Created timestamp"),
     ]
 
-    def __init__(self, **kwargs):
+    def __init__(self, *, content: bytes, **kwargs: Any) -> None:
         """
         Args:
-            **kwargs: フィールド値
+            content: オプション。渡した場合checksumをここで計算して設定する（保持しない）。
+            **kwargs: フィールド値（id, source, name 等）。
         """
-        filingのインスタンス化でchecksumの生成をするためにcontentを受け取るようにするべきか
-        id, source, name等はCOllectionに保存する場合には必須要素としたいが、Collectorや独自定義などでインスタン化したい場合には必須ではないということでよいか？
         # データストア（フラット）
         self._data = {}
 
         # kwargs から値を設定（descriptor経由）
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+        # content が渡された場合は checksum を設定（Filing は content を保持しない）
+        self._data["checksum"] = self.make_checksum(content)
 
     def make_checksum(self, content: bytes) -> str:
         """
@@ -146,15 +147,17 @@ class Filing(metaclass=FilingMeta):
         """
         return hashlib.sha256(content).hexdigest()
 
-    def verify_checksum(self) -> bool:
+    def verify_checksum(self, content: bytes) -> bool:
         """
         Checksum検証
+
+        Args:
+            content: コンテンツ
 
         Returns:
             検証結果
         """
-        content = self.get_content()
-        actual = hashlib.sha256(content).hexdigest()
+        actual = self.make_checksum(content)
         expected = self._data.get("checksum")
 
         return actual == expected
