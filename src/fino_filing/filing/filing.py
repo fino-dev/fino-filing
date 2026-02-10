@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime
 from typing import TYPE_CHECKING, Annotated, Any, get_args, get_origin, get_type_hints
 
@@ -129,6 +128,7 @@ class Filing(metaclass=FilingMeta):
             content: オプション。渡した場合checksumをここで計算して設定する（保持しない）。
             **kwargs: フィールド値（id, source, name 等）。
         """
+
         # データストア（フラット）
         self._data = {}
 
@@ -139,17 +139,6 @@ class Filing(metaclass=FilingMeta):
         # kwargs から値を設定（descriptor経由）。kwargs が優先。
         for key, value in kwargs.items():
             setattr(self, key, value)
-
-        # content が渡された場合は checksum を設定（Filing は content を保持しない）
-        self._data["checksum"] = self.make_checksum(content)
-
-    def make_checksum(self, content: bytes) -> str:
-        """
-        Checksumを計算する
-        Returns:
-            str (Checksum)
-        """
-        return hashlib.sha256(content).hexdigest()
 
     def verify_checksum(self, content: bytes) -> bool:
         """
