@@ -62,6 +62,9 @@ class FilingMeta(type):
                 if not meta.name:
                     meta.name = attr_name
 
+                # Annotated の第一引数（型）を Field に注入（Expr 生成・バリデーションで利用）
+                meta.field_type = get_args(hint)[0]
+
                 setattr(cls, attr_name, meta)
                 fields[attr_name] = meta
                 break

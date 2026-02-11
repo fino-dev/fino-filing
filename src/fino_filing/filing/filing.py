@@ -11,6 +11,19 @@ if TYPE_CHECKING:
     pass
 
 
+class FilingValidationError(ValueError):
+    """Filing の必須項目・型チェックに失敗した場合に送出する。"""
+
+    def __init__(self, message: str, errors: list[str] | None = None) -> None:
+        super().__init__(message)
+        self.errors = errors or []
+
+    def __str__(self) -> str:
+        if not self.errors:
+            return super().__str__()
+        return f"{self.args[0]}\n " + "\n ".join(self.errors)
+
+
 class Filing(metaclass=FilingMeta):
     """
     Filing Document（スキーマレス）
@@ -28,7 +41,7 @@ class Filing(metaclass=FilingMeta):
             filer_name: Annotated[str, Field("filer_name", description="提出者名")]
             revenue: Annotated[float, Field("revenue", description="売上")] = 0.0
 
-        filing = Filing(content=b"...", id="...", source="custom")
+        filing = Filing(id="...", source="custom")
         filing.revenue  # 未設定時は 0.0
     """
 
@@ -48,10 +61,9 @@ class Filing(metaclass=FilingMeta):
         Field("created_at", datetime, indexed=True, description="Created timestamp"),
     ]
 
-    def __init__(self, *, content: bytes, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """
         Args:
-            content: オプション。渡した場合checksumをここで計算して設定する（保持しない）。
             **kwargs: フィールド値（id, source, name 等）。
         """
 
@@ -66,23 +78,38 @@ class Filing(metaclass=FilingMeta):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def _validate():
-        
+        self._validate()
 
-    def verify_checksum(self, content: bytes) -> bool:
+    def _validate(self) -> None:
         """
-        Checksum検証
-
-        Args:
-            content: コンテンツ
-
-        Returns:
-            検証結果
+        必須項目と型を検証する。required は _defaults に無いフィールド、型は Field.field_type を使用。
         """
-        actual = self.make_checksum(content)
-        expected = self._data.get("checksum")
+        cls = self.__class__
+        fields = getattr(cls, "_fields", {})
+        defaults = getattr(cls, "_defaults", {})
+        errors: list[str] = []
 
-        return actual == expected
+        for attr_name, field in fields.items():
+            value = self._data.get(attr_name)
+            is_required = attr_name not in defaults
+
+            if is_required and (attr_name not in self._data or value is None):
+                errors.append(f"{attr_name!r}: required field is missing or None")
+                continue
+
+            if value is None:
+                continue
+
+            if field.field_type is None:
+                continue
+
+            if not isinstance(value, field.field_type):
+                errors.append(
+                    f"{attr_name!r}: expected {field.field_type!r}, got {type(value).__name__!r}"
+                )
+
+        if errors:
+            raise FilingValidationError("Filing validation failed", errors=errors)
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -145,6 +172,7 @@ class EDINETFiling(Filing):
     """EDINET Filing Template"""
 
     # EDINET固有フィールド（任意）
+    source = "EDINET"
     edinet_code: Annotated[str, Field("edinet_code", str, description="EDINETコード")]
     sec_code: Annotated[str, Field("sec_code", str, description="証券コード")]
     jcn: Annotated[str, Field("jcn", str, description="法人番号")]
