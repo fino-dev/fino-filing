@@ -93,16 +93,15 @@ class Filing(metaclass=FilingMeta):
             value = self._data.get(attr_name)
             is_required = attr_name not in defaults
 
+            if value is None or field.field_type is None:
+                continue
+
+            # 必須項目の値が設定されていない場合にはエラー
             if is_required and (attr_name not in self._data or value is None):
                 errors.append(f"{attr_name!r}: required field is missing or None")
                 continue
 
-            if value is None:
-                continue
-
-            if field.field_type is None:
-                continue
-
+            # 型が一致しない場合エラー
             if not isinstance(value, field.field_type):
                 errors.append(
                     f"{attr_name!r}: expected {field.field_type!r}, got {type(value).__name__!r}"
