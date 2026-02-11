@@ -96,11 +96,16 @@ class Filing(metaclass=FilingMeta):
                 errors.append(f"{attr_name!r}: required field is missing or None")
                 continue
 
-            # 型チェック（field_typeが指定されている場合のみ）
-            if field.field_type is not None and data_value is not None:
+            # 型チェック
+            if is_required:
                 if not isinstance(data_value, field.field_type):
                     errors.append(
                         f"{attr_name!r}: expected {field.field_type!r}, got {type(data_value).__name__!r}"
+                    )
+            else:
+                if not isinstance(default_value, field.field_type):
+                    errors.append(
+                        f"{attr_name!r}: expected {field.field_type!r}, got {type(default_value).__name__!r}"
                     )
 
         if errors:
