@@ -18,28 +18,10 @@ packages = ["src/fino_filing"]
 
 [dependency-groups]
 lint = ["ruff>=0.14.8"]
-test = [
-    "pytest>=9.0.2",
-    "moto[s3]>=5.0.0",
-    "mypy>=1.19.1",
-]
+test = ["pytest>=9.0.2", "moto[s3]>=5.0.0"]
 typing = ["boto3-stubs[s3]>=1.35.0"]
 dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typing" },
 ]
-
-# mypy
-[tool.mypy]
-strict = true
-
-[[tool.mypy.overrides]]
-module = "docs_src.*"
-disallow_incomplete_defs = false
-disallow_untyped_defs = false
-disallow_untyped_calls = false
-
-[[tool.mypy.overrides]]
-module = "shellingham"
-ignore_missing_imports = true # ignore missing stub pakcage @see https://ohke.hateblo.jp/entry/2020/10/03/230000

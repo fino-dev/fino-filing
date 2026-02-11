@@ -3,25 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Annotated, Any
 
+from fino_filing.filing.error import FilingValidationError
 from fino_filing.filing.meta import FilingMeta
 
 from .field import Field
 
 if TYPE_CHECKING:
     pass
-
-
-class FilingValidationError(ValueError):
-    """Filing の必須項目・型チェックに失敗した場合に送出する。"""
-
-    def __init__(self, message: str, errors: list[str] | None = None) -> None:
-        super().__init__(message)
-        self.errors = errors or []
-
-    def __str__(self) -> str:
-        if not self.errors:
-            return super().__str__()
-        return f"{self.args[0]}\n " + "\n ".join(self.errors)
 
 
 class Filing(metaclass=FilingMeta):
@@ -74,10 +62,11 @@ class Filing(metaclass=FilingMeta):
         for key, value in getattr(self.__class__, "_defaults", {}).items():
             setattr(self, key, value)
 
-        # kwargs から値を設定（descriptor経由）。kwargs が優先。
+        # kwargs から値を設定（descriptor経由で _data に格納）。defaults を上書き。
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        # validation check
         self._validate()
 
     def _validate(self) -> None:
@@ -90,21 +79,22 @@ class Filing(metaclass=FilingMeta):
         errors: list[str] = []
 
         for attr_name, field in fields.items():
-            value = self._data.get(attr_name)
+            data_value = self._data.get(attr_name)
+            default_value = defaults.get(attr_name)
             is_required = attr_name not in defaults
 
-            if value is None or field.field_type is None:
-                continue
+            # if value is None or field.field_type is None:
+            # continue
 
-            # 必須項目の値が設定されていない場合にはエラー
-            if is_required and (attr_name not in self._data or value is None):
+            # 必須項目の値(default値が存在しているfield)が設定されていない場合にはエラー
+            if is_required and (data_value is None):
                 errors.append(f"{attr_name!r}: required field is missing or None")
                 continue
 
             # 型が一致しない場合エラー
-            if not isinstance(value, field.field_type):
+            if not isinstance(data_value, field.field_type):
                 errors.append(
-                    f"{attr_name!r}: expected {field.field_type!r}, got {type(value).__name__!r}"
+                    f"{attr_name!r}: expected {field.field_type!r}, got {type(data_value).__name__!r}"
                 )
 
         if errors:

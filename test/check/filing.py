@@ -55,3 +55,12 @@ print("<<< edinet instance __class__._fields >>>")
 print(getattr(edinet_filing.__class__, "_fields", {}))
 print("<<< edinet instance __class__._defaults >>>")
 print(getattr(edinet_filing.__class__, "_defaults", {}))
+
+filing = Filing(
+    id="test_id",
+    source="test_source",
+    name="test_name",
+    is_zip=True,
+)
+
+print(filing)
