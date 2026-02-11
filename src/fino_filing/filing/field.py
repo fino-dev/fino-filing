@@ -25,14 +25,14 @@ class Field:
     def __init__(
         self,
         name: str,
-        field_type: str | None = None,
+        field_type: type | None = None,
         indexed: bool = False,
         description: str | None = None,
     ):
         """
         Args:
             name: フィールド名
-            field_type: 型（オプショナル）
+            field_type: 型クラス（オプショナル）
             indexed: 物理カラム化フラグ
             description: 説明
         """
@@ -187,7 +187,7 @@ class Field:
 
     # ========== Descriptor Protocol ==========
 
-    def __get__(self, obj, objtype=None):
+    def __get__(self, obj: Any, objtype: type | None = None) -> Any:
         """Descriptor protocol（モデルからのアクセス用）"""
         if obj is None:
             # クラスからのアクセス: EDINETFiling.filer_name
@@ -207,11 +207,11 @@ class Field:
             # 3. どちらもなければNone
             return None
 
-    def __set__(self, obj, value):
+    def __set__(self, obj: Any, value: Any) -> None:
         """値の設定"""
         obj._data[self.name] = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Field(name={self.name!r}, type={self.field_type}, indexed={self.indexed})"
         )

@@ -1,6 +1,9 @@
-from typing import Annotated, Any, get_args, get_origin, get_type_hints
+from typing import TYPE_CHECKING, Annotated, Any, get_args, get_origin, get_type_hints
 
 from fino_filing.filing.field import Field
+
+if TYPE_CHECKING:
+    pass
 
 
 class FilingMeta(type):
@@ -16,7 +19,12 @@ class FilingMeta(type):
     Collectionには依存しない。
     """
 
-    def __new__(mcs, name, bases, attrs):
+    def __new__(
+        mcs: type["FilingMeta"],
+        name: str,
+        bases: tuple[type, ...],
+        attrs: dict[str, Any],
+    ) -> type:
         # 1. attrsからField, default値を収集（明示的代入）
         fields: dict[str, Field] = {}
         defaults: dict[str, Any] = {}
@@ -69,7 +77,7 @@ class FilingMeta(type):
                 fields[attr_name] = meta
                 break
 
-        cls._fields = fields
-        cls._defaults = defaults
+        setattr(cls, "_fields", fields)
+        setattr(cls, "_defaults", defaults)
 
         return cls

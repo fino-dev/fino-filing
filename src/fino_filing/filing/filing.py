@@ -33,6 +33,10 @@ class Filing(metaclass=FilingMeta):
         filing.revenue  # 未設定時は 0.0
     """
 
+    # メタクラスで設定されるクラス変数の型アノテーション
+    _fields: dict[str, Field]
+    _defaults: dict[str, Any]
+
     # ========== Core Fields (Descriptor) ==========
     # Annotatedで定義: 型とFieldを一元化し、認知的齟齬を解消
     id: Annotated[str, Field("id", str, indexed=True, description="Filing ID")]
@@ -56,7 +60,7 @@ class Filing(metaclass=FilingMeta):
         """
 
         # データストア（フラット）
-        self._data = {}
+        self._data: dict[str, Any] = {}
 
         # メタクラスで収集した _defaults を先に適用
         for key, value in getattr(self.__class__, "_defaults", {}).items():
@@ -74,13 +78,14 @@ class Filing(metaclass=FilingMeta):
         必須項目と型を検証する。required は _defaults に無いフィールド、型は Field.field_type を使用。
         """
         cls = self.__class__
-        fields = getattr(cls, "_fields", {})
-        defaults = getattr(cls, "_defaults", {})
+        fields: dict[str, Any] = getattr(cls, "_fields", {})
+        defaults: dict[str, Any] = getattr(cls, "_defaults", {})
         errors: list[str] = []
 
         for attr_name, field in fields.items():
             data_value = self._data.get(attr_name)
             default_value = defaults.get(attr_name)
+
             is_required = attr_name not in defaults
 
             # if value is None or field.field_type is None:
@@ -91,11 +96,12 @@ class Filing(metaclass=FilingMeta):
                 errors.append(f"{attr_name!r}: required field is missing or None")
                 continue
 
-            # 型が一致しない場合エラー
-            if not isinstance(data_value, field.field_type):
-                errors.append(
-                    f"{attr_name!r}: expected {field.field_type!r}, got {type(data_value).__name__!r}"
-                )
+            # 型チェック（field_typeが指定されている場合のみ）
+            if field.field_type is not None and data_value is not None:
+                if not isinstance(data_value, field.field_type):
+                    errors.append(
+                        f"{attr_name!r}: expected {field.field_type!r}, got {type(data_value).__name__!r}"
+                    )
 
         if errors:
             raise FilingValidationError("Filing validation failed", errors=errors)
@@ -107,7 +113,7 @@ class Filing(metaclass=FilingMeta):
         Returns:
             フィールド辞書
         """
-        result = {}
+        result: dict[str, Any] = {}
 
         for key, value in self._data.items():
             # datetime → ISO文字列変換
@@ -119,7 +125,7 @@ class Filing(metaclass=FilingMeta):
         return result
 
     @classmethod
-    def from_dict(cls, data: dict, storage: Any = None) -> Filing:
+    def from_dict(cls, data: dict[str, Any], storage: Any = None) -> Filing:
         """
         辞書から復元
 
@@ -148,7 +154,7 @@ class Filing(metaclass=FilingMeta):
         """
         return [field.name for field in cls._fields.values() if field.indexed]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         id_ = self._data.get("id", "???")
         source = self._data.get("source", "???")
         return f"{self.__class__.__name__}(id={id_!r}, source={source!r})"
