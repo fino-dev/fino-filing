@@ -81,6 +81,7 @@ class Filing(metaclass=FilingMeta):
         fields: dict[str, Any] = getattr(cls, "_fields", {})
         defaults: dict[str, Any] = getattr(cls, "_defaults", {})
         errors: list[str] = []
+        error_fields: list[str] = []
 
         for attr_name, field in fields.items():
             data_value = self._data.get(attr_name)
@@ -94,6 +95,7 @@ class Filing(metaclass=FilingMeta):
             # 必須項目の値(default値が存在しているfield)が設定されていない場合にはエラー
             if is_required and (data_value is None):
                 errors.append(f"{attr_name!r}: required field is missing or None")
+                error_fields.append(attr_name)
                 continue
 
             # 型チェック
@@ -102,14 +104,20 @@ class Filing(metaclass=FilingMeta):
                     errors.append(
                         f"{attr_name!r}: expected {field.field_type!r}, got {type(data_value).__name__!r}"
                     )
+                    error_fields.append(attr_name)
             else:
                 if not isinstance(default_value, field.field_type):
                     errors.append(
                         f"{attr_name!r}: expected {field.field_type!r}, got {type(default_value).__name__!r}"
                     )
+                    error_fields.append(attr_name)
 
         if errors:
-            raise FilingValidationError("Filing validation failed", errors=errors)
+            raise FilingValidationError(
+                "Filing validation failed",
+                errors=errors,
+                fields=error_fields,
+            )
 
     def to_dict(self) -> dict[str, Any]:
         """

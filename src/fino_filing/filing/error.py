@@ -1,9 +1,16 @@
 class FilingValidationError(ValueError):
     """Filing の必須項目・型チェックに失敗した場合に送出する。"""
 
-    def __init__(self, message: str, errors: list[str] | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        errors: list[str] | None = None,
+        fields: list[str] | None = None,
+    ) -> None:
         super().__init__(message)
         self.errors = errors or []
+        # エラーがあったフィールド名のリスト
+        self.fields = fields or []
 
     def __str__(self) -> str:
         if not self.errors:
