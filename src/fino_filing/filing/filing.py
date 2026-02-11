@@ -1,88 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated, Any, get_args, get_origin, get_type_hints
+from typing import TYPE_CHECKING, Annotated, Any
+
+from fino_filing.filing.meta import FilingMeta
 
 from .field import Field
 
 if TYPE_CHECKING:
     pass
-
-
-class FilingMeta(type):
-    """
-    Model Metaclass（フィールド自動収集）
-
-    責務:
-        - クラス定義時にFieldを収集
-        - Annotated[T, Field(...)]からFieldを抽出・注入
-        - _fields属性に保存
-        - Descriptor protocolを有効化
-
-    Collectionには依存しない。
-    """
-
-    def __new__(mcs, name, bases, attrs):
-        # 1. attrsからFieldを収集（明示的代入）
-        fields: dict[str, Field] = {}
-        defaults: dict[str, Any] = {}
-
-        # 2. 親クラスのFieldとdefaultを継承
-        for base in bases:
-            if hasattr(base, "_fields"):
-                fields.update(base._fields)
-            if hasattr(base, "_defaults"):
-                defaults.update(base._defaults)
-
-        # 3. 子クラスのFieldを収集（Annotatedではなくdefaultで定義されたFieldを収集）
-        for key, value in attrs.items():
-            if isinstance(value, Field):
-                if key in fields:
-                    raise TypeError(
-                        f"Field {key} is already defined in base classes, it cannot be overridden"
-                    )
-                if not value.name:
-                    value.name = key
-                fields[key] = value
-
-        # 4. クラス作成
-        cls = super().__new__(mcs, name, bases, attrs)
-
-        # 5. Annotated[T, Field(...)]からFieldを抽出・注入
-        try:
-            hints = get_type_hints(cls, include_extras=True)
-        except Exception:
-            hints = {}
-
-        for attr_name, hint in hints.items():
-            if get_origin(hint) is not Annotated:
-                continue
-            for meta in get_args(hint)[1:]:
-                if not isinstance(meta, Field):
-                    continue
-
-                # 型定義がAnnotatedである場合（型アノテーション）のクラス属性に、デフォルト値が設定されている場合は、それをdefaultsに保存
-                if hasattr(cls, attr_name):
-                    current_value = getattr(cls, attr_name)
-                    if not isinstance(current_value, Field):
-                        defaults[attr_name] = current_value
-
-                # すでにFieldが定義されている場合は、再設定しない
-                if attr_name in fields:
-                    break
-
-                # Fieldのフィールド名が未設定の場合は、必須のためattr_nameを設定
-                if not meta.name:
-                    meta.name = attr_name
-
-                setattr(cls, attr_name, meta)
-                fields[attr_name] = meta
-                break
-
-        cls._fields = fields
-        cls._defaults = defaults
-
-        return cls
 
 
 class Filing(metaclass=FilingMeta):
@@ -97,13 +23,13 @@ class Filing(metaclass=FilingMeta):
     Collectionに依存しない。
 
     Usage:
-        # モデルベース（Annotated形式）
+        # モデルベース（Annotated形式）。default値は = 値 で指定
         class EDINETFiling(Filing):
             filer_name: Annotated[str, Field("filer_name", description="提出者名")]
-            revenue: Annotated[float, Field("revenue", description="売上")]
+            revenue: Annotated[float, Field("revenue", description="売上")] = 0.0
 
-        filing = Filing(id="...", source="custom", content=content)
-        filing.set("custom_field", "value")
+        filing = Filing(content=b"...", id="...", source="custom")
+        filing.revenue  # 未設定時は 0.0
     """
 
     # ========== Core Fields (Descriptor) ==========
@@ -139,6 +65,9 @@ class Filing(metaclass=FilingMeta):
         # kwargs から値を設定（descriptor経由）。kwargs が優先。
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+    def _validate():
+        
 
     def verify_checksum(self, content: bytes) -> bool:
         """
