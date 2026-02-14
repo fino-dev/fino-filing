@@ -224,21 +224,3 @@ class EDGARFiling(Filing):
     fiscal_year_end: Annotated[
         str, Field("fiscal_year_end", str, description="Fiscal Year End")
     ]
-
-
-# ========== ユーザー拡張例 ==========
-
-
-class MyCustomFiling(EDINETFiling):
-    """ユーザー定義Filing（拡張）"""
-
-    # カスタムフィールド
-    ticker: Annotated[
-        str, Field("ticker", str, indexed=True, description="Ticker Symbol")
-    ]
-    revenue: Annotated[float, Field("revenue", float, description="Revenue")]
-    industry: Annotated[str, Field("industry", str, description="Industry")]
-    market_cap: Annotated[float, Field("market_cap", float, description="Market Cap")]
-    analyst_rating: Annotated[
-        str, Field("analyst_rating", str, description="Analyst Rating")
-    ]

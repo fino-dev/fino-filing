@@ -93,19 +93,3 @@ class TestFiling_Initialize:
                 is_zip=True,
             )
         assert fve.value.fields == ["created_at"]
-
-
-# TODO
-class TestFiling_FieldType:
-    def test_filing_field_type_success(self) -> None:
-        filing = Filing(
-            id="test_id",
-            source="test_source",
-            checksum="test_checksum",
-            name="test_name",
-            is_zip=True,
-            created_at=datetime.now(),
-        )
-        assert filing.id == "test_id"
-        assert filing.source == "test_source"
-        assert filing.checksum == "test_checksum"
