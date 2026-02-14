@@ -176,31 +176,6 @@ class Filing(metaclass=FilingMeta):
 # ========== Template Models ==========
 
 
-class EDINETFiling(Filing):
-    """EDINET Filing Template"""
-
-    # EDINET固有フィールド（任意）
-    source = "EDINET"
-    edinet_code: Annotated[str, Field("edinet_code", str, description="EDINETコード")]
-    sec_code: Annotated[str, Field("sec_code", str, description="証券コード")]
-    jcn: Annotated[str, Field("jcn", str, description="法人番号")]
-    filer_name: Annotated[str, Field("filer_name", str, description="提出者名")]
-    ordinance_code: Annotated[
-        str, Field("ordinance_code", str, description="府令コード")
-    ]
-    form_code: Annotated[str, Field("form_code", str, description="様式コード")]
-    doc_description: Annotated[str, Field("doc_description", str, description="書類名")]
-    period_start: Annotated[
-        datetime, Field("period_start", datetime, description="期間開始")
-    ]
-    period_end: Annotated[
-        datetime, Field("period_end", datetime, description="期間終了")
-    ]
-    submit_datetime: Annotated[
-        datetime, Field("submit_datetime", datetime, description="提出日時")
-    ]
-
-
 class EDGARFiling(Filing):
     """EDGAR Filing Template"""
 
