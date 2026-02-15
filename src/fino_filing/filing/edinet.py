@@ -37,37 +37,17 @@ class EDINETFiling(Filing):
     source = "EDINET"
 
     # EDINET 固有フィールド
-    edinet_code: Annotated[
-        str, Field("edinet_code", str, description="EDINET CODE(EDINETコード)")
-    ]
-    sec_code: Annotated[str, Field("sec_code", str, description="SEC CODE(証券コード)")]
-    jcn: Annotated[str, Field("jcn", str, description="JCN(法人番号)")]
-    filer_name: Annotated[
-        str, Field("filer_name", str, description="Filer Name(提出者名)")
-    ]
-    ordinance_code: Annotated[
-        str, Field("ordinance_code", str, description="Ordinance Code(府令コード)")
-    ]
-    form_code: Annotated[
-        str, Field("form_code", str, description="Form Code(様式コード)")
-    ]
-    doc_type_code: Annotated[
-        str, Field("doc_type_code", str, description="Doc Type Code(書類種別コード)")
-    ]
-    doc_description: Annotated[
-        str, Field("doc_description", str, description="Doc Description(書類名)")
-    ]
-    period_start: Annotated[
-        datetime, Field("period_start", datetime, description="Period Start(期間開始)")
-    ]
-    period_end: Annotated[
-        datetime, Field("period_end", datetime, description="Period End(期間終了)")
-    ]
-    submit_datetime: Annotated[
-        datetime,
-        Field("submit_datetime", datetime, description="Submit Datetime(提出日時)"),
-    ]
+    edinet_code: Annotated[str, Field(description="EDINET CODE(EDINETコード)")]
+    sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
+    jcn: Annotated[str, Field(description="JCN(法人番号)")]
+    filer_name: Annotated[str, Field(description="Filer Name(提出者名)")]
+    ordinance_code: Annotated[str, Field(description="Ordinance Code(府令コード)")]
+    form_code: Annotated[str, Field(description="Form Code(様式コード)")]
+    doc_type_code: Annotated[str, Field(description="Doc Type Code(書類種別コード)")]
+    doc_description: Annotated[str, Field(description="Doc Description(書類名)")]
+    period_start: Annotated[datetime, Field(description="Period Start(期間開始)")]
+    period_end: Annotated[datetime, Field(description="Period End(期間終了)")]
+    submit_datetime: Annotated[datetime, Field(description="Submit Datetime(提出日時)")]
     parent_doc_id: Annotated[
-        str | None,
-        Field("parent_doc_id", str, description="Parent Doc ID(親書類管理番号)"),
+        str | None, Field(description="Parent Doc ID(親書類管理番号)")
     ] = None

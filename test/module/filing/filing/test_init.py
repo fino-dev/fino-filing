@@ -111,7 +111,7 @@ class TestFiling_Initialize:
                 is_zip="test_is_zip",
                 created_at=123,
             )
-        assert fve.value.fields == ["name"]
+        assert fve.value.fields == ["name", "is_zip", "created_at"]
 
 
 class TestFiling_Initialize_ImmutableField:

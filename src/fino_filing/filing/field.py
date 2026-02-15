@@ -27,7 +27,7 @@ class Field:
 
     def __init__(
         self,
-        name: str,
+        name: str | None = None,
         _field_type: type | None = None,
         indexed: bool = False,
         immutable: bool = False,

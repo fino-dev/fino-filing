@@ -39,30 +39,20 @@ class Filing(metaclass=FilingMeta):
 
     # ========== Core Fields (Descriptor) ==========
     # Annotatedで定義: 型とFieldを一元化し、認知的齟齬を解消
-    id: Annotated[
-        str, Field("id", str, indexed=True, immutable=True, description="Filing ID")
-    ]
+    id: Annotated[str, Field(indexed=True, immutable=True, description="Filing ID")]
     source: Annotated[
         str,
-        Field("source", str, indexed=True, immutable=True, description="Data source"),
+        Field(indexed=True, immutable=True, description="Data source"),
     ]
     checksum: Annotated[
         str,
-        Field("checksum", str, indexed=True, description="SHA256 checksum"),
+        Field(indexed=True, description="SHA256 checksum"),
     ]
-    name: Annotated[
-        str, Field("name", str, indexed=True, immutable=True, description="File name")
-    ]
-    is_zip: Annotated[bool, Field("is_zip", bool, indexed=True, description="ZIP flag")]
+    name: Annotated[str, Field(indexed=True, immutable=True, description="File name")]
+    is_zip: Annotated[bool, Field(indexed=True, description="ZIP flag")]
     created_at: Annotated[
         datetime,
-        Field(
-            "created_at",
-            datetime,
-            indexed=True,
-            immutable=True,
-            description="Created timestamp",
-        ),
+        Field(indexed=True, immutable=True, description="Created timestamp"),
     ]
 
     def __init__(self, **kwargs: Any) -> None:
@@ -186,31 +176,3 @@ class Filing(metaclass=FilingMeta):
         id_ = self._data.get("id", "???")
         source = self._data.get("source", "???")
         return f"{self.__class__.__name__}(id={id_!r}, source={source!r})"
-
-
-# ========== Template Models ==========
-
-
-class EDGARFiling(Filing):
-    """EDGAR Filing Template"""
-
-    # EDGAR固有フィールド（任意）
-    cik: Annotated[str, Field("cik", str, description="CIK")]
-    accession_number: Annotated[
-        str, Field("accession_number", str, description="Accession Number")
-    ]
-    company_name: Annotated[str, Field("company_name", str, description="Company Name")]
-    form_type: Annotated[str, Field("form_type", str, description="Form Type")]
-    filing_date: Annotated[
-        datetime, Field("filing_date", datetime, description="Filing Date")
-    ]
-    period_of_report: Annotated[
-        datetime, Field("period_of_report", datetime, description="Period of Report")
-    ]
-    sic_code: Annotated[str, Field("sic_code", str, description="SIC Code")]
-    state_of_incorporation: Annotated[
-        str, Field("state_of_incorporation", str, description="State of Incorporation")
-    ]
-    fiscal_year_end: Annotated[
-        str, Field("fiscal_year_end", str, description="Fiscal Year End")
-    ]
