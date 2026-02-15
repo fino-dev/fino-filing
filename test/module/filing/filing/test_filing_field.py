@@ -49,4 +49,26 @@ class TestFiling_Field:
         assert isinstance(checksum_field, Field)
         assert checksum_field.name == "checksum"
         assert checksum_field.indexed is True
+        assert checksum_field.immutable is False
         assert checksum_field.description == "SHA256 checksum"
+
+        name_field = Filing.name
+        assert isinstance(name_field, Field)
+        assert name_field.name == "name"
+        assert name_field.indexed is True
+        assert name_field.immutable is True
+        assert name_field.description == "File name"
+
+        is_zip_field = Filing.is_zip
+        assert isinstance(is_zip_field, Field)
+        assert is_zip_field.name == "is_zip"
+        assert is_zip_field.indexed is True
+        assert is_zip_field.immutable is False
+        assert is_zip_field.description == "ZIP flag"
+
+        created_at_field = Filing.created_at
+        assert isinstance(created_at_field, Field)
+        assert created_at_field.name == "created_at"
+        assert created_at_field.indexed is True
+        assert created_at_field.immutable is True
+        assert created_at_field.description == "Created timestamp"
