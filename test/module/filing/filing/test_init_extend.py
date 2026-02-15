@@ -8,12 +8,6 @@ from fino_filing.filing.error import FilingValidationError
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
-
-@pytest.fixture
-def datetime_now() -> datetime:
-    return datetime.now()
-
-
 # ================ Additional Fields Filing ================
 
 
@@ -119,7 +113,7 @@ class TestFiling_Initialize_AdditionalFields:
         assert fve.value.fields == ["additional_field", "additional_field_2"]
 
 
-# ================ Additional Default Fields Filing ================
+# ================ Default Fields Filing ================
 
 
 class SpecificIdEnum(Enum):
@@ -151,6 +145,7 @@ class TestFiling_Initialize_DefaultFields:
     デフォルト値のあるフィールドを追加した継承Filingのインスタンス化をテストする。
     - 正常形: default値を設定しない場合
     - 異常形: default値を設定（上書き）した場合
+    - 正常形: default値を動的に上書きした場合
     """
 
     def test_filing_initialize_without_default_fields_success(
@@ -183,11 +178,30 @@ class TestFiling_Initialize_DefaultFields:
         assert additional_default_fields_filing.source == "override_source"
         assert additional_default_fields_filing.is_zip is True
 
+    def test_immutable_field_overwrite_after_init_success(
+        self, datetime_now: datetime
+    ) -> None:
+        """default値を初期化後に代入してもエラーにならず、代入できることを確�認する"""
+        f = AdditionalDefaultFieldsFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            created_at=datetime_now,
+        )
+        f.source = "override_source"
+        assert f.source == "override_source"
+        f.is_zip = True
+        assert f.is_zip is True
+
 
 # ================ Immutable Field Filing ================
 
+# class ImmutableFieldFiling(Filing):
 
-class ImmutableFieldFiling(Filing):
+
+# ================ Additional Immutable Field Filing ================
+class AdditionalImmutableFieldFiling(Filing):
     """immutable=True のフィールドを持つ Filing。上書き時に ValidationError を出す。"""
 
     immutable_token: Annotated[
@@ -208,7 +222,7 @@ class TestFiling_Initialize_ImmutableField:
         self, datetime_now: datetime
     ) -> None:
         """immutable で default ありのフィールドを渡さない場合は default が使われる"""
-        f = ImmutableFieldFiling(
+        f = AdditionalImmutableFieldFiling(
             id="test_id",
             source="test_source",
             checksum="test_checksum",
@@ -223,7 +237,7 @@ class TestFiling_Initialize_ImmutableField:
     ) -> None:
         """immutable で default ありのフィールドを上書きしようとすると FilingValidationError"""
         with pytest.raises(FilingValidationError) as exc_info:
-            ImmutableFieldFiling(
+            AdditionalImmutableFieldFiling(
                 id="test_id",
                 source="test_source",
                 checksum="test_checksum",
@@ -238,7 +252,7 @@ class TestFiling_Initialize_ImmutableField:
         self, datetime_now: datetime
     ) -> None:
         """immutable フィールドは初期化後の再代入で FilingValidationError"""
-        f = ImmutableFieldFiling(
+        f = AdditionalImmutableFieldFiling(
             id="test_id",
             source="test_source",
             checksum="test_checksum",

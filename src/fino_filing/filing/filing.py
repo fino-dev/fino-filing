@@ -39,18 +39,30 @@ class Filing(metaclass=FilingMeta):
 
     # ========== Core Fields (Descriptor) ==========
     # Annotatedで定義: 型とFieldを一元化し、認知的齟齬を解消
-    id: Annotated[str, Field("id", str, indexed=True, description="Filing ID")]
+    id: Annotated[
+        str, Field("id", str, indexed=True, immutable=True, description="Filing ID")
+    ]
     source: Annotated[
-        str, Field("source", str, indexed=True, description="Data source")
+        str,
+        Field("source", str, indexed=True, immutable=True, description="Data source"),
     ]
     checksum: Annotated[
-        str, Field("checksum", str, indexed=True, description="SHA256 checksum")
+        str,
+        Field("checksum", str, indexed=True, description="SHA256 checksum"),
     ]
-    name: Annotated[str, Field("name", str, indexed=True, description="File name")]
+    name: Annotated[
+        str, Field("name", str, indexed=True, immutable=True, description="File name")
+    ]
     is_zip: Annotated[bool, Field("is_zip", bool, indexed=True, description="ZIP flag")]
     created_at: Annotated[
         datetime,
-        Field("created_at", datetime, indexed=True, description="Created timestamp"),
+        Field(
+            "created_at",
+            datetime,
+            indexed=True,
+            immutable=True,
+            description="Created timestamp",
+        ),
     ]
 
     def __init__(self, **kwargs: Any) -> None:

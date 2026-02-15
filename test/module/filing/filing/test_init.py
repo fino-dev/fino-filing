@@ -99,3 +99,52 @@ class TestFiling_Initialize:
                 is_zip=True,
             )
         assert fve.value.fields == ["created_at"]
+
+
+class TestFiling_Initialize_ImmutableField:
+    """
+    Filingのインスタンス化のimmutableフィールドの振る舞いをテストする。
+    - 正常形: immutableフィールドを設定された値は上書き変更できる / 異常形: immutableフィールドを設定されていない値は上書き変更できない
+    """
+
+    def test_filing_init_with_immutable_field_success(
+        self, datetime_now: datetime
+    ) -> None:
+        f = Filing(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=True,
+            created_at=datetime_now,
+        )
+        assert f.id == "test_id"
+        assert f.source == "test_source"
+        assert f.checksum == "test_checksum"
+        assert f.name == "test_name"
+        assert f.is_zip is True
+        assert f.created_at == datetime_now
+
+        # checksum, is_zipはmutableのため上書き変更できる
+        f.checksum = "overwrite_checksum"
+        f.is_zip = False
+
+        assert f.checksum == "overwrite_checksum"
+        assert f.is_zip is False
+
+        # id, source, name,create_atはimmutableのため初期化後に変更できない
+        with pytest.raises(FilingValidationError) as fva:
+            f.id = "overwrite_id"
+        assert fva.value.fields == ["id"]
+
+        with pytest.raises(FilingValidationError) as fva:
+            f.source = "overwrite_source"
+        assert fva.value.fields == ["source"]
+
+        with pytest.raises(FilingValidationError) as fva:
+            f.name = "overwrite_name"
+        assert fva.value.fields == ["name"]
+
+        with pytest.raises(FilingValidationError) as fva:
+            f.created_at = datetime.now()
+        assert fva.value.fields == ["created_at"]
