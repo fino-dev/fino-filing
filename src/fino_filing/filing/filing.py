@@ -92,7 +92,7 @@ class Filing(metaclass=FilingMeta):
             # if value is None or field.field_type is None:
             # continue
 
-            # 必須項目の値(default値が存在しているfield)が設定されていない場合にはエラー
+            # 必須フィールド（_defaultsに存在しないフィールド）に値が指定されていない場合にはエラー
             if is_required and (data_value is None):
                 errors.append(f"{attr_name!r}: required field is missing or None")
                 error_fields.append(attr_name)

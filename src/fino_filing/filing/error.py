@@ -8,6 +8,7 @@ class FilingValidationError(ValueError):
         fields: list[str] | None = None,
     ) -> None:
         super().__init__(message)
+        # message will be parent valueError's args[0]
         self.errors = errors or []
         # エラーがあったフィールド名のリスト
         self.fields = fields or []

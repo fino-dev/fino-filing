@@ -2,6 +2,12 @@ from typing import Any
 
 from .expr import Expr
 
+# TODO: _field_typeとして型情報を保持する
+# TODO: Field単独検索時にも型定義方法を提供するがoptionalであるべき
+# FiligのField定義時にはAnnotaedのtype hintから型情報を取得するようにする
+
+# TODO: immutable parameterを追加して、default設定時にruntimeで上書き不可能にしてvalidation errorを発生させるようにする
+
 
 class Field:
     """
