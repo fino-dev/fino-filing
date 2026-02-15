@@ -81,6 +81,34 @@ class FilingMeta(type):
                 fields[attr_name] = meta
                 break
 
+        # 5. 親クラスのimmutable+defaultフィールドが子クラスで上書きされていないかチェック
+        for base in bases:
+            if hasattr(base, "_fields") and hasattr(base, "_defaults"):
+                parent_fields = base._fields
+                parent_defaults = base._defaults
+
+                for attr_name in parent_defaults:
+                    if (
+                        attr_name in parent_fields
+                        and parent_fields[attr_name].immutable
+                    ):
+                        # 親のimmutable+defaultフィールド
+                        parent_default = parent_defaults[attr_name]
+                        current_default = defaults.get(attr_name)
+
+                        # 子クラスで異なるdefault値が設定されている場合はエラー
+                        if (
+                            current_default is not None
+                            and current_default != parent_default
+                        ):
+                            from fino_filing.filing.error import FilingImmutableError
+
+                            raise FilingImmutableError(
+                                f"Cannot override immutable field {attr_name!r} with default value in subclass. "
+                                f"Parent default: {parent_default!r}, Child default: {current_default!r}",
+                                fields=[attr_name],
+                            )
+
         # 6. すべてのFieldをクラス属性として設定（descriptorとして機能させる）
         for attr_name, field in fields.items():
             setattr(cls, attr_name, field)
