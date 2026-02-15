@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fino_filing.filing.edinet import EDINETFiling
+from fino_filing.filing.filing_edinet import EDINETFiling
 
 
 class TestFiling_Initialize_EDINET:
