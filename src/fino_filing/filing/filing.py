@@ -180,11 +180,17 @@ class Filing(metaclass=FilingMeta):
         Returns:
             Filingインスタンス
         """
-        # datetime復元
+        # datetime復元: すべてのdatetime型フィールドを自動変換
         data_copy = data.copy()
+        fields: dict[str, Field] = getattr(cls, "_fields", {})
 
-        if "created_at" in data_copy and isinstance(data_copy["created_at"], str):
-            data_copy["created_at"] = datetime.fromisoformat(data_copy["created_at"])
+        for field_name, field in fields.items():
+            if (
+                field_name in data_copy
+                and field._field_type is datetime
+                and isinstance(data_copy[field_name], str)
+            ):
+                data_copy[field_name] = datetime.fromisoformat(data_copy[field_name])
 
         return cls(_storage=storage, **data_copy)
 
