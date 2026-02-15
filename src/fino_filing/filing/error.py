@@ -17,3 +17,20 @@ class FilingValidationError(ValueError):
         if not self.errors:
             return super().__str__()
         return f"{self.args[0]}\n " + "\n ".join(self.errors)
+
+
+class FilingImmutableError(ValueError):
+    """Immutableなフィールドを上書きしようとした場合に送出する。"""
+
+    def __init__(
+        self,
+        message: str,
+        fields: list[str] | None = None,
+        errors: list[str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.fields = fields or []
+        self.errors = errors or []
+
+    def __str__(self) -> str:
+        return f"{self.args[0]}\n " + "\n ".join(self.fields)

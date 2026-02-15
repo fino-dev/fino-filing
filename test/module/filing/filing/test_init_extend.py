@@ -3,7 +3,7 @@ from typing import Annotated
 
 import pytest
 
-from fino_filing.filing.error import FilingValidationError
+from fino_filing.filing.error import FilingImmutableError, FilingValidationError
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
@@ -14,7 +14,7 @@ class ExtendFiling(Filing):
     pass
 
 
-class TestFiling_Initialize_ExtendFiling:
+class TestExtendFiling_Initialize:
     """
     Filingを継承したFilingのインスタンス化をテストする。
     - 正常系: 継承したFilingにインスタンス化の際に値を設定した場合
@@ -72,7 +72,7 @@ class AdditionalFieldsFiling(Filing):
     additional_field_2: Annotated[int, Field(description="Additional Field 2")]
 
 
-class TestFiling_Initialize_AdditionalFields:
+class TestExtendFiling_Initialize_AdditionalFields:
     """
     Filingにフィールドを追加した継承Filingのインスタンス化をテストする。
     - 正常系: 追加したフィールドにインスタンス化の際に値を設定した場合
@@ -165,7 +165,7 @@ class TestFiling_Initialize_AdditionalFields:
 
         assert fve.value.fields == ["additional_field", "additional_field_2"]
 
-    def test_filing_initialize_additional_fields_override_success(
+    def test_filing_initialize_additional_fields_overwrite_success(
         self, datetime_now: datetime
     ) -> None:
         f = AdditionalFieldsFiling(
@@ -201,7 +201,7 @@ class AdditionalImmutableFieldFiling(Filing):
     ]
 
 
-class TestFiling_Initialize_AdditionalImmutableFields:
+class TestExtendFiling_Initialize_AdditionalImmutableFields:
     """
     FilingにFieldを追加した継承Filingのimmutableの振る舞いをテストする。
     - 正常系: 追加したフィールドにインスタンス化の際に値を設定した場合
@@ -244,7 +244,7 @@ class TestFiling_Initialize_AdditionalImmutableFields:
             "immutable_token",
         ]
 
-    def test_immutable_field_override(self, datetime_now: datetime) -> None:
+    def test_immutable_field_overwrite(self, datetime_now: datetime) -> None:
         """immutableなフィールドを上書きしようとするとエラー"""
         f = AdditionalImmutableFieldFiling(
             id="test_id",
@@ -263,7 +263,7 @@ class TestFiling_Initialize_AdditionalImmutableFields:
         assert f.unspecified_mutable_token == "overwrite_unspecified_mutable_token"
         assert f.mutable_token == "overwrite_mutable_token"
 
-        with pytest.raises(FilingValidationError) as exc_info:
+        with pytest.raises(FilingImmutableError) as exc_info:
             f.immutable_token = "overwrite"
         assert exc_info.value.fields == ["immutable_token"]
 
@@ -334,7 +334,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
         self, datetime_now: datetime
     ) -> None:
         """default値をImmutableな値に設定した場合はエラーになることを確認する"""
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FilingImmutableError) as fie_info:
             AdditionalDefaultImmutableFieldFiling(
                 id="test_id",
                 source="test_source",
@@ -345,9 +345,9 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
                 immutable_token="test_immutable_token",
             )
 
-        assert fve.value.fields == ["immutable_token"]
+        assert fie_info.value.fields == ["immutable_token"]
 
-    def test_override_mutable_after_initialize_without_value_success(
+    def test_overwrite_mutable_after_initialize_without_value_success(
         self, datetime_now: datetime
     ) -> None:
         f = AdditionalDefaultImmutableFieldFiling(
@@ -365,7 +365,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
         assert f.unspecified_mutable_token == "overwrite_unspecified_mutable_token"
         assert f.mutable_token == "overwrite_mutable_token"
 
-    def test_override_mutable_after_initialize_with_value_success(
+    def test_overwrite_mutable_after_initialize_with_value_success(
         self, datetime_now: datetime
     ) -> None:
         f = AdditionalDefaultImmutableFieldFiling(
@@ -385,7 +385,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
         assert f.unspecified_mutable_token == "overwrite_unspecified_mutable_token"
         assert f.mutable_token == "overwrite_mutable_token"
 
-    def test_override_immutable_after_initialize_without_value_failed(
+    def test_overwrite_immutable_after_initialize_without_value_failed(
         self, datetime_now: datetime
     ) -> None:
         f = AdditionalDefaultImmutableFieldFiling(
@@ -397,19 +397,122 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             created_at=datetime_now,
         )
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FilingImmutableError) as fve:
             f.immutable_token = "overwrite_immutable_token"
 
         assert fve.value.fields == ["immutable_token"]
 
 
-# ================ Override Existing Fields With Different Field Types Filing ================
+# ================ Existing Field With Default Value Extend Filing ================
 
 
-class OverrideExistingFieldsWithDifferentFieldTypesFiling(Filing):
-    # 異なる型定義をすると静的エラーになるが、pythonは実行可能のためテストする
-    source: Annotated[int, Field(description="Source")] = 123  # type: ignore
-    # 同じ型定義をする場合
+class ExistingFieldDefaultFiling(Filing):
+    # default値を持つフィールドとして上書きする
+    checksum = "default_checksum"
+    # # 異なるFieldの型で上書きする (型エラーを無視する)
+    # is_zip = 123  # type: ignore
+
+
+class TestExtendFiling_Initialize_ExistingFieldDefault:
+    """
+    既存FieldにDefault値を設定した継承FIlingのインスタンス化の振る舞いをテストする。
+    - 正常系: 指定したDefault値が設定されることを確認する
+    - 正常系: 指定したDefault値をインスタンス化の際に定義した場合、Default値が上書きされている場合
+    - 正常系: 指定したDefault値をインスタンス化の際に指定せずその後、上書きを行う場合
+    """
+
+    def test_initialize_success(self, datetime_now: datetime) -> None:
+        """指定したDefault値が設定されることを確認する"""
+        f = ExistingFieldDefaultFiling(
+            id="test_id",
+            source="test_source",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.checksum == "default_checksum"
+
+    def test_initialize_with_default_value_success(
+        self, datetime_now: datetime
+    ) -> None:
+        """指定したDefault値のフィールドをインスタンス化の際に定義した場合、Default値が上書きされている"""
+        f = ExistingFieldDefaultFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.checksum == "test_checksum"
+
+    def test_overwrite_after_initialize_success(self, datetime_now: datetime) -> None:
+        """インスタンス化の際に指定せずその後、上書きを行う場合"""
+        f = ExistingFieldDefaultFiling(
+            id="test_id",
+            source="test_source",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        f.checksum = "overwrite_checksum"
+        assert f.checksum == "overwrite_checksum"
+
+
+# ================ Existing Immutable Field With Default Value Extend Filing ================
+
+
+class ExistingImmutableFieldDefaultFiling(Filing):
+    # sourceはimmutableなフィールド
+    source = "default_source"
+
+
+class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
+    """
+    既存のImmutableなFieldにDefault値を設定した継承Filingのインスタンス化の振る舞いをテストする。
+    - 正常系: 指定したDefault値が設定されることを確認する
+    - 異常系: 指定したDefault値をインスタンス化の際に定義した場合
+    - 異常系: 指定したDefault値をインスタンス化の際に指定せずその後、上書きを行う場合
+    """
+
+    def test_initialize_success(self, datetime_now: datetime) -> None:
+        """指定したDefault値が設定されることを確認する"""
+        f = ExistingImmutableFieldDefaultFiling(
+            id="test_id",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.source == "default_source"
+
+    def test_initialize_with_default_value_success(
+        self, datetime_now: datetime
+    ) -> None:
+        """指定したDefault値のフィールドをインスタンス化の際に定義した場合、Default値が上書きされている"""
+        with pytest.raises(FilingImmutableError) as fve:
+            ExistingImmutableFieldDefaultFiling(
+                id="test_id",
+                source="test_source",
+                checksum="test_checksum",
+                name="test_name",
+                is_zip=False,
+                created_at=datetime_now,
+            )
+        assert fve.value.fields == ["source"]
+
+    def test_overwrite_after_initialize_success(self, datetime_now: datetime) -> None:
+        """インスタンス化の際に指定せずその後、上書きを行う場合"""
+        f = ExistingImmutableFieldDefaultFiling(
+            id="test_id",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        with pytest.raises(FilingImmutableError) as fve:
+            f.source = "overwrite_source"
+        assert fve.value.fields == ["source"]
 
 
 # # class SpecificIdEnum(Enum):
