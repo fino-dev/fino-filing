@@ -27,6 +27,13 @@ class AdditionalFieldsFiling(Filing):
 
 
 class TestFiling_Initialize_AdditionalFields:
+    """
+    フィールド追加した継承Filingのインスタンス化をテストする。
+    - 正常形: 追加したフィールドが設定されている場合
+    - 異常形: 追加したフィールドが設定されていない場合
+    - 異常形: 追加したフィールドの型が一致しない場合
+    """
+
     def test_filing_initialize_additional_fields_success(
         self, datetime_now: datetime
     ) -> None:
@@ -140,6 +147,12 @@ class AdditionalDefaultFieldsFiling(Filing):
 
 
 class TestFiling_Initialize_DefaultFields:
+    """
+    デフォルト値のあるフィールドを追加した継承Filingのインスタンス化をテストする。
+    - 正常形: default値を設定しない場合
+    - 異常形: default値を設定（上書き）した場合
+    """
+
     def test_filing_initialize_without_default_fields_success(
         self, datetime_now: datetime
     ) -> None:
@@ -184,6 +197,13 @@ class ImmutableFieldFiling(Filing):
 
 
 class TestFiling_Initialize_ImmutableField:
+    """
+    immutableフィールドを持つFilingのインスタンス化をテストする。
+    - 正常形: immutableフィールドを設定しない場合
+    - 異常形: immutableフィールドを設定（上書き）した場合
+    - 異常形: immutableフィールドを動的に上書きしようとする場合
+    """
+
     def test_immutable_field_default_used_when_not_passed(
         self, datetime_now: datetime
     ) -> None:

@@ -7,6 +7,12 @@ from fino_filing.filing.error import FilingValidationError
 
 
 class TestFiling_Initialize:
+    """
+    Filingのインスタンス化をテストする。
+    - 正常系: すべてのフィールドが設定されている場合
+    - 異常系: 必須フィールドが設定されていない場合
+    """
+
     def test_filing_init_success(self) -> None:
         datetime_now = datetime.now()
 
