@@ -171,4 +171,62 @@ class TestFiling_Initialize_DefaultFields:
         assert additional_default_fields_filing.is_zip is True
 
 
-# TODO immutable 設定
+# ================ Immutable Field Filing ================
+
+
+class ImmutableFieldFiling(Filing):
+    """immutable=True のフィールドを持つ Filing。上書き時に ValidationError を出す。"""
+
+    immutable_token: Annotated[
+        str,
+        Field("immutable_token", str, immutable=True, description="Immutable token"),
+    ] = "default_token"
+
+
+class TestFiling_Initialize_ImmutableField:
+    def test_immutable_field_default_used_when_not_passed(
+        self, datetime_now: datetime
+    ) -> None:
+        """immutable で default ありのフィールドを渡さない場合は default が使われる"""
+        f = ImmutableFieldFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.immutable_token == "default_token"
+
+    def test_immutable_field_default_cannot_be_overwritten_by_kwargs(
+        self, datetime_now: datetime
+    ) -> None:
+        """immutable で default ありのフィールドを上書きしようとすると FilingValidationError"""
+        with pytest.raises(FilingValidationError) as exc_info:
+            ImmutableFieldFiling(
+                id="test_id",
+                source="test_source",
+                checksum="test_checksum",
+                name="test_name",
+                is_zip=False,
+                created_at=datetime_now,
+                immutable_token="override",
+            )
+        assert exc_info.value.fields == ["immutable_token"]
+
+    def test_immutable_field_overwrite_after_init_raises(
+        self, datetime_now: datetime
+    ) -> None:
+        """immutable フィールドは初期化後の再代入で FilingValidationError"""
+        f = ImmutableFieldFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        with pytest.raises(FilingValidationError) as exc_info:
+            f.immutable_token = "overwrite"
+        assert exc_info.value.fields == ["immutable_token"]
+        assert f.immutable_token == "default_token"

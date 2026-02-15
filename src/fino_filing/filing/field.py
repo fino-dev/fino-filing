@@ -1,12 +1,12 @@
 from typing import Any
 
+from fino_filing.filing.error import FilingValidationError
+
 from .expr import Expr
 
 # TODO: _field_typeとして型情報を保持する
 # TODO: Field単独検索時にも型定義方法を提供するがoptionalであるべき
 # FiligのField定義時にはAnnotaedのtype hintから型情報を取得するようにする
-
-# TODO: immutable parameterを追加して、default設定時にruntimeで上書き不可能にしてvalidation errorを発生させるようにする
 
 
 class Field:
@@ -33,18 +33,21 @@ class Field:
         name: str,
         field_type: type | None = None,
         indexed: bool = False,
+        immutable: bool = False,
         description: str | None = None,
     ):
         """
         Args:
-            name: フィールド名
-            field_type: 型クラス（オプショナル）
-            indexed: 物理カラム化フラグ
-            description: 説明
+            name: Field Name
+            field_type: Field Type
+            indexed: Index Flag
+            immutable: Immutable Flag
+            description: Description
         """
         self.name = name
         self.field_type = field_type
         self.indexed = indexed
+        self.immutable = immutable
         self.description = description
 
     def _create_expr(self, op: str, value: Any) -> Expr:
@@ -215,12 +218,18 @@ class Field:
 
     def __set__(self, obj: Any, value: Any) -> None:
         """値の設定"""
+        # immutable の場合は既存値（default 含む）の上書きを拒否する
+        if self.immutable and self.name in obj._data:
+            raise FilingValidationError(
+                f"Field {self.name!r} is immutable and cannot be overwritten",
+                errors=[f"{self.name!r}: immutable field cannot be overwritten"],
+                fields=[self.name],
+            )
+
         obj._data[self.name] = value
 
     def __repr__(self) -> str:
-        return (
-            f"Field(name={self.name!r}, type={self.field_type}, indexed={self.indexed})"
-        )
+        return f"Field(name={self.name!r}, type={self.field_type}, indexed={self.indexed}, immutable={self.immutable})"
 
 
 # ========== ショートカット関数 ==========

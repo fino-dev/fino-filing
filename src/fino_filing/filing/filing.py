@@ -66,7 +66,7 @@ class Filing(metaclass=FilingMeta):
         for key, value in getattr(self.__class__, "_defaults", {}).items():
             setattr(self, key, value)
 
-        # kwargs から値を設定（descriptor経由で _data に格納）。defaults を上書き。
+        # kwargs から値を設定（descriptor経由で _data に格納）。defaults を上書き。immutable は上書き不可。
         for key, value in kwargs.items():
             setattr(self, key, value)
 
