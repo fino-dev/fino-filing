@@ -68,12 +68,8 @@ class TestFiling_Initialize_ExtendFiling:
 
 
 class AdditionalFieldsFiling(Filing):
-    additional_field: Annotated[
-        str, Field("additional_field", str, description="Additional Field")
-    ]
-    additional_field_2: Annotated[
-        int, Field("additional_field_2", int, description="Additional Field 2")
-    ]
+    additional_field: Annotated[str, Field(description="Additional Field")]
+    additional_field_2: Annotated[int, Field(description="Additional Field 2")]
 
 
 class TestFiling_Initialize_AdditionalFields:
@@ -196,16 +192,12 @@ class AdditionalImmutableFieldFiling(Filing):
 
     unspecified_mutable_token: Annotated[
         str,
-        Field(
-            "unspecified_mutable_token", str, description="Unspecified mutable token"
-        ),
+        Field(description="Unspecified mutable token"),
     ]
-    mutable_token: Annotated[
-        str, Field("mutable_token", str, immutable=False, description="Mutable token")
-    ]
+    mutable_token: Annotated[str, Field(immutable=False, description="Mutable token")]
     immutable_token: Annotated[
         str,
-        Field("immutable_token", str, immutable=True, description="Immutable token"),
+        Field(immutable=True, description="Immutable token"),
     ]
 
 
@@ -282,16 +274,14 @@ class TestFiling_Initialize_AdditionalImmutableFields:
 class AdditionalDefaultImmutableFieldFiling(Filing):
     unspecified_mutable_token: Annotated[
         str,
-        Field(
-            "unspecified_mutable_token", str, description="Unspecified mutable token"
-        ),
+        Field(description="Unspecified mutable token"),
     ] = "default_unspecified_mutable_token"
     mutable_token: Annotated[
-        str, Field("mutable_token", str, immutable=False, description="Mutable token")
+        str, Field(immutable=False, description="Mutable token")
     ] = "default_mutable_token"
     immutable_token: Annotated[
         str,
-        Field("immutable_token", str, immutable=True, description="Immutable token"),
+        Field(immutable=True, description="Immutable token"),
     ] = "default_immutable_token"
 
 
@@ -418,7 +408,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
 
 class OverrideExistingFieldsWithDifferentFieldTypesFiling(Filing):
     # 異なる型定義をすると静的エラーになるが、pythonは実行可能のためテストする
-    source: Annotated[int, Field("source", int, description="Source")] = 123  # type: ignore
+    source: Annotated[int, Field(description="Source")] = 123  # type: ignore
     # 同じ型定義をする場合
 
 
@@ -434,14 +424,14 @@ class OverrideExistingFieldsWithDifferentFieldTypesFiling(Filing):
 #     # 型なし default値を指定
 #     source = "extended_source"
 #     # 型あり default値を指定
-#     is_zip: Annotated[bool, Field("is_zip", bool, description="ZIP flag")] = False
+#     is_zip: Annotated[bool, Field(description="ZIP flag")] = False
 #     # ** strからenumへの変換はベースの構造が違うため弾かれる
-#     # name: Annotated[SpecificIdEnum, Field("name", SpecificIdEnum, description="Name")] = SpecificIdEnum.SpecificIdString
+#     # name: Annotated[SpecificIdEnum, Field(description="Name")] = SpecificIdEnum.SpecificIdString
 #     # ** 親クラスの型定義と一致しないものは静的に弾く
-#     # name: Annotated[int, Field("name", int, description="Name as int")] = 123
+#     # name: Annotated[int, Field(description="Name as int")] = 123
 #     # ** ENUM でも親クラスの型定義と一致しないものは静的に弾く
 #     # name: Annotated[
-#     #     SpecificIdStringEnum, Field("name", SpecificIdStringEnum, description="Name")
+#     #     SpecificIdStringEnum, Field(description="Name")
 #     # ] = SpecificIdStringEnum.SpecificIdString
 #     # 修正: リテラル型やEnum型を正しく使用
 
