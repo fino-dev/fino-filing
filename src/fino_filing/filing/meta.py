@@ -20,9 +20,13 @@ class FilingMeta(type):
     """
 
     def __new__(
+        # メタクラス: type[FilingMeta]
         mcs: type["FilingMeta"],
+        # クラス名
         name: str,
+        # 継承元クラス
         bases: tuple[type, ...],
+        # クラス属性
         attrs: dict[str, Any],
     ) -> type:
         # 1. attrsからField, default値を収集（明示的代入）
@@ -39,7 +43,7 @@ class FilingMeta(type):
         # 3. クラス作成（Field定義はAnnotatedのみとし、default値は = 値 で指定する）
         cls = super().__new__(mcs, name, bases, attrs)
 
-        # 4. Annotated[T, Field(...), ...]からFieldとdefaul値を抽出
+        # 4. Annotated[T, Field(...), ...]からFieldとdefault値を抽出
         try:
             # クラス属性の型ヒントを取得
             hints = get_type_hints(cls, include_extras=True)
@@ -76,6 +80,10 @@ class FilingMeta(type):
                 setattr(cls, attr_name, meta)
                 fields[attr_name] = meta
                 break
+
+        # 6. すべてのFieldをクラス属性として設定（descriptorとして機能させる）
+        for attr_name, field in fields.items():
+            setattr(cls, attr_name, field)
 
         setattr(cls, "_fields", fields)
         setattr(cls, "_defaults", defaults)

@@ -214,15 +214,7 @@ class Field:
             return None
 
     def __set__(self, obj: Any, value: Any) -> None:
-        """値の設定"""
-        # immutable の場合は既存値（default 含む）の上書きを拒否する
-        if self.immutable and self.name in obj._data:
-            raise FilingValidationError(
-                f"Field {self.name!r} is immutable and cannot be overwritten",
-                errors=[f"{self.name!r}: immutable field cannot be overwritten"],
-                fields=[self.name],
-            )
-
+        """値の設定（immutableチェックはFiling側で実施）"""
         obj._data[self.name] = value
 
     def __repr__(self) -> str:

@@ -36,6 +36,7 @@ class Filing(metaclass=FilingMeta):
     # メタクラスで設定されるクラス変数の型アノテーション
     _fields: dict[str, Field]
     _defaults: dict[str, Any]
+    _data: dict[str, Any]
 
     # ========== Core Fields (Descriptor) ==========
     # Annotatedで定義: 型とFieldを一元化し、認知的齟齬を解消
@@ -61,19 +62,44 @@ class Filing(metaclass=FilingMeta):
             **kwargs: フィールド値（id, source, name 等）。
         """
 
-        # データストア（フラット）
-        self._data: dict[str, Any] = {}
+        # データストア（フラット）を初期化（__setattr__をバイパス）
+        object.__setattr__(self, "_data", {})
 
         # メタクラスで収集した _defaults を先に適用
         for key, value in getattr(self.__class__, "_defaults", {}).items():
             setattr(self, key, value)
 
-        # kwargs から値を設定（descriptor経由で _data に格納）。defaults を上書き。immutable は上書き不可。
+        # kwargs から値を設定（descriptor経由で _data に格納）
         for key, value in kwargs.items():
             setattr(self, key, value)
 
         # validation check
         self._validate()
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """
+        属性設定時のimmutableチェック（Filingインスタンスの責務）
+
+        Args:
+            name: 属性名
+            value: 設定する値
+        """
+
+        # Fieldとして定義されているかチェック
+        cls = self.__class__
+        if hasattr(cls, "_fields") and name in cls._fields:
+            field = cls._fields[name]
+            # immutableフィールドで既に値が設定されている場合はエラー
+            if field.immutable and name in self._data:  # type: ignore[attr-defined]
+                from fino_filing.filing.error import FilingImmutableError
+
+                raise FilingImmutableError(
+                    f"Field {name!r} is immutable and cannot be overwritten",
+                    fields=[name],
+                )
+
+        # 通常の属性設定（Fieldの場合はdescriptor経由で_dataに格納）
+        object.__setattr__(self, name, value)
 
     def _validate(self) -> None:
         """
