@@ -6,7 +6,7 @@ class TestField_Initialize:
         field = Field("test_field", str, indexed=True, description="test_description")
 
         assert field.name == "test_field"
-        assert field.field_type is str
+        assert field._field_type is str
         assert field.indexed is True
         assert field.description == "test_description"
 

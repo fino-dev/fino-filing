@@ -75,7 +75,7 @@ class Filing(metaclass=FilingMeta):
 
     def _validate(self) -> None:
         """
-        必須項目と型を検証する。required は _defaults に無いフィールド、型は Field.field_type を使用。
+        必須項目と型を検証する。required は _defaults に無いフィールド、型は Field._field_type を使用。
         """
         cls = self.__class__
         fields: dict[str, Any] = getattr(cls, "_fields", {})
@@ -89,7 +89,7 @@ class Filing(metaclass=FilingMeta):
 
             is_required = attr_name not in defaults
 
-            # if value is None or field.field_type is None:
+            # if value is None or field._field_type is None:
             # continue
 
             # 必須フィールド（_defaultsに存在しないフィールド）に値が指定されていない場合にはエラー
@@ -98,17 +98,20 @@ class Filing(metaclass=FilingMeta):
                 error_fields.append(attr_name)
                 continue
 
-            # 型チェック
+            # 型チェック（_field_type が未注入の場合はスキップ）
+            if field._field_type is None:
+                continue
+
             if is_required:
-                if not isinstance(data_value, field.field_type):
+                if not isinstance(data_value, field._field_type):
                     errors.append(
-                        f"{attr_name!r}: expected {field.field_type!r}, got {type(data_value).__name__!r}"
+                        f"{attr_name!r}: expected {field._field_type!r}, got {type(data_value).__name__!r}"
                     )
                     error_fields.append(attr_name)
             else:
-                if not isinstance(default_value, field.field_type):
+                if not isinstance(default_value, field._field_type):
                     errors.append(
-                        f"{attr_name!r}: expected {field.field_type!r}, got {type(default_value).__name__!r}"
+                        f"{attr_name!r}: expected {field._field_type!r}, got {type(default_value).__name__!r}"
                     )
                     error_fields.append(attr_name)
 

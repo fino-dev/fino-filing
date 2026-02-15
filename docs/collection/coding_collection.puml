@@ -94,7 +94,7 @@ package "Filing Boundary" {
 
     class Field {
         + name: str
-        + field_type: str
+        + _field_type: str
         + indexed: bool
         + description: str
 

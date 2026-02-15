@@ -4,10 +4,6 @@ from fino_filing.filing.error import FilingValidationError
 
 from .expr import Expr
 
-# TODO: _field_typeとして型情報を保持する
-# TODO: Field単独検索時にも型定義方法を提供するがoptionalであるべき
-# FiligのField定義時にはAnnotaedのtype hintから型情報を取得するようにする
-
 
 class Field:
     """
@@ -21,17 +17,18 @@ class Field:
     Collectionには依存しない。
 
     Usage:
-        # スキーマレス検索
+        # スキーマレス検索（型は省略可能）
         Field("revenue") > 1_000_000
+        Field("revenue", _field_type=int) > 1_000_000
 
-        # モデルベース検索
+        # モデルベース検索（FilingではAnnotatedの型からメタクラスが_field_typeを注入）
         EDINETFiling.filer_name == "Toyota"
     """
 
     def __init__(
         self,
         name: str,
-        field_type: type | None = None,
+        _field_type: type | None = None,
         indexed: bool = False,
         immutable: bool = False,
         description: str | None = None,
@@ -39,13 +36,13 @@ class Field:
         """
         Args:
             name: Field Name
-            field_type: Field Type
+            _field_type: Field Type（省略可能。Filing定義時はAnnotatedの型から注入される）
             indexed: Index Flag
             immutable: Immutable Flag
             description: Description
         """
         self.name = name
-        self.field_type = field_type
+        self._field_type: type | None = _field_type
         self.indexed = indexed
         self.immutable = immutable
         self.description = description
@@ -229,7 +226,7 @@ class Field:
         obj._data[self.name] = value
 
     def __repr__(self) -> str:
-        return f"Field(name={self.name!r}, type={self.field_type}, indexed={self.indexed}, immutable={self.immutable})"
+        return f"Field(name={self.name!r}, type={self._field_type}, indexed={self.indexed}, immutable={self.immutable})"
 
 
 # ========== ショートカット関数 ==========
