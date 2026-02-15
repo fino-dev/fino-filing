@@ -580,7 +580,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
         assert f.checksum == "overwrite_checksum"
         assert f.is_zip is True
 
-    def test_initialize_with_immutable_default_value_override_failed(
+    def test_define_with_immutable_default_value_override_failed(
         self, datetime_now: datetime
     ) -> None:
         """親クラスのimmutableなDefault値は子クラスのdefault値の設定を許容しない"""
@@ -595,7 +595,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
         # 最初に検出されたフィールドがエラーに含まれる
         assert "source" in fve.value.fields or "additional_field" in fve.value.fields
 
-    def test_initialize_with_kwargs_override_immutable_default_failed(
+    def test_initialize_with_immutable_default_value_override_failed(
         self, datetime_now: datetime
     ) -> None:
         """親クラスのimmutableなDefault値は子クラスのインスタンス化時のkwargs指定を許容しない"""
