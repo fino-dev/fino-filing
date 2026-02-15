@@ -2,167 +2,140 @@
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 
-package "Collection Core" {
+package "Collection Boundary" {
+
     class Collection <<Facade>> {
-        - index_db: IndexDB
-        - registry_manager: RegistryManager
-        - storage: Storage
-        - spec: CollectionSpec
-        
-        + add(filing, content)
-        + get(filing_id): Filing
-        + find(**filters): List[Filing]
-        + rebuild_index()
-        + verify_integrity()
-        + migrate(new_storage)
-    }
-    
-    class Filing <<Entity>> {
-        + filing_id: str
-        + source: str
-        + source_id: str
-        + checksum: str
-        + metadata: dict
         - _storage: Storage
-        - _content_cache: bytes
+        - _catalog: Catalog
+        - _locator: Locator
+
+        + add(filing: Filing, content: bytes) -> str
+        + get(id: str) -> Filing | None
+        + find(expr: Expr, limit: int, offset: int, order_by: str, desc: boot) -> list[Filing]
+    }
+
+    package "Locator Component" {
+        class Locator {
+            + resolve(filing: Filing) -> str
+        }
+    }
+
+    package "Storage Layer" {
+        interface Storage <<Protocol>> {
+            + save(filing_id, content, metadata): str
+            + load(filing_id): bytes
+            + exists(filing_id): bool
+            + list_all(): Iterator[str]
+            + get_path(filing_id): str
+            + get_metadata(filing_id): dict
+        }
         
-        + get_content(): bytes
-        + verify_checksum(): bool
-        + to_dict(): dict
+        class LocalStorage {}
+
+        class S3Storage {}
     }
+
+    package "Catalog Layer" {
+        class Catalog {
+            + db_path: str
+            + conn: duckdb.connect
+
+            - _init_schema()
+
+            + index(filing Filing)
+            + index_batch(fiilngs: list[Filing])
+            + get(filing_id: str) -> dict | None
+            + search(expr: Expr, limit: int, offset: int, order_by: str, desc: bool) -> list[dict]
+            + search_raw(sql: str, params: list) -> list[Any]
+            + count(expr: Expr) -> int
+            + stats() -> dict
+            + clear()
+            + close()
+        }
+    }
+
+
 }
 
-package "Index Layer (Cache)" {
-    interface IndexDB {
-        + index(filing)
-        + search(**filters): List[dict]
-        + get(filing_id): dict
-        + clear()
-        + rebuild(registry_manager)
-    }
-    
-    class SQLiteIndex {
-        - conn: Connection
-        + index(filing)
-        + search(**filters)
-        + rebuild(registry_manager)
-    }
-}
+package "Filing Boundary" {
 
-package "Registry Layer (Source of Truth)" {
-    class RegistryManager <<Memento>> {
-        - storage: Storage
-        - spec: CollectionSpec
+    class ModelMeta {
+        + __new__(mcs, name, bases, attrs) -> type
+    }
+
+    class Filing {
+        + id: Field(str)
+        + source: Field(str)
+        + checksum: Field(str)
+        + name: Field(str)
+        + is_zip: Field(bool)
+        + created_at: Field(datetime)
+
+        + get(key: str, default: Any = None) -> Any
+        + set(key: str, value: Any) -> None
+        + get_content() -> bytes
+        + verify_checksum() -> bool
+        + to_dict() -> dict[str, Any]
+        + from_dict(data: dict, storage: Storage = None) -> Filing
+        + get_indexed_fields() -> list[str]
         
-        + register(filing, directory)
-        + load_registry(directory): Registry
-        + scan_all(): Iterator[Registry]
-        + rebuild_from_payloads()
+        + __repr__() -> str
     }
-    
-    class Registry {
-        + directory: str
-        + filings: List[FilingMemento]
-        + save()
-        + load()
+
+    class Expr {
+        + sql: str
+        + params: list[Any]
+
+        + __and__(other: Expr) -> Expr
+        + __or__(other: Expr) -> Expr
+        + __invert__() -> Expr
+        + __repr__() -> str
     }
-    
-    class FilingMemento {
-        + filing_id: str
-        + source: str
-        + source_id: str
-        + checksum: str
-        + filename: str
-        + created_at: datetime
+
+    class Field {
+        + name: str
+        + _field_type: str
+        + indexed: bool
+        + description: str
+
+        - _create_expr(op: str, value: Any) -> Expr
+
+        + __eq__(value: Any) -> Expr
+        + __ne__(value: Any) -> Expr
+        + __gt__(value: Any) -> Expr
+        + __ge__(value: Any) -> Expr
+        + __lt__(value: Any) -> Expr
+        + __le__(value: Any) -> Expr
+        + contains(value: str) -> Expr
+        + startswith(value: str) -> Expr
+        + endswith(value: str) -> Expr
+        + in_(values: list[Any]) -> Expr
+        + not_in(values: list[Any]) -> Expr
+        + is_null() -> Expr
+        + is_not_null() -> Expr
+        + between(lower: Any, upper: Any) -> Expr
+
+        + __get__(obj, objtype=None)
+        + __set__(obj, value)
+        + __repr__() -> str
     }
 }
 
-package "Storage Layer (Repository)" {
-    interface Storage <<Repository>> {
-        + save(path, content)
-        + load(path): bytes
-        + exists(path): bool
-        + list(prefix): Iterator[str]
-        + checksum(path): str
-    }
-    
-    class LocalStorage {
-        - base_dir: Path
-    }
-    
-    class S3Storage {
-        - bucket: str
-        - prefix: str
-    }
-}
-
-package "Spec Layer (Strategy)" {
-    class CollectionSpec {
-        + id_strategy: FilingIDStrategy
-        + registry_strategy: RegistryPlacementStrategy
-    }
-    
-    interface FilingIDStrategy {
-        + generate_id(source, source_id, checksum): str
-        + parse_id(filing_id): dict
-    }
-    
-    interface RegistryPlacementStrategy {
-        + get_registry_path(filing_metadata): str
-        + scan_pattern(): str
-    }
-    
-    class DateBasedPlacement {
-        + get_registry_path()
-    }
-    
-    class SourceBasedPlacement {
-        + get_registry_path()
-    }
-}
-
-package "Commands" {
-    interface Command {
-        + execute()
-    }
-    
-    class RebuildCommand {
-        + execute()
-    }
-    
-    class VerifyCommand {
-        + execute()
-    }
-    
-    class MigrateCommand {
-        + execute()
-    }
-}
-
-' Relations
-Collection *-- IndexDB
-Collection *-- RegistryManager
+' 継承
+ModelMeta <|-- Filing
+' 集約 (自律的な親子関係)
+Filing o-- Field
+' 構成
 Collection *-- Storage
-Collection *-- CollectionSpec
-Collection ..> Filing : creates
-Collection ..> Command : uses
-
-IndexDB <|.. SQLiteIndex
+Collection *-- Catalog
+Collection *-- Locator
+Field *-- Expr
+' 依存
+Catalog  ..> Filing 
+Catalog ..> Expr
+Locator ..> Filing
+' 実装
 Storage <|.. LocalStorage
 Storage <|.. S3Storage
-
-RegistryManager o-- Storage
-RegistryManager o-- CollectionSpec
-RegistryManager ..> Registry : manages
-Registry *-- FilingMemento
-
-CollectionSpec o-- FilingIDStrategy
-CollectionSpec o-- RegistryPlacementStrategy
-RegistryPlacementStrategy <|.. DateBasedPlacement
-RegistryPlacementStrategy <|.. SourceBasedPlacement
-
-Command <|.. RebuildCommand
-Command <|.. VerifyCommand
-Command <|.. MigrateCommand
 
 @enduml

@@ -1,0 +1,21 @@
+[pytest]
+minversion = "9.0"
+addopts = ["-ra", "-q"]
+testpaths = ["test"]
+
+markers = ["collection: Collection tests"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

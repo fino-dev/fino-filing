@@ -674,15 +674,8 @@ filing_metadata = FilingMetadata(
 
 **型チェック対応**:
 
-- `py.typed`ファイルでmypy対応
 - 全てのパブリックAPIに型ヒント
 - ジェネリクスで型安全性を確保
-
-```python
-# mypy --strict でチェック可能
-def process_filings(filings: list[Filing]) -> dict[str, Filing]:
-    return {f.document_id: f for f in filings}
-```
 
 ---
 
@@ -800,7 +793,6 @@ setup(
 2. **テスト**: 包括的なテストスイート
 3. **ドキュメント**: APIドキュメント、チュートリアル
 4. **プラグイン**: 標準プラグインの実装
-5. **型チェック**: mypy strictモードで検証
 
 ---
 

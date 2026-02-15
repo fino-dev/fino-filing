@@ -1,0 +1,25 @@
+{
+  "include": ["src"],
+  "exclude": ["**/__pycache__", "**/node_modules"],
+  "pythonVersion": "3.13",
+  "typeCheckingMode": "standard",
+  
+  // 型ヒント必須（AGENTS.mdルール）
+  "reportMissingParameterType": "error",
+  "reportMissingReturnType": "error",
+  
+  // 型の不明確さは警告に緩和（外部ライブラリ対応）
+  "reportUnknownMemberType": "warning",
+  "reportUnknownVariableType": "warning",
+  
+  // DSLのための特殊メソッドオーバーライドを許可
+  "reportIncompatibleMethodOverride": "warning",
+  
+  // デコレータの型付けは警告に緩和（実装が難しいため）
+  "reportUntypedFunctionDecorator": "warning",
+  "reportUntypedClassDecorator": "warning",
+  
+  // 未使用検出
+  "reportUnusedVariable": "warning",
+  "reportUnusedImport": "warning"
+}
