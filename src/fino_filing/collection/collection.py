@@ -52,14 +52,14 @@ class Collection:
         """Filing追加"""
         # 1. Checksum検証
         actual_checksum = hashlib.sha256(content).hexdigest()
-        expected_checksum = filing.get("checksum")
+        expected_checksum = filing.checksum
         if actual_checksum != expected_checksum:
             raise ValueError(
                 f"Checksum mismatch: {actual_checksum} != {expected_checksum}"
             )
 
         # 2. 重複チェック
-        id_ = filing.get("id")
+        id_ = filing.id
         if id_ is None:
             raise ValueError("id is required")
         if self._storage.exists(id_):
