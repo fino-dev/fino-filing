@@ -7,6 +7,63 @@ from fino_filing.filing.error import FilingValidationError
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
+# ================ Extend Filing ================
+
+
+class ExtendFiling(Filing):
+    pass
+
+
+class TestFiling_Initialize_ExtendFiling:
+    """
+    Filingを継承したFilingのインスタンス化をテストする。
+    - 正常系: 継承したFilingにインスタンス化の際に値を設定した場合
+    - 異常系: 継承したFilingにインスタンス化の際に値を設定しない場合
+    - 異常系: 継承したFilingにインスタンス化の際に異なる型の値を設定した場合
+    """
+
+    def test_initialize_success(self, datetime_now: datetime) -> None:
+        """値を設定した場合はエラーにならず、値が設定されることを確認する"""
+        f = ExtendFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.id == "test_id"
+        assert f.source == "test_source"
+        assert f.checksum == "test_checksum"
+        assert f.name == "test_name"
+        assert f.is_zip is False
+        assert f.created_at == datetime_now
+
+    def test_initialize_with_lack_field_failed(self, datetime_now: datetime) -> None:
+        """値を設定しない場合はエラーになることを確認する"""
+        with pytest.raises(FilingValidationError) as fve:
+            ExtendFiling(
+                id="test_id",
+                source="test_source",
+                checksum="test_checksum",
+            )
+
+        assert fve.value.fields == ["name", "is_zip", "created_at"]
+
+    def test_initialize_with_invalid_field_failed(self, datetime_now: datetime) -> None:
+        """異なる型の値を設定した場合はエラーになることを確認する"""
+        with pytest.raises(FilingValidationError) as fve:
+            ExtendFiling(
+                id="test_id",
+                source="test_source",
+                checksum="test_checksum",
+                name=123,
+                is_zip="test_is_zip",
+                created_at=123,
+            )
+        assert fve.value.fields == ["name", "is_zip", "created_at"]
+
+
 # ================ Additional Fields Filing ================
 
 
@@ -22,9 +79,10 @@ class AdditionalFieldsFiling(Filing):
 class TestFiling_Initialize_AdditionalFields:
     """
     Filingにフィールドを追加した継承Filingのインスタンス化をテストする。
-    - 正常形: 追加したフィールドにインスタンス化の際に値を設定した場合
-    - 異常形: 追加したフィールドにインスタンス化の際に値を設定しない場合
-    - 異常形: 追加したフィールドにインスタンス化の際に型が一致しない場合
+    - 正常系: 追加したフィールドにインスタンス化の際に値を設定した場合
+    - 異常系: 追加したフィールドにインスタンス化の際に値を設定しない場合
+    - 異常系: 追加したフィールドにインスタンス化の際に型が一致しない場合
+    - 正常系: 追加したフィールドにインスタンス化の際に型を設定後、上書きを行う場合
     """
 
     def test_filing_initialize_additional_fields_success(
@@ -111,6 +169,26 @@ class TestFiling_Initialize_AdditionalFields:
 
         assert fve.value.fields == ["additional_field", "additional_field_2"]
 
+    def test_filing_initialize_additional_fields_override_success(
+        self, datetime_now: datetime
+    ) -> None:
+        f = AdditionalFieldsFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+            additional_field="test_additional_field",
+            additional_field_2=123,
+        )
+
+        f.additional_field = "overwrite_additional_field"
+        f.additional_field_2 = 456
+
+        assert f.additional_field == "overwrite_additional_field"
+        assert f.additional_field_2 == 456
+
 
 # ================ Additional Immutable Field Filing ================
 class AdditionalImmutableFieldFiling(Filing):
@@ -134,9 +212,9 @@ class AdditionalImmutableFieldFiling(Filing):
 class TestFiling_Initialize_AdditionalImmutableFields:
     """
     FilingにFieldを追加した継承Filingのimmutableの振る舞いをテストする。
-    - 正常形: 値を設定した場合
-    - 異常形: 値を設定しない場合
-    - 正常形: mutableなフィールドを上書き更新した場合 / 異常形: immutableフィールドを上書き更新した場合
+    - 正常系: 追加したフィールドにインスタンス化の際に値を設定した場合
+    - 異常系: 追加したフィールドにインスタンス化の際に値を設定しない場合
+    - 正常系: 追加したフィールドにインスタンス化の際に値を設定後、mutableなフィールドを上書き更新した場合 / 異常系: immutableフィールドを上書き更新した場合
     """
 
     def test_inititalize_success(self, datetime_now: datetime) -> None:
@@ -220,9 +298,12 @@ class AdditionalDefaultImmutableFieldFiling(Filing):
 class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
     """
     FilingにFieldを追加した継承Filingのdefault値の振る舞いをテストする。
-    - 正常形: default値を設定しない場合
-    - 正常形: default値をMuttableな値に設定（上書き）した場合
-    - 異常形: default値をImmutableな値に設定（上書き）した場合
+    - 正常系: 追加したdefault値が設定されているフィールドにインスタンス化の際に値を設定しない場合
+    - 正常系: 追加したmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定した場合
+    - 異常系: 追加したimmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定した場合
+    - 正常系: 追加したmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定せずに、上書きを行う場合
+    - 正常系: 追加したmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定後、上書きを行う場合
+    - 異常系: 追加したimmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定後、上書きを行う場合
     """
 
     def test_initialize_success(self, datetime_now: datetime) -> None:
@@ -276,8 +357,69 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
 
         assert fve.value.fields == ["immutable_token"]
 
+    def test_override_mutable_after_initialize_without_value_success(
+        self, datetime_now: datetime
+    ) -> None:
+        f = AdditionalDefaultImmutableFieldFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
 
-# # ================ Default Fields Filing ================
+        f.unspecified_mutable_token = "overwrite_unspecified_mutable_token"
+        f.mutable_token = "overwrite_mutable_token"
+
+        assert f.unspecified_mutable_token == "overwrite_unspecified_mutable_token"
+        assert f.mutable_token == "overwrite_mutable_token"
+
+    def test_override_mutable_after_initialize_with_value_success(
+        self, datetime_now: datetime
+    ) -> None:
+        f = AdditionalDefaultImmutableFieldFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+            unspecified_mutable_token="test_unspecified_mutable_token",
+            mutable_token="test_mutable_token",
+        )
+
+        f.unspecified_mutable_token = "overwrite_unspecified_mutable_token"
+        f.mutable_token = "overwrite_mutable_token"
+
+        assert f.unspecified_mutable_token == "overwrite_unspecified_mutable_token"
+        assert f.mutable_token == "overwrite_mutable_token"
+
+    def test_override_immutable_after_initialize_without_value_failed(
+        self, datetime_now: datetime
+    ) -> None:
+        f = AdditionalDefaultImmutableFieldFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+
+        with pytest.raises(FilingValidationError) as fve:
+            f.immutable_token = "overwrite_immutable_token"
+
+        assert fve.value.fields == ["immutable_token"]
+
+
+# ================ Override Existing Fields With Different Field Types Filing ================
+
+
+class OverrideExistingFieldsWithDifferentFieldTypesFiling(Filing):
+    # 異なる型定義をすると静的エラーになるが、pythonは実行可能のためテストする
+    source: Annotated[int, Field("source", int, description="Source")] = 123  # type: ignore
+    # 同じ型定義をする場合
 
 
 # # class SpecificIdEnum(Enum):
@@ -307,9 +449,9 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
 # class TestFiling_Initialize_DefaultFields:
 #     """
 #     Filingの既存Fieldにdefault値を設定した継承Filingのインスタンス化をテストする。
-#     - 正常形: default値を設定しない場合
-#     - 異常形: default値を設定（上書き）した場合
-#     - 正常形: default値を動的に上書きした場合
+#     - 正常系: default値を設定しない場合
+#     - 異常系: default値を設定（上書き）した場合
+#     - 正常系: default値を動的に上書きした場合
 #     """
 
 #     def test_filing_initialize_without_default_fields_success(

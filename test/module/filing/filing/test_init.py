@@ -11,6 +11,7 @@ class TestFiling_Initialize:
     Filingのインスタンス化をテストする。
     - 正常系: すべてのフィールドが設定されている場合
     - 異常系: 必須フィールドが設定されていない場合
+    - 異常系: 型が一致しない場合
     """
 
     def test_filing_init_success(self) -> None:
@@ -99,6 +100,18 @@ class TestFiling_Initialize:
                 is_zip=True,
             )
         assert fve.value.fields == ["created_at"]
+
+    def test_filing_init_with_invalid_field_failed(self) -> None:
+        with pytest.raises(FilingValidationError) as fve:
+            Filing(
+                id="test_id",
+                source="test_source",
+                checksum="test_checksum",
+                name=123,
+                is_zip="test_is_zip",
+                created_at=123,
+            )
+        assert fve.value.fields == ["name"]
 
 
 class TestFiling_Initialize_ImmutableField:
