@@ -1,9 +1,11 @@
 """Collectionのテスト"""
 
 import hashlib
+import os
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from typing import Iterator
 
 import pytest
 
@@ -14,17 +16,24 @@ from fino_filing.collection.storage.flat_local import LocalStorage
 
 
 @pytest.fixture
-def temp_storage():
+def temp_work_dir() -> Iterator[Path]:
+    """毎回新しい一時作業ディレクトリを作成する。テストごとに必ず別のディレクトリが渡される。"""
+    with tempfile.TemporaryDirectory(prefix="collection_test_") as tmpdir:
+        yield Path(tmpdir).resolve()
+
+
+@pytest.fixture
+def temp_storage() -> Iterator[LocalStorage]:
     """テスト用の一時ストレージを作成"""
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="collection_test_") as tmpdir:
         storage = LocalStorage(Path(tmpdir) / "storage")
         yield storage
 
 
 @pytest.fixture
-def temp_catalog():
+def temp_catalog() -> Iterator[Catalog]:
     """テスト用の一時カタログを作成"""
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="collection_test_") as tmpdir:
         catalog_path = Path(tmpdir) / "catalog.db"
         catalog = Catalog(str(catalog_path))
         yield catalog
@@ -56,68 +65,86 @@ class TestCollection_Initialize:
     - 正常系: カスタム初期化（storage, catalog指定）
     """
 
-    def test_collection_init_with_defaults(self) -> None:
-        """デフォルト初期化のテスト"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # 一時ディレクトリを作業ディレクトリに設定
-            import os
+    def test_collection_init_with_defaults(self, temp_work_dir: Path) -> None:
+        """デフォルト初期化（storage, catalogなし）のテスト。CWDにstorageとcatalogが作成される。"""
+        default_collection_dir = temp_work_dir / ".fino" / "collection"
 
-            old_cwd = os.getcwd()
-            os.chdir(tmpdir)
+        # 初期化前にディレクトリが存在しないことを確認（この実行で作成されることを検証するため）
+        assert not default_collection_dir.exists(), (
+            "default_dir must not exist before Collection()"
+        )
 
-            try:
-                collection = Collection()
+        old_cwd = os.getcwd()
+        os.chdir(temp_work_dir)
 
-                # デフォルトのディレクトリが作成されていることを確認
-                default_dir = Path.cwd() / ".fino" / "collection"
-                assert collection._storage.base_dir == default_dir
-                assert default_dir.exists()
-                assert default_dir.is_dir()
-            finally:
-                os.chdir(old_cwd)
+        try:
+            collection = Collection()
+
+            # この実行でデフォルトのディレクトリが作成されていることを確認
+            assert collection._storage.base_dir == default_collection_dir
+            assert default_collection_dir.exists()
+            assert default_collection_dir.is_dir()
+        finally:
+            os.chdir(old_cwd)
+
+    def test_collection_init_with_custom_components(
+        self, temp_storage: LocalStorage, temp_catalog: Catalog, temp_work_dir: Path
+    ) -> None:
+        """カスタムコンポーネントを指定した初期化のテスト。CWDにstorageとcatalogが作成される。"""
+        default_collection_dir = temp_work_dir / ".fino" / "collection"
+
+        # 初期化前にディレクトリが存在しないことを確認（この実行で作成されることを検証するため）
+        assert not default_collection_dir.exists(), (
+            "default_dir must not exist before Collection()"
+        )
+
+        old_cwd = os.getcwd()
+        os.chdir(temp_work_dir)
+
+        try:
+            collection = Collection(storage=temp_storage, catalog=temp_catalog)
+
+            assert collection._storage == temp_storage
+            assert collection._catalog == temp_catalog
+        finally:
+            os.chdir(old_cwd)
 
 
-#     def test_collection_init_with_custom_components(
-#         self, temp_storage, temp_catalog
-#     ) -> None:
-#         """カスタムコンポーネントを指定した初期化のテスト"""
-#         collection = Collection(storage=temp_storage, catalog=temp_catalog)
+class TestCollection_Add:
+    """
+    Collectionのadd()メソッドをテストする。
+    - 正常系: 正しいchecksum、有効なFilingで追加成功
+    - 異常系: checksumが一致しない場合
+    - 異常系: idがNoneの場合
+    - 異常系: 既に同じidが存在する場合
+    """
 
-#         assert collection._storage == temp_storage
-#         assert collection._catalog == temp_catalog
+    def test_add_filing_success(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        sample_filing: tuple[Filing, bytes],
+    ) -> None:
+        """正常なFiling追加のテスト"""
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        filing, content = sample_filing
 
+        # Filing追加
+        actual_path = collection.add(filing, content)
 
-# class TestCollection_Add:
-#     """
-#     Collectionのadd()メソッドをテストする。
-#     - 正常系: 正しいchecksum、有効なFilingで追加成功
-#     - 異常系: checksumが一致しない場合
-#     - 異常系: idがNoneの場合
-#     - 異常系: 既に同じidが存在する場合
-#     """
+        # pathが返されることを確認
+        assert actual_path is not None
+        assert isinstance(actual_path, str)
 
-#     def test_add_filing_success(
-#         self, temp_storage, temp_catalog, sample_filing
-#     ) -> None:
-#         """正常なFiling追加のテスト"""
-#         collection = Collection(storage=temp_storage, catalog=temp_catalog)
-#         filing, content = sample_filing
+        # storageに保存されていることを確認
+        assert temp_storage.exists(filing.id)
 
-#         # Filing追加
-#         actual_path = collection.add(filing, content)
+        # catalogに登録されていることを確認
+        retrieved = collection.get(filing.id)
+        assert retrieved is not None
+        assert retrieved.id == filing.id
+        assert retrieved.name == filing.name
 
-#         # pathが返されることを確認
-#         assert actual_path is not None
-#         assert isinstance(actual_path, str)
-
-#         # storageに保存されていることを確認
-#         assert temp_storage.exists(filing.id)
-
-#         # catalogに登録されていることを確認
-#         retrieved = collection.get(filing.id)
-#         assert retrieved is not None
-#         assert retrieved.id == filing.id
-#         assert retrieved.name == filing.name
 
 #     def test_add_filing_with_checksum_mismatch(
 #         self, temp_storage, temp_catalog, sample_filing

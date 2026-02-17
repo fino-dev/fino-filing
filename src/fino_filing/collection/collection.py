@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
+from fino_filing.collection.error import CollectionChecksumMismatchError
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
@@ -30,6 +31,7 @@ class Collection:
     ) -> None:
         # Default configuration
         if storage is None or catalog is None:
+            # デフォルトのディレクトリはCurrent Working Directoryの.fino/collectionにする
             default_dir = Path.cwd() / ".fino" / "collection"
             default_dir.mkdir(parents=True, exist_ok=True)
             logger.info("Using default collection directory: %s", default_dir)
@@ -54,8 +56,11 @@ class Collection:
         actual_checksum = hashlib.sha256(content).hexdigest()
         expected_checksum = filing.checksum
         if actual_checksum != expected_checksum:
-            raise ValueError(
-                f"Checksum mismatch: {actual_checksum} != {expected_checksum}"
+            raise CollectionChecksumMismatchError(
+                filing_id=filing.id,
+                filing_name=filing.name,
+                actual_checksum=actual_checksum,
+                expected_checksum=expected_checksum,
             )
 
         # 2. 重複チェック

@@ -1,4 +1,7 @@
-class FilingValidationError(ValueError):
+from fino_filing.core.error import FinoFilingException
+
+
+class FilingValidationError(FinoFilingException, ValueError):
     """Filing の必須項目・型チェックに失敗した場合に送出する。"""
 
     def __init__(
@@ -16,10 +19,10 @@ class FilingValidationError(ValueError):
     def __str__(self) -> str:
         if not self.errors:
             return super().__str__()
-        return f"{self.args[0]}\n " + "\n ".join(self.errors)
+        return f"{self.message}\n " + "\n ".join(self.errors)
 
 
-class FilingImmutableError(ValueError):
+class FilingImmutableError(FinoFilingException, ValueError):
     """Immutableなフィールドを上書きしようとした場合に送出する。"""
 
     def __init__(
@@ -33,4 +36,4 @@ class FilingImmutableError(ValueError):
         self.errors = errors or []
 
     def __str__(self) -> str:
-        return f"{self.args[0]}\n " + "\n ".join(self.fields)
+        return f"{self.message}\n " + "\n ".join(self.fields)
