@@ -39,7 +39,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
     ImmutableなDefault値を設定したFilingをさらに継承して上書きをした場合の振る舞いをテストする。
     - 正常系: 親クラスのdefault値が正常に設定されていること
     - 正常系: 親クラスのmutableなDefault値は全ての上書きを許容する
-    - 異常系: 親クラスのimmutableなDefault値は子クラスのdefault値の設定を許容しない
+    - 異常系: 親クラスのimmutableなDefault値は子クラスのdefault値の設定を許容しない（複数）
     - 異常系: 親クラスのimmutableなDefault値は子クラスのインスタンス化の値の設定を許容しない
     - 異常系: 親クラスのimmutableなDefault値は子クラスでインスタンス化後の代入しようとしても許容しない
     """
@@ -70,10 +70,10 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
         assert f.checksum == "overwrite_checksum"
         assert f.is_zip is True
 
-    def test_define_with_immutable_default_value_override_failed(
+    def test_define_with_immutable_default_value_override_failed_multiple(
         self, datetime_now: datetime
     ) -> None:
-        """親クラスのimmutableなDefault値は子クラスのdefault値の設定を許容しない"""
+        """親クラスのimmutableなDefault値は子クラスのdefault値の設定を許容しない（複数）"""
         # クラス定義時にエラーが発生することを確認
         with pytest.raises(FilingImmutableError) as fve:
 
@@ -81,9 +81,14 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
                 checksum = "override_checksum"
                 source = "override_source"
                 additional_field = "override_additional_field"
+                additional_field_2 = 987
 
         # 最初に検出されたフィールドがエラーに含まれる
-        assert "source" in fve.value.fields or "additional_field" in fve.value.fields
+        assert fve.value.fields == [
+            "source",
+            "additional_field",
+            "additional_field_2",
+        ]
 
     def test_initialize_with_immutable_default_value_override_failed(
         self, datetime_now: datetime

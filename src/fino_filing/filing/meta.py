@@ -82,6 +82,9 @@ class FilingMeta(type):
                 break
 
         # 5. 親クラスのimmutable+defaultフィールドが子クラスで上書きされていないかチェック
+        immutable_errors: list[str] = []
+        immutable_error_fields: list[str] = []
+
         for base in bases:
             if hasattr(base, "_fields") and hasattr(base, "_defaults"):
                 parent_fields = base._fields
@@ -101,13 +104,21 @@ class FilingMeta(type):
                             current_default is not None
                             and current_default != parent_default
                         ):
-                            from fino_filing.filing.error import FilingImmutableError
-
-                            raise FilingImmutableError(
-                                f"Cannot override immutable field {attr_name!r} with default value in subclass. "
-                                f"Parent default: {parent_default!r}, Child default: {current_default!r}",
-                                fields=[attr_name],
+                            immutable_errors.append(
+                                f"{attr_name!r}: Cannot override immutable field with default value in subclass. "
+                                f"Parent default: {parent_default!r}, Child default: {current_default!r}"
                             )
+                            immutable_error_fields.append(attr_name)
+
+        # すべてのimmutableエラーを一度に発生させる
+        if immutable_errors:
+            from fino_filing.filing.error import FilingImmutableError
+
+            raise FilingImmutableError(
+                "Cannot override immutable fields with default values in subclass",
+                errors=immutable_errors,
+                fields=immutable_error_fields,
+            )
 
         # 6. すべてのFieldをクラス属性として設定（descriptorとして機能させる）
         for attr_name, field in fields.items():
