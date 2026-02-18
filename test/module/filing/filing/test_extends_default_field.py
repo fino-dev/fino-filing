@@ -3,7 +3,7 @@ from typing import Annotated
 
 import pytest
 
-from fino_filing.filing.error import FilingImmutableError
+from fino_filing.filing.error import FieldImmutableError, FilingImmutableError
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
@@ -95,26 +95,26 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
         self, datetime_now: datetime
     ) -> None:
         """親クラスのimmutableなDefault値は子クラスのインスタンス化時のkwargs指定を許容しない"""
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             ImmutableDefaultFieldNoOverrideFiling(
                 id="test_id",
                 source="override_source",
                 created_at=datetime_now,
             )
-        assert fve.value.fields == ["source"]
+        assert fve.value.field == "source"
 
     def test_initialize_with_immutable_default_value_override_failed_multiple(
         self, datetime_now: datetime
     ) -> None:
         """親クラスのimmutableなDefault値は子クラスのインスタンス化時のkwargs指定を許容しない"""
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             ImmutableDefaultFieldNoOverrideFiling(
                 id="test_id",
                 additional_field="override_additional_field",
                 source="override_source",
                 created_at=datetime_now,
             )
-        assert fve.value.fields == ["additional_field"]
+        assert fve.value.field == "additional_field"
 
     def test_overwrite_after_initialize_immutable_default_failed(
         self, datetime_now: datetime
@@ -124,10 +124,10 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
             id="test_id",
             created_at=datetime_now,
         )
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             f.source = "overwrite_source"
-        assert fve.value.fields == ["source"]
+        assert fve.value.field == "source"
 
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             f.additional_field = "overwrite_additional_field"
-        assert fve.value.fields == ["additional_field"]
+        assert fve.value.field == "additional_field"

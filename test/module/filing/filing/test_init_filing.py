@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from fino_filing import Filing
-from fino_filing.filing.error import FilingImmutableError, FilingValidationError
+from fino_filing.filing.error import FieldImmutableError, FilingValidationError
 
 
 class TestFiling_Initialize:
@@ -146,18 +146,18 @@ class TestFiling_Initialize_ImmutableField:
         assert f.is_zip is False
 
         # id, source, name,create_atはimmutableのため初期化後に変更できない
-        with pytest.raises(FilingImmutableError) as fva:
+        with pytest.raises(FieldImmutableError) as fva:
             f.id = "overwrite_id"
-        assert fva.value.fields == ["id"]
+        assert fva.value.field == "id"
 
-        with pytest.raises(FilingImmutableError) as fva:
+        with pytest.raises(FieldImmutableError) as fva:
             f.source = "overwrite_source"
-        assert fva.value.fields == ["source"]
+        assert fva.value.field == "source"
 
-        with pytest.raises(FilingImmutableError) as fva:
+        with pytest.raises(FieldImmutableError) as fva:
             f.name = "overwrite_name"
-        assert fva.value.fields == ["name"]
+        assert fva.value.field == "name"
 
-        with pytest.raises(FilingImmutableError) as fva:
+        with pytest.raises(FieldImmutableError) as fva:
             f.created_at = datetime.now()
-        assert fva.value.fields == ["created_at"]
+        assert fva.value.field == "created_at"

@@ -3,7 +3,10 @@ from typing import Annotated
 
 import pytest
 
-from fino_filing.filing.error import FilingImmutableError, FilingValidationError
+from fino_filing.filing.error import (
+    FieldImmutableError,
+    FilingValidationError,
+)
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
@@ -263,9 +266,9 @@ class TestExtendFiling_Initialize_AdditionalImmutableFields:
         assert f.unspecified_mutable_token == "overwrite_unspecified_mutable_token"
         assert f.mutable_token == "overwrite_mutable_token"
 
-        with pytest.raises(FilingImmutableError) as exc_info:
+        with pytest.raises(FieldImmutableError) as exc_info:
             f.immutable_token = "overwrite"
-        assert exc_info.value.fields == ["immutable_token"]
+        assert exc_info.value.field == "immutable_token"
 
 
 # ================ Additional Immutable Fields Filing With Default Values ================
@@ -293,7 +296,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
     - 異常系: 追加したimmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定した場合
     - 正常系: 追加したmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定せずに、上書きを行う場合
     - 正常系: 追加したmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定後、上書きを行う場合
-    - 異常系: 追加したimmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定後、上書きを行う場合
+    - 異常系: 追加したimmutableなdefault値が設定されているフィールドにインスタンス化の際に値を設定せずインスタンス化後、上書きを行う場合
     """
 
     def test_initialize_success(self, datetime_now: datetime) -> None:
@@ -334,7 +337,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
         self, datetime_now: datetime
     ) -> None:
         """default値をImmutableな値に設定した場合はエラーになることを確認する"""
-        with pytest.raises(FilingImmutableError) as fie_info:
+        with pytest.raises(FieldImmutableError) as fie_info:
             AdditionalDefaultImmutableFieldFiling(
                 id="test_id",
                 source="test_source",
@@ -345,7 +348,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
                 immutable_token="test_immutable_token",
             )
 
-        assert fie_info.value.fields == ["immutable_token"]
+        assert fie_info.value.field == "immutable_token"
 
     def test_overwrite_mutable_after_initialize_without_value_success(
         self, datetime_now: datetime
@@ -397,10 +400,10 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             created_at=datetime_now,
         )
 
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             f.immutable_token = "overwrite_immutable_token"
 
-        assert fve.value.fields == ["immutable_token"]
+        assert fve.value.field == "immutable_token"
 
 
 # ================ Existing Field With Default Value Extend Filing ================
@@ -490,7 +493,7 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
         self, datetime_now: datetime
     ) -> None:
         """immutableなDefault値のフィールドをインスタンス化の際に定義した場合、エラー"""
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             ExistingImmutableFieldDefaultFiling(
                 id="test_id",
                 source="test_source",
@@ -499,7 +502,7 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
                 is_zip=False,
                 created_at=datetime_now,
             )
-        assert fve.value.fields == ["source"]
+        assert fve.value.field == "source"
 
     def test_overwrite_after_initialize_success(self, datetime_now: datetime) -> None:
         """immutableなDefault値のフィールドをインスタンス化後、上書きしようとするとエラー"""
@@ -510,6 +513,6 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
             is_zip=False,
             created_at=datetime_now,
         )
-        with pytest.raises(FilingImmutableError) as fve:
+        with pytest.raises(FieldImmutableError) as fve:
             f.source = "overwrite_source"
-        assert fve.value.fields == ["source"]
+        assert fve.value.field == "source"

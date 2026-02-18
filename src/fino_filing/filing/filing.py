@@ -91,11 +91,13 @@ class Filing(metaclass=FilingMeta):
             field = cls._fields[name]
             # immutableフィールドで既に値が設定されている場合はエラー
             if field.immutable and name in self._data:  # type: ignore[attr-defined]
-                from fino_filing.filing.error import FilingImmutableError
+                from fino_filing.filing.error import FieldImmutableError
 
-                raise FilingImmutableError(
+                raise FieldImmutableError(
                     f"Field {name!r} is immutable and cannot be overwritten",
-                    fields=[name],
+                    field=name,
+                    current_value=self._data[name],
+                    attempt_value=value,
                 )
 
         # 通常の属性設定（Fieldの場合はdescriptor経由で_dataに格納）
