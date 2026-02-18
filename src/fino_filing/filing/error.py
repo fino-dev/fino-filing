@@ -70,6 +70,6 @@ class FilingImmutableError(FinoFilingException, ValueError):
         self.fields = fields or []
 
     def __str__(self) -> str:
-        if not self.fields:
+        if not self.errors:
             return super().__str__()
-        return f"{self.message}\n " + "\n ".join(self.fields)
+        return f"{self.message}\n " + "\n ".join(self.errors)
