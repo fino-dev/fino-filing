@@ -1,6 +1,6 @@
 from typing import Any
 
-from fino_filing.filing.error import FilingValidationError
+from fino_filing.filing.error import FieldValidationError
 
 from .expr import Expr
 
@@ -46,6 +46,20 @@ class Field:
         self.indexed = indexed
         self.immutable = immutable
         self.description = description
+
+    def validate_value(self, value: Any) -> None:
+        """Field の値の型チェックを行う。"""
+
+        if self._field_type is None:
+            return
+
+        if not isinstance(value, self._field_type):
+            raise FieldValidationError(
+                f"Field {self.name!r} value type mismatch: expected {self._field_type!r}, got {type(value).__name__!r}",
+                field=self.name,
+                expected_type=self._field_type,
+                actual_type=type(value),
+            )
 
     def _create_expr(self, op: str, value: Any) -> Expr:
         """

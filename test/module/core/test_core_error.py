@@ -10,6 +10,3 @@ class TestFinoFilingException:
         with pytest.raises(FinoFilingException) as e:
             raise FinoFilingException("test message")
         assert e.value.message == "[Fino Filing] test message"
-
-    def test_fino_filing_exception_message_with_args(self) -> None:
-        raise FinoFilingException("test message")

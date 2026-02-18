@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Annotated, Any
 
-from fino_filing.filing.error import FilingValidationError
+from fino_filing.filing.error import FieldValidationError, FilingValidationError
 from fino_filing.filing.meta import FilingMeta
 
 from .field import Field
@@ -74,7 +74,7 @@ class Filing(metaclass=FilingMeta):
             setattr(self, key, value)
 
         # validation check
-        self._validate()
+        self.__validate_fields()
 
     def __setattr__(self, name: str, value: Any) -> None:
         """
@@ -101,7 +101,7 @@ class Filing(metaclass=FilingMeta):
         # 通常の属性設定（Fieldの場合はdescriptor経由で_dataに格納）
         object.__setattr__(self, name, value)
 
-    def _validate(self) -> None:
+    def __validate_fields(self) -> None:
         """
         必須項目と型を検証する。required は _defaults に無いフィールド、型は Field._field_type を使用。
         """
@@ -130,18 +130,14 @@ class Filing(metaclass=FilingMeta):
             if field._field_type is None:
                 continue
 
-            if is_required:
-                if not isinstance(data_value, field._field_type):
-                    errors.append(
-                        f"{attr_name!r}: expected {field._field_type!r}, got {type(data_value).__name__!r}"
-                    )
-                    error_fields.append(attr_name)
-            else:
-                if not isinstance(default_value, field._field_type):
-                    errors.append(
-                        f"{attr_name!r}: expected {field._field_type!r}, got {type(default_value).__name__!r}"
-                    )
-                    error_fields.append(attr_name)
+            try:
+                if is_required:
+                    field.validate_value(data_value)
+                else:
+                    field.validate_value(default_value)
+            except FieldValidationError as e:
+                errors.append(e.message)
+                error_fields.append(attr_name)
 
         if errors:
             raise FilingValidationError(

@@ -121,5 +121,6 @@
     "terminal.ansiBlue": "#c2410c",
     "terminal.ansiBrightBlue": "#ea580c"
     },
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "python-envs.pythonProjects": []
 }

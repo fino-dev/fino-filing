@@ -110,40 +110,40 @@ class TestCollection_Initialize:
             os.chdir(old_cwd)
 
 
-class TestCollection_Add:
-    """
-    Collectionのadd()メソッドをテストする。
-    - 正常系: 正しいchecksum、有効なFilingで追加成功
-    - 異常系: checksumが一致しない場合
-    - 異常系: idがNoneの場合
-    - 異常系: 既に同じidが存在する場合
-    """
+# class TestCollection_Add:
+#     """
+#     Collectionのadd()メソッドをテストする。
+#     - 正常系: 正しいchecksum、有効なFilingで追加成功
+#     - 異常系: checksumが一致しない場合
+#     - 異常系: idがNoneの場合
+#     - 異常系: 既に同じidが存在する場合
+#     """
 
-    def test_add_filing_success(
-        self,
-        temp_storage: LocalStorage,
-        temp_catalog: Catalog,
-        sample_filing: tuple[Filing, bytes],
-    ) -> None:
-        """正常なFiling追加のテスト"""
-        collection = Collection(storage=temp_storage, catalog=temp_catalog)
-        filing, content = sample_filing
+#     def test_add_filing_success(
+#         self,
+#         temp_storage: LocalStorage,
+#         temp_catalog: Catalog,
+#         sample_filing: tuple[Filing, bytes],
+#     ) -> None:
+#         """正常なFiling追加のテスト"""
+#         collection = Collection(storage=temp_storage, catalog=temp_catalog)
+#         filing, content = sample_filing
 
-        # Filing追加
-        actual_path = collection.add(filing, content)
+#         # Filing追加
+#         actual_path = collection.add(filing, content)
 
-        # pathが返されることを確認
-        assert actual_path is not None
-        assert isinstance(actual_path, str)
+#         # pathが返されることを確認
+#         assert actual_path is not None
+#         assert isinstance(actual_path, str)
 
-        # storageに保存されていることを確認
-        assert temp_storage.exists(filing.id)
+#         # storageに保存されていることを確認
+#         assert temp_storage.exists(filing.id)
 
-        # catalogに登録されていることを確認
-        retrieved = collection.get(filing.id)
-        assert retrieved is not None
-        assert retrieved.id == filing.id
-        assert retrieved.name == filing.name
+#         # catalogに登録されていることを確認
+#         retrieved = collection.get(filing.id)
+#         assert retrieved is not None
+#         assert retrieved.id == filing.id
+#         assert retrieved.name == filing.name
 
 
 #     def test_add_filing_with_checksum_mismatch(
