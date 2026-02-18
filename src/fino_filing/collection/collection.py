@@ -58,7 +58,6 @@ class Collection:
         if actual_checksum != expected_checksum:
             raise CollectionChecksumMismatchError(
                 filing_id=filing.id,
-                filing_name=filing.name,
                 actual_checksum=actual_checksum,
                 expected_checksum=expected_checksum,
             )
