@@ -81,7 +81,29 @@ class FilingMeta(type):
                 fields[attr_name] = meta
                 break
 
-        # 5. 親クラスのimmutable+defaultフィールドが子クラスで上書きされていないかチェック
+        # 5. required=True のフィールドに default None を設定することを禁止
+        required_errors: list[str] = []
+        required_error_fields: list[str] = []
+        for attr_name, field in fields.items():
+            if (
+                getattr(field, "required", False)
+                and attr_name in defaults
+                and defaults[attr_name] is None
+            ):
+                required_errors.append(
+                    f"{attr_name!r}: Required field cannot have default None"
+                )
+                required_error_fields.append(attr_name)
+        if required_errors:
+            from fino_filing.filing.error import FieldRequiredError
+
+            raise FieldRequiredError(
+                "Required fields cannot have default None",
+                errors=required_errors,
+                fields=required_error_fields,
+            )
+
+        # 6. 親クラスのimmutable+defaultフィールドが子クラスで上書きされていないかチェック
         immutable_errors: list[str] = []
         immutable_error_fields: list[str] = []
 
@@ -120,7 +142,7 @@ class FilingMeta(type):
                 fields=immutable_error_fields,
             )
 
-        # 6. すべてのFieldをクラス属性として設定（descriptorとして機能させる）
+        # 7. すべてのFieldをクラス属性として設定（descriptorとして機能させる）
         for attr_name, field in fields.items():
             setattr(cls, attr_name, field)
 

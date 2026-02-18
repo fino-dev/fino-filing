@@ -31,6 +31,7 @@ class Field:
         _field_type: type | None = None,
         indexed: bool = False,
         immutable: bool = False,
+        required: bool = False,
         description: str | None = None,
     ):
         """
@@ -39,12 +40,14 @@ class Field:
             _field_type: Field Type（省略可能。Filing定義時はAnnotatedの型から注入される）
             indexed: Index Flag
             immutable: Immutable Flag
+            required: Required Flag（True の場合は default None 不可・インスタンス化時に必須）
             description: Description
         """
         self.name = name
         self._field_type: type | None = _field_type
         self.indexed = indexed
         self.immutable = immutable
+        self.required = required
         self.description = description
 
     def validate_value(self, value: Any) -> None:
@@ -232,7 +235,7 @@ class Field:
         obj._data[self.name] = value
 
     def __repr__(self) -> str:
-        return f"Field(name={self.name!r}, type={self._field_type}, indexed={self.indexed}, immutable={self.immutable})"
+        return f"Field(name={self.name!r}, type={self._field_type}, indexed={self.indexed}, immutable={self.immutable}, required={self.required})"
 
 
 # ========== ショートカット関数 ==========

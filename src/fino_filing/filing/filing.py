@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any, Self
 
-from fino_filing.filing.error import FieldValidationError, FilingValidationError
+from fino_filing.filing.error import (
+    FieldRequiredError,
+    FieldValidationError,
+    FilingValidationError,
+)
 from fino_filing.filing.meta import FilingMeta
 
 from .field import Field
@@ -25,6 +29,7 @@ class Filing(metaclass=FilingMeta):
 
     Usage:
         # モデルベース（Annotated形式）。default値は = 値 で指定
+        # 必須にしたいフィールドは Field(required=True) で指定（コアと同様の挙動）
         class EDINETFiling(Filing):
             filer_name: Annotated[str, Field("filer_name", description="提出者名")]
             revenue: Annotated[float, Field("revenue", description="売上")] = 0.0
@@ -39,21 +44,40 @@ class Filing(metaclass=FilingMeta):
     _data: dict[str, Any]
 
     # ========== Core Fields (Descriptor) ==========
-    # Annotatedで定義: 型とFieldを一元化し、認知的齟齬を解消
-    id: Annotated[str, Field(indexed=True, immutable=True, description="Filing ID")]
+    # required=True: Collection が前提とする必須項目。拡張時も Field(required=True) で同様の挙動を指定可能。
+    id: Annotated[
+        str,
+        Field(indexed=True, immutable=True, required=True, description="Filing ID"),
+    ]
     source: Annotated[
         str,
-        Field(indexed=True, immutable=True, description="Data source"),
+        Field(
+            indexed=True,
+            immutable=True,
+            required=True,
+            description="Data source",
+        ),
     ]
     checksum: Annotated[
         str,
-        Field(indexed=True, description="SHA256 checksum"),
+        Field(indexed=True, required=True, description="SHA256 checksum"),
     ]
-    name: Annotated[str, Field(indexed=True, immutable=True, description="File name")]
-    is_zip: Annotated[bool, Field(indexed=True, description="ZIP flag")]
+    name: Annotated[
+        str,
+        Field(indexed=True, immutable=True, required=True, description="File name"),
+    ]
+    is_zip: Annotated[
+        bool,
+        Field(indexed=True, required=True, description="ZIP flag"),
+    ]
     created_at: Annotated[
         datetime,
-        Field(indexed=True, immutable=True, description="Created timestamp"),
+        Field(
+            indexed=True,
+            immutable=True,
+            required=True,
+            description="Created timestamp",
+        ),
     ]
 
     def __init__(self, **kwargs: Any) -> None:
@@ -105,47 +129,55 @@ class Filing(metaclass=FilingMeta):
 
     def __validate_fields(self) -> None:
         """
-        必須項目と型を検証する。required は _defaults に無いフィールド、型は Field._field_type を使用。
+        必須項目と型を検証する。
+        required: Field.required が True のフィールドのみ必須。default の有無は判定に含めない。
+        （required=False で default が無くても、インスタンス時に None のままであればエラーにしない）
+        必須不足時は FieldRequiredError、型不一致時は FilingValidationError を送出する。
         """
         cls = self.__class__
         fields: dict[str, Any] = getattr(cls, "_fields", {})
-        defaults: dict[str, Any] = getattr(cls, "_defaults", {})
-        errors: list[str] = []
-        error_fields: list[str] = []
+        required_errors: list[str] = []
+        required_fields: list[str] = []
+        type_errors: list[str] = []
+        type_fields: list[str] = []
 
         for attr_name, field in fields.items():
             data_value = self._data.get(attr_name)
-            default_value = defaults.get(attr_name)
 
-            is_required = attr_name not in defaults
+            is_required = getattr(field, "required", False)
 
-            # if value is None or field._field_type is None:
-            # continue
-
-            # 必須フィールド（_defaultsに存在しないフィールド）に値が指定されていない場合にはエラー
+            # 必須フィールドに値が無い or None の場合
             if is_required and (data_value is None):
-                errors.append(f"{attr_name!r}: required field is missing or None")
-                error_fields.append(attr_name)
+                required_errors.append(
+                    f"{attr_name!r}: required field is missing or None"
+                )
+                required_fields.append(attr_name)
                 continue
 
             # 型チェック（_field_type が未注入の場合はスキップ）
             if field._field_type is None:
                 continue
+            # optional で値が None の場合は型チェックしない（None を許容）
+            if not is_required and data_value is None:
+                continue
 
             try:
-                if is_required:
-                    field.validate_value(data_value)
-                else:
-                    field.validate_value(default_value)
+                field.validate_value(data_value)
             except FieldValidationError as e:
-                errors.append(e.message)
-                error_fields.append(attr_name)
+                type_errors.append(e.message)
+                type_fields.append(attr_name)
 
-        if errors:
+        if required_errors:
+            raise FieldRequiredError(
+                "Required field is missing or None",
+                errors=required_errors,
+                fields=required_fields,
+            )
+        if type_errors:
             raise FilingValidationError(
                 "Filing validation failed",
-                errors=errors,
-                fields=error_fields,
+                errors=type_errors,
+                fields=type_fields,
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -167,7 +199,7 @@ class Filing(metaclass=FilingMeta):
         return result
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any], storage: Any = None) -> Filing:
+    def from_dict(cls, data: dict[str, Any], storage: Any = None) -> Self:
         """
         辞書から復元
 
@@ -176,7 +208,7 @@ class Filing(metaclass=FilingMeta):
             storage: Storageインスタンス
 
         Returns:
-            Filingインスタンス
+            呼び出し元クラスのインスタンス（Filing 継承時はそのサブクラス）
         """
         # datetime復元: すべてのdatetime型フィールドを自動変換
         data_copy = data.copy()

@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 import pytest
 
 from fino_filing import Filing
-from fino_filing.filing.error import FilingValidationError
+from fino_filing.filing.error import FieldRequiredError, FilingValidationError
 from fino_filing.filing.field import Field
 
 
@@ -155,7 +155,7 @@ class TestFiling_FromDict:
             # name, is_zip, created_at が不足
         }
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             Filing.from_dict(data)
 
         assert "name" in fve.value.fields
@@ -185,7 +185,7 @@ class TestFiling_FromDict:
         class ExtendedFiling(Filing):
             revenue: Annotated[float, Field(description="Revenue")]
 
-        data = {
+        data: dict[str, Any] = {
             "id": "test_id",
             "source": "test_source",
             "checksum": "test_checksum",

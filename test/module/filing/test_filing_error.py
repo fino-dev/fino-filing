@@ -2,6 +2,7 @@ import pytest
 
 from fino_filing.filing.error import (
     FieldImmutableError,
+    FieldRequiredError,
     FieldValidationError,
     FilingImmutableError,
     FilingValidationError,
@@ -109,5 +110,39 @@ class TestFilingImmutableError:
             raise FilingImmutableError(
                 "test message",
                 fields=["test_field_1", "test_field_2"],
+            )
+        assert str(e.value) == "[Fino Filing] test message"
+
+
+class TestFieldRequiredError:
+    """
+    FieldRequiredErrorの振る舞いテスト
+    """
+
+    def test_filing_core_field_error_message(self) -> None:
+        with pytest.raises(FieldRequiredError) as e:
+            raise FieldRequiredError(
+                "test message",
+                errors=["error_1", "error_2"],
+                fields=["field_1", "field_2"],
+            )
+        assert e.value.message == "[Fino Filing] test message"
+        assert e.value.errors == ["error_1", "error_2"]
+        assert e.value.fields == ["field_1", "field_2"]
+
+    def test_filing_core_field_error_str_with_errors(self) -> None:
+        with pytest.raises(FieldRequiredError) as e:
+            raise FieldRequiredError(
+                "test message",
+                errors=["error_1", "error_2"],
+                fields=["field_1", "field_2"],
+            )
+        assert str(e.value) == "[Fino Filing] test message\n error_1\n error_2"
+
+    def test_filing_core_field_error_str_without_errors(self) -> None:
+        with pytest.raises(FieldRequiredError) as e:
+            raise FieldRequiredError(
+                "test message",
+                fields=["id", "source"],
             )
         assert str(e.value) == "[Fino Filing] test message"

@@ -5,6 +5,7 @@ import pytest
 
 from fino_filing.filing.error import (
     FieldImmutableError,
+    FieldRequiredError,
     FilingValidationError,
 )
 from fino_filing.filing.field import Field
@@ -44,7 +45,7 @@ class TestExtendFiling_Initialize:
 
     def test_initialize_with_lack_field_failed(self, datetime_now: datetime) -> None:
         """値を設定しない場合はエラーになることを確認する"""
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             ExtendFiling(
                 id="test_id",
                 source="test_source",
@@ -111,44 +112,41 @@ class TestExtendFiling_Initialize_AdditionalFields:
     def test_filing_initialize_additional_fields_with_lack_field(
         self, datetime_now: datetime
     ) -> None:
-        """インスタンス化の際に必須（default値が設定されていない）フィールドを指定しない場合エラー"""
-        with pytest.raises(FilingValidationError) as fve:
-            AdditionalFieldsFiling(
-                id="test_id",
-                source="test_source",
-                checksum="test_checksum",
-                name="test_name",
-                is_zip=False,
-                created_at=datetime_now,
-            )
+        """required=False の追加フィールドは渡さなくても成功し、None になる"""
+        f = AdditionalFieldsFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.additional_field is None
+        assert f.additional_field_2 is None
 
-        assert fve.value.fields == ["additional_field", "additional_field_2"]
+        f2 = AdditionalFieldsFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+            additional_field="test_additional_field",
+        )
+        assert f2.additional_field == "test_additional_field"
+        assert f2.additional_field_2 is None
 
-        with pytest.raises(FilingValidationError) as fve:
-            AdditionalFieldsFiling(
-                id="test_id",
-                source="test_source",
-                checksum="test_checksum",
-                name="test_name",
-                is_zip=False,
-                created_at=datetime_now,
-                additional_field="test_additional_field",
-            )
-
-        assert fve.value.fields == ["additional_field_2"]
-
-        with pytest.raises(FilingValidationError) as fve:
-            AdditionalFieldsFiling(
-                id="test_id",
-                source="test_source",
-                checksum="test_checksum",
-                name="test_name",
-                is_zip=False,
-                created_at=datetime_now,
-                additional_field_2=123,
-            )
-
-        assert fve.value.fields == ["additional_field"]
+        f3 = AdditionalFieldsFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+            additional_field_2=123,
+        )
+        assert f3.additional_field is None
+        assert f3.additional_field_2 == 123
 
     def test_filing_initialize_additional_fields_with_invalid_field(
         self, datetime_now: datetime
@@ -230,22 +228,18 @@ class TestExtendFiling_Initialize_AdditionalImmutableFields:
         assert f.immutable_token == "test_immutable_token"
 
     def test_initialize_with_lack_field_failed(self, datetime_now: datetime) -> None:
-        """immutable で default ありのフィールドを渡さない場合は default が使われる"""
-        with pytest.raises(FilingValidationError) as fve:
-            f = AdditionalImmutableFieldFiling(
-                id="test_id",
-                source="test_source",
-                checksum="test_checksum",
-                name="test_name",
-                is_zip=False,
-                created_at=datetime_now,
-            )
-
-        assert fve.value.fields == [
-            "unspecified_mutable_token",
-            "mutable_token",
-            "immutable_token",
-        ]
+        """required=False の追加フィールドは渡さなくても成功し、None になる"""
+        f = AdditionalImmutableFieldFiling(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="test_name",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.unspecified_mutable_token is None
+        assert f.mutable_token is None
+        assert f.immutable_token is None
 
     def test_immutable_field_overwrite(self, datetime_now: datetime) -> None:
         """immutableなフィールドを上書きしようとするとエラー"""
@@ -516,3 +510,137 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
         with pytest.raises(FieldImmutableError) as fve:
             f.source = "overwrite_source"
         assert fve.value.field == "source"
+
+
+# ================ Required Field Default None Forbidden ================
+
+
+class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
+    """
+    Field(required=True) のフィールドに default None を設定することを禁止する仕様のテスト。
+    Filing のコアフィールドは required=True で定義されている。
+    ユーザーが独自フィールドに required=True を指定した場合も同様の挙動となる。
+    - 異常系: required=True のフィールドに default None を設定したサブクラス定義時に FieldRequiredError が発生する
+    - 異常系: required=True のフィールドに nullable な型と default None を設定したサブクラス定義時に FieldRequiredError が発生する
+    - 正常系: required=True のフィールドに default を設定したサブクラス定義時に FieldRequiredError が発生しない
+    - 正常系: ユーザー定義の Field(required=True) は default なしで定義し、インスタンス化時に値を渡すと成功する
+    - 異常系: ユーザー定義の Field(required=True) に default None を設定した場合も FieldRequiredError が発生する
+    - 異常系: ユーザー定義の Field(required=True) を渡さないと FieldRequiredError が発生する
+    """
+
+    def test_required_field_default_none_raises(self) -> None:
+        """required=True のフィールドに default None を設定したサブクラス定義時に FieldRequiredError が発生する"""
+        with pytest.raises(FieldRequiredError) as exc_info:
+
+            class BadFiling(Filing):
+                id = None  # type: ignore
+                source = None  # type: ignore
+                checksum = None  # type: ignore
+                name = None  # type: ignore
+                is_zip = None  # type: ignore
+                created_at = None  # type: ignore
+
+        assert exc_info.value.fields == [
+            "id",
+            "source",
+            "checksum",
+            "name",
+            "is_zip",
+            "created_at",
+        ]
+        assert len(exc_info.value.errors) == 6
+
+    def test_required_field_default_none_raises_with_nullable_annotation(self) -> None:
+        """required=True のフィールドに default None を設定したサブクラス定義時に FieldRequiredError が発生する"""
+        with pytest.raises(FieldRequiredError) as exc_info:
+
+            class BadFiling(Filing):
+                id: Annotated[str | None, Field(required=True)] = None  # type: ignore
+                source: Annotated[str | None, Field(required=True)] = None  # type: ignore
+                checksum: Annotated[str | None, Field(required=True)] = None  # type: ignore
+                name: Annotated[str | None, Field(required=True)] = None  # type: ignore
+                is_zip: Annotated[bool | None, Field(required=True)] = None  # type: ignore
+                created_at: Annotated[datetime | None, Field(required=True)] = None  # type: ignore
+
+        assert exc_info.value.fields == [
+            "id",
+            "source",
+            "checksum",
+            "name",
+            "is_zip",
+            "created_at",
+        ]
+        assert len(exc_info.value.errors) == 6
+
+    def test_user_defined_required_field_with_default_success(
+        self, datetime_now: datetime
+    ) -> None:
+        """ユーザー定義の Field(required=True) は default なしで定義し、インスタンス化時に値を渡すと成功する"""
+
+        class CustomDocFiling(Filing):
+            doc_number: Annotated[
+                str, Field(required=True, description="Document number")
+            ] = "default_doc_number"
+
+        f = CustomDocFiling(
+            id="id1",
+            source="src",
+            checksum="csum",
+            name="n",
+            is_zip=False,
+            created_at=datetime_now,
+        )
+        assert f.doc_number == "default_doc_number"
+
+    def test_user_defined_required_field_without_default_success(
+        self, datetime_now: datetime
+    ) -> None:
+        """ユーザー定義の Field(required=True) は default なしで定義し、インスタンス化時に値を渡すと成功する"""
+
+        class CustomDocFiling(Filing):
+            doc_number: Annotated[
+                str, Field(required=True, description="Document number")
+            ]
+
+        f = CustomDocFiling(
+            id="id1",
+            source="src",
+            checksum="csum",
+            name="n",
+            is_zip=False,
+            created_at=datetime_now,
+            doc_number="DOC-001",
+        )
+        assert f.doc_number == "DOC-001"
+
+    def test_user_defined_required_field_default_none_raises(self) -> None:
+        """ユーザー定義の Field(required=True) に default None を設定した場合も FieldRequiredError が発生する"""
+        with pytest.raises(FieldRequiredError) as exc_info:
+
+            class BadCustomFiling(Filing):
+                doc_number: Annotated[
+                    str, Field(required=True, description="Doc number")
+                ] = None  # type: ignore
+
+        assert exc_info.value.fields == ["doc_number"]
+
+    def test_user_defined_required_field_missing_raises(
+        self, datetime_now: datetime
+    ) -> None:
+        """ユーザー定義の Field(required=True) を渡さないと FieldRequiredError が発生する"""
+
+        class CustomDocFiling(Filing):
+            doc_number: Annotated[
+                str, Field(required=True, description="Document number")
+            ]
+
+        with pytest.raises(FieldRequiredError) as exc_info:
+            CustomDocFiling(
+                id="id1",
+                source="src",
+                checksum="csum",
+                name="n",
+                is_zip=False,
+                created_at=datetime_now,
+            )
+        assert "doc_number" in exc_info.value.fields

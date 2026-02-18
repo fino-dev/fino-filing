@@ -3,7 +3,11 @@ from datetime import datetime
 import pytest
 
 from fino_filing import Filing
-from fino_filing.filing.error import FieldImmutableError, FilingValidationError
+from fino_filing.filing.error import (
+    FieldImmutableError,
+    FieldRequiredError,
+    FilingValidationError,
+)
 
 
 class TestFiling_Initialize:
@@ -34,7 +38,7 @@ class TestFiling_Initialize:
         assert filing.created_at == datetime_now
 
     def test_filing_init_with_lack_field(self) -> None:
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             # instance without id
             Filing(
                 source="test_source",
@@ -45,7 +49,7 @@ class TestFiling_Initialize:
             )
         assert fve.value.fields == ["id"]
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             # instance without source
             Filing(
                 id="test_id",
@@ -57,7 +61,7 @@ class TestFiling_Initialize:
 
         assert fve.value.fields == ["source"]
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             # instance without checksum
             Filing(
                 id="test_id",
@@ -68,7 +72,7 @@ class TestFiling_Initialize:
             )
         assert fve.value.fields == ["checksum"]
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             # instance without name
             Filing(
                 id="test_id",
@@ -79,7 +83,7 @@ class TestFiling_Initialize:
             )
         assert fve.value.fields == ["name"]
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             # instance without is_zip
             Filing(
                 id="test_id",
@@ -90,7 +94,7 @@ class TestFiling_Initialize:
             )
         assert fve.value.fields == ["is_zip"]
 
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FieldRequiredError) as fve:
             # instance with invalid created_at
             Filing(
                 id="test_id",

@@ -4,7 +4,7 @@ from fino_filing.core.error import FinoFilingException
 
 
 class FieldValidationError(FinoFilingException, ValueError):
-    """Field の値の型チェックに失敗した場合に送出する。"""
+    """Field Validation Error"""
 
     def __init__(
         self,
@@ -20,7 +20,7 @@ class FieldValidationError(FinoFilingException, ValueError):
 
 
 class FieldImmutableError(FinoFilingException, ValueError):
-    """Immutableなフィールドを上書きしようとした場合に送出する。"""
+    """Field Immutable Error"""
 
     def __init__(
         self,
@@ -36,7 +36,7 @@ class FieldImmutableError(FinoFilingException, ValueError):
 
 
 class FilingValidationError(FinoFilingException, ValueError):
-    """Filing の必須項目・型チェックに失敗した場合に送出する。"""
+    """Filing Validation Error"""
 
     def __init__(
         self,
@@ -57,7 +57,29 @@ class FilingValidationError(FinoFilingException, ValueError):
 
 
 class FilingImmutableError(FinoFilingException, ValueError):
-    """Immutableなフィールドを上書きしようとした場合に送出する。"""
+    """Filing Immutable Error"""
+
+    def __init__(
+        self,
+        message: str,
+        errors: list[str] | None = None,
+        fields: list[str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.errors = errors or []
+        self.fields = fields or []
+
+    def __str__(self) -> str:
+        if not self.errors:
+            return super().__str__()
+        return f"{self.message}\n " + "\n ".join(self.errors)
+
+
+class FieldRequiredError(FinoFilingException, ValueError):
+    """
+    Required Field Error
+    Prohibited to set None to required fields.
+    """
 
     def __init__(
         self,
