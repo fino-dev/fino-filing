@@ -53,12 +53,15 @@ class Catalog:
         """)
 
         # インデックス作成
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_id ON filings(id)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_source ON filings(source)")
         self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_created_at ON filings(created_at)"
-        )
-        self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_checksum ON filings(checksum)"
+        )
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_name ON filings(name)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_is_zip ON filings(is_zip)")
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_created_at ON filings(created_at)"
         )
 
         self.conn.commit()
@@ -70,18 +73,15 @@ class Catalog:
         Args:
             filing: 索引するFiling
         """
-        data = filing.to_dict()
+        dict_filing = filing.to_dict()
 
-        # 物理カラム値抽出
-        indexed_fields = filing.get_indexed_fields()
-
-        core_values = {
-            "id": data.get("id"),
-            "source": data.get("source"),
-            "checksum": data.get("checksum"),
-            "name": data.get("name"),
-            "is_zip": data.get("is_zip", False),
-            "created_at": data.get("created_at"),
+        core_values: dict[str, Any] = {
+            "id": dict_filing.get("id"),
+            "source": dict_filing.get("source"),
+            "checksum": dict_filing.get("checksum"),
+            "name": dict_filing.get("name"),
+            "is_zip": dict_filing.get("is_zip", False),
+            "created_at": dict_filing.get("created_at"),
         }
 
         # 必須フィールド検証
@@ -90,8 +90,10 @@ class Catalog:
             "source",
             "checksum",
             "name",
+            "is_zip",
             "created_at",
         ]:
+            # filing自体のvalidationで検証された状態だが、ここでも保存前に検証を行った
             if core_values[key] is None:
                 raise ValueError(f"Required field '{key}' is missing")
 
@@ -102,7 +104,7 @@ class Catalog:
             )
 
         # JSON化
-        json_data = json.dumps(data, ensure_ascii=False, default=str)
+        json_data = json.dumps(dict_filing, ensure_ascii=False, default=str)
 
         # 挿入
         self.conn.execute(

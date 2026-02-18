@@ -89,7 +89,7 @@ class Collection:
         data = self._catalog.get(id_)
         if not data:
             return None
-        return Filing.from_dict(data, self._storage)
+        return Filing.from_dict(data)
 
     def find(
         self,
@@ -107,4 +107,4 @@ class Collection:
             order_by=order_by,
             desc=desc,
         )
-        return [Filing.from_dict(dict(r), self._storage) for r in results]
+        return [Filing.from_dict(dict(r)) for r in results]

@@ -199,13 +199,12 @@ class Filing(metaclass=FilingMeta):
         return result
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any], storage: Any = None) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         """
         辞書から復元
 
         Args:
             data: フィールド辞書
-            storage: Storageインスタンス
 
         Returns:
             呼び出し元クラスのインスタンス（Filing 継承時はそのサブクラス）
@@ -222,7 +221,7 @@ class Filing(metaclass=FilingMeta):
             ):
                 data_copy[field_name] = datetime.fromisoformat(data_copy[field_name])
 
-        return cls(_storage=storage, **data_copy)
+        return cls(**data_copy)
 
     @classmethod
     def get_indexed_fields(cls) -> list[str]:
