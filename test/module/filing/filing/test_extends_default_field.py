@@ -41,6 +41,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
     - 正常系: 親クラスのmutableなDefault値は全ての上書きを許容する
     - 異常系: 親クラスのimmutableなDefault値は子クラスのdefault値の設定を許容しない（複数）
     - 異常系: 親クラスのimmutableなDefault値は子クラスのインスタンス化の値の設定を許容しない
+    - 異常系: 親クラスのimmutableなDefault値は子クラスのインスタンス化の値の設定を許容しない（複数変更した際には、先頭の単一のフィールドがエラーとして報告される）
     - 異常系: 親クラスのimmutableなDefault値は子クラスでインスタンス化後の代入しようとしても許容しない
     """
 
@@ -101,6 +102,19 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
                 created_at=datetime_now,
             )
         assert fve.value.fields == ["source"]
+
+    def test_initialize_with_immutable_default_value_override_failed_multiple(
+        self, datetime_now: datetime
+    ) -> None:
+        """親クラスのimmutableなDefault値は子クラスのインスタンス化時のkwargs指定を許容しない"""
+        with pytest.raises(FilingImmutableError) as fve:
+            ImmutableDefaultFieldNoOverrideFiling(
+                id="test_id",
+                additional_field="override_additional_field",
+                source="override_source",
+                created_at=datetime_now,
+            )
+        assert fve.value.fields == ["additional_field"]
 
     def test_overwrite_after_initialize_immutable_default_failed(
         self, datetime_now: datetime
