@@ -21,20 +21,23 @@ class TestCollection_Add:
         filing, content = sample_filing
 
         # Filing追加
-        actual_path = collection.add(filing, content)
+        saved_filing, actual_path = collection.add(filing, content)
 
-        # pathが返されることを確認
         assert actual_path is not None
         assert isinstance(actual_path, str)
+        assert isinstance(saved_filing, Filing)
 
-        # storageに保存されていることを確認
         assert temp_storage.exists(filing.id)
+        assert temp_storage.exists(saved_filing.id)
 
         # catalogに登録されていることを確認
         retrieved = collection.get(filing.id)
         assert retrieved is not None
         assert retrieved.id == filing.id
         assert retrieved.name == filing.name
+
+        assert retrieved.id == saved_filing.id
+        assert retrieved.name == saved_filing.name
 
 
 #     def test_add_filing_with_checksum_mismatch(

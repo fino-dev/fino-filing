@@ -8,7 +8,7 @@ from .flat_local import LocalStorage
 
 
 class Storage(Protocol):
-    """Storage抽象化（idで参照、物理配置に無関心）"""
+    """Storage (Filing Storage <Adapter>)"""
 
     base_dir: Path
 

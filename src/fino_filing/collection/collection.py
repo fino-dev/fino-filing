@@ -1,9 +1,7 @@
-"""Collection Facade - Filing IDの一意性保証・検索インデックス提供"""
-
 import hashlib
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from fino_filing.collection.error import CollectionChecksumMismatchError
 from fino_filing.filing.expr import Expr
@@ -14,14 +12,20 @@ from .locator import Locator
 from .storage import Storage
 from .storage.flat_local import LocalStorage
 
-if TYPE_CHECKING:
-    pass
-
 logger = logging.getLogger(__name__)
 
 
 class Collection:
-    """Collection Facade（Filing IDの一意性保証・検索インデックス提供）"""
+    """
+    Collection (Filing Collection <Facade>)
+
+    Methods:
+    - add: Add Filing to the collection
+    - get: Get Filing from the collection by ID
+    - find: Search Filing from the collection
+    - clear: Clear the collection
+    - close: Close the collection
+    """
 
     def __init__(
         self,
@@ -50,7 +54,7 @@ class Collection:
 
     # ========== 追加系 ==========
 
-    def add(self, filing: Filing, content: bytes) -> str:
+    def add(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
         """Filing追加"""
         # 1. Checksum検証
         actual_checksum = hashlib.sha256(content).hexdigest()
@@ -74,10 +78,9 @@ class Collection:
         actual_path = self._storage.save(id_, content, metadata)
 
         # 4. pathを設定してCatalog登録
-        filing.set("path", actual_path)
         self._catalog.index(filing)
 
-        return actual_path
+        return filing, actual_path
 
     # ========== 検索系 ==========
 

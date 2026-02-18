@@ -3,7 +3,7 @@ from fino_filing.filing.filing import Filing
 
 class Locator:
     """
-    Path解決戦略
+    Locator (Filing Path Resolver<Strategy>)
 
     責務:
         - Filing metadata → storage path変換

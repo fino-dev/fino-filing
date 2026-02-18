@@ -1,31 +1,27 @@
-# collection/catalog.py
-from __future__ import annotations
-
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import duckdb
 
-if TYPE_CHECKING:
-    from .expr import Expr
-    from .filing import Filing
+from fino_filing.filing.expr import Expr
+from fino_filing.filing.filing import Filing
 
 
 class Catalog:
     """
-    Catalog（解釈しない検索エンジン）
+    Catalog (Collection Index Database <Repository>)
 
-    責務:
-        - 保存
-        - クエリ実行
-        - Index管理
-
-    🚨 重要: モデルを解釈しない
-
-    - フィールドの意味を知らない
-    - ドメイン知識を持たない
-    - Exprをコンパイルするだけ
+    Methods:
+    - index: Add Filing to the catalog
+    - index_batch: Add multiple Filing to the catalog
+    - get: Get Filing from the catalog by ID
+    - search: Search Filing from the catalog
+    - search_raw: Search Filing from the catalog using raw SQL
+    - count: Count the number of Filing in the catalog
+    - stats: Get statistics of the catalog
+    - clear: Clear the catalog
+    - close: Close the catalog
     """
 
     def __init__(self, db_path: str):
@@ -52,7 +48,6 @@ class Catalog:
                 name VARCHAR NOT NULL,
                 is_zip BOOLEAN NOT NULL,
                 created_at TIMESTAMP NOT NULL,
-                path VARCHAR NOT NULL,
                 data JSON NOT NULL
             )
         """)
@@ -87,7 +82,6 @@ class Catalog:
             "name": data.get("name"),
             "is_zip": data.get("is_zip", False),
             "created_at": data.get("created_at"),
-            "path": data.get("path"),
         }
 
         # 必須フィールド検証
@@ -97,7 +91,6 @@ class Catalog:
             "checksum",
             "name",
             "created_at",
-            "path",
         ]:
             if core_values[key] is None:
                 raise ValueError(f"Required field '{key}' is missing")
@@ -115,8 +108,8 @@ class Catalog:
         self.conn.execute(
             """
             INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, created_at, path, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (id, source, checksum, name, is_zip, created_at, data)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
             [
                 core_values["id"],
@@ -125,7 +118,6 @@ class Catalog:
                 core_values["name"],
                 core_values["is_zip"],
                 core_values["created_at"],
-                core_values["path"],
                 json_data,
             ],
         )
@@ -151,7 +143,6 @@ class Catalog:
                 "name": data.get("name"),
                 "is_zip": data.get("is_zip", False),
                 "created_at": data.get("created_at"),
-                "path": data.get("path"),
             }
 
             if isinstance(core_values["created_at"], str):
@@ -169,7 +160,6 @@ class Catalog:
                     core_values["name"],
                     core_values["is_zip"],
                     core_values["created_at"],
-                    core_values["path"],
                     json_data,
                 ]
             )
@@ -177,7 +167,7 @@ class Catalog:
         self.conn.executemany(
             """
             INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, created_at, path, data)
+            (id, source, checksum, name, is_zip, created_at, data)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             rows,
@@ -247,7 +237,6 @@ class Catalog:
             "name",
             "is_zip",
             "created_at",
-            "path",
         }
 
         if order_by in physical_columns:
@@ -263,7 +252,7 @@ class Catalog:
 
         return [json.loads(row[0]) for row in rows]
 
-    def search_raw(self, sql: str, params: list = None) -> list[Any]:
+    def search_raw(self, sql: str, params: list[Any] | None = None) -> list[Any]:
         """
         SQL直接実行（高度なユーザー向け）
 
