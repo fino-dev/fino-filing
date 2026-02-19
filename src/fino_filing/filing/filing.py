@@ -223,6 +223,19 @@ class Filing(metaclass=FilingMeta):
 
         return cls(**data_copy)
 
+    def get(self, key: str) -> Any:
+        """
+        フィールド値取得
+
+        Args:
+            key: フィールド名
+
+        Returns:
+            フィールド値
+        """
+
+        return self._data.get(key)
+
     @classmethod
     def get_indexed_fields(cls) -> list[str]:
         """
