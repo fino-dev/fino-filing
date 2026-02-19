@@ -84,9 +84,9 @@ class Collection:
 
     # ========== 検索系 ==========
 
-    def get(self, id_: str) -> Filing | None:
-        """ID取得"""
-        data = self._catalog.get(id_)
+    def get(self, id: str) -> Filing | None:
+        """ID指定取得"""
+        data = self._catalog.get(id)
         if not data:
             return None
         return Filing.from_dict(data)

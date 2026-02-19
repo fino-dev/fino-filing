@@ -177,7 +177,7 @@ class Catalog:
 
         self.conn.commit()
 
-    def get(self, id_: str) -> dict | None:
+    def get(self, id: str) -> dict | None:
         """
         ID指定取得
 
@@ -191,7 +191,7 @@ class Catalog:
             """
             SELECT data FROM filings WHERE id = ?
         """,
-            [id_],
+            [id],
         ).fetchone()
 
         if not result:
