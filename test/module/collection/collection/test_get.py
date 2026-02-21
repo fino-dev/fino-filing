@@ -5,7 +5,7 @@ class TestCollection_Get:
     """
     Collectionのget()メソッドをテストする。
     - 正常系: add後にgetでFilingとcontentが取得できる
-    - 存在しないidでNoneが返る
+    - 正常型: 存在しないidでNoneが返る
     """
 
     def test_get_filing_and_content_success(
@@ -36,6 +36,22 @@ class TestCollection_Get:
         assert filing.name == saved_filing.name
         assert content is not None
         assert isinstance(content, bytes)
+        assert content == b"test content"
+
+    def test_get_filing_and_content_not_found(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        sample_filing: tuple[Filing, bytes],
+    ) -> None:
+        """存在しない場合、Noneが返る"""
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        filing, content = sample_filing
+        collection.add(filing, content)
+
+        filing, content = collection.get("nonexistent_id")
+        assert filing is None
+        assert content is None
 
 
 #     def test_add_filing_with_checksum_mismatch(
