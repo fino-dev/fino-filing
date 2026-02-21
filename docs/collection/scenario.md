@@ -17,9 +17,10 @@ collector.collect_date(date(2024, 1, 15))
 # 検索
 filings = collection.find(expr=..., limit=100, offset=0)
 
-# 取得
+# 取得（メタデータ）
 filing = collection.get("edinet:S100XXXX:a1b2c3d4")
-content = filing.get_content()
+# 取得（ファイル本体・arelle等で解析する場合）
+content = collection.get_content("edinet:S100XXXX:a1b2c3d4")
 ```
 
 > Note: rebuild_index, verify_integrity, migrate は現在未実装

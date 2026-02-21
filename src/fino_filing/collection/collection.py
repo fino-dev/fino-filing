@@ -22,6 +22,7 @@ class Collection:
     Methods:
     - add: Add Filing to the collection
     - get: Get Filing from the collection by ID
+    - get_content: Get saved file bytes by ID (e.g. for arelle parsing)
     - find: Search Filing from the collection
     - clear: Clear the collection
     - close: Close the collection
@@ -90,6 +91,18 @@ class Collection:
         if not data:
             return None
         return Filing.from_dict(data)
+
+    def get_content(self, id: str) -> bytes | None:
+        """
+        保存済みファイル本体をIDで取得（arelle等での解析用）。
+
+        Returns:
+            ファイルのバイト列。存在しない場合は None。
+        """
+        try:
+            return self._storage.load(id)
+        except FileNotFoundError:
+            return None
 
     def find(
         self,
