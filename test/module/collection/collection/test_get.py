@@ -1,26 +1,24 @@
 from fino_filing import Catalog, Collection, Filing, LocalStorage
 
 
-class TestCollection_Add:
+class TestCollection_Get:
     """
-    Collectionのadd()メソッドをテストする。
-    - 正常系: 正しいchecksum、有効なFilingで追加成功
-    - 異常系: checksumが一致しない場合
-    - 異常系: idがNoneの場合
-    - 異常系: 既に同じidが存在する場合
+    Collectionのget()メソッドをテストする。
+    - 正常系: add後にgetでFilingとcontentが取得できる
+    - 存在しないidでNoneが返る
     """
 
-    def test_add_filing_success(
+    def test_get_filing_and_content_success(
         self,
         temp_storage: LocalStorage,
         temp_catalog: Catalog,
         sample_filing: tuple[Filing, bytes],
     ) -> None:
-        """正常なFiling追加のテスト"""
+        """Filingとcontentが取得できる"""
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
         filing, content = sample_filing
 
-        # Filing追加
+        # add
         saved_filing, actual_path = collection.add(filing, content)
 
         assert actual_path is not None
@@ -31,13 +29,13 @@ class TestCollection_Add:
         assert temp_storage.exists(saved_filing.id)
 
         # catalogに登録されていることを確認
-        retrieved = collection.get(filing.id)
-        assert retrieved is not None
-        assert retrieved.id == filing.id
-        assert retrieved.name == filing.name
-
-        assert retrieved.id == saved_filing.id
-        assert retrieved.name == saved_filing.name
+        filing, content = collection.get(filing.id)
+        assert filing is not None
+        assert isinstance(filing, Filing)
+        assert filing.id == saved_filing.id
+        assert filing.name == saved_filing.name
+        assert content is not None
+        assert isinstance(content, bytes)
 
 
 #     def test_add_filing_with_checksum_mismatch(

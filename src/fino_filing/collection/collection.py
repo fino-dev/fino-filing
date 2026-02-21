@@ -57,7 +57,7 @@ class Collection:
     # ========== 追加系 ==========
 
     def add(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
-        """Filing追加"""
+        """Add Filing to the collection"""
         # 1. Checksum検証
         actual_checksum = hashlib.sha256(content).hexdigest()
         expected_checksum = filing.checksum
@@ -87,25 +87,20 @@ class Collection:
     # ========== 検索系 ==========
 
     def get(self, id: str) -> tuple[Filing | None, bytes | None]:
-        """ID指定取得"""
+        """ID specified retrieval (Filing and content)"""
         filing = self.get_filing(id)
         content = self.get_content(id)
         return filing, content
 
     def get_filing(self, id: str) -> Filing | None:
-        """ID指定取得"""
+        """ID specified retrieval (Filing only)"""
         data = self._catalog.get(id)
         if not data:
             return None
         return Filing.from_dict(data)
 
     def get_content(self, id: str) -> bytes | None:
-        """
-        保存済みファイル本体をIDで取得（arelle等での解析用）。
-
-        Returns:
-            ファイルのバイト列。存在しない場合は None。
-        """
+        """ID specified retrieval (Content only)"""
         try:
             return self._storage.load(id)
         except FileNotFoundError:
@@ -119,7 +114,7 @@ class Collection:
         order_by: str = "created_at",
         desc: bool = True,
     ) -> list[Filing]:
-        """検索"""
+        """Search (Expression API)"""
         results = self._catalog.search(
             expr=expr,
             limit=limit,
