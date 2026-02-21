@@ -8,6 +8,9 @@ class TestCollection_Get:
     - 正常型: 存在しないidでNoneが返る
     """
 
+    # - 正常系: 継承したFilingでも取得できる
+    # - 正常系: 継承したFilingでも取得できる (EDINETFiling)
+
     def test_get_filing_and_content_success(
         self,
         temp_storage: LocalStorage,
