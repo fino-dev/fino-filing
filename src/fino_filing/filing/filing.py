@@ -246,6 +246,12 @@ class Filing(metaclass=FilingMeta):
         """
         return [field.name for field in cls._fields.values() if field.indexed]
 
+    def __eq__(self, other: object) -> bool:
+        """同一クラスかつ全フィールドが一致する場合に True"""
+        if type(self) is not type(other):
+            return False
+        return self._data == getattr(other, "_data", None)
+
     def __repr__(self) -> str:
         id_ = self._data.get("id", "???")
         source = self._data.get("source", "???")
