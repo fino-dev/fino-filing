@@ -22,6 +22,7 @@ class Collection:
     Methods:
     - add: Add Filing to the collection
     - get: Get Filing from the collection by ID
+    - get_filing: Get Filing from the collection by ID
     - get_content: Get saved file bytes by ID (e.g. for arelle parsing)
     - find: Search Filing from the collection
     - clear: Clear the collection
@@ -85,7 +86,13 @@ class Collection:
 
     # ========== 検索系 ==========
 
-    def get(self, id: str) -> Filing | None:
+    def get(self, id: str) -> tuple[Filing | None, bytes | None]:
+        """ID指定取得"""
+        filing = self.get_filing(id)
+        content = self.get_content(id)
+        return filing, content
+
+    def get_filing(self, id: str) -> Filing | None:
         """ID指定取得"""
         data = self._catalog.get(id)
         if not data:

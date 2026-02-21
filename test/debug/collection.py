@@ -27,5 +27,6 @@ try:
 except Exception as e:
     print(e)
 
-file = collection.get(edinet_filing.id)
+file, content = collection.get(edinet_filing.id)
 print(file)
+print(content)

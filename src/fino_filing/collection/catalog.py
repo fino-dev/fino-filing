@@ -177,7 +177,7 @@ class Catalog:
 
         self.conn.commit()
 
-    def get(self, id: str) -> dict | None:
+    def get(self, id: str) -> dict[str, Any] | None:
         """
         ID指定取得
 
@@ -206,7 +206,7 @@ class Catalog:
         offset: int = 0,
         order_by: str = "created_at",
         desc: bool = True,
-    ) -> list[dict]:
+    ) -> list[dict[str, Any]]:
         """
         検索（Expression API）
 
