@@ -63,6 +63,7 @@ class TestCollection_Add:
             actual_content = f.read()
         assert actual_content == content
 
+        # 保存時のインスタンスとして格納されていることを確認
         assert isinstance(saved_filing, ExtendedFiling)
         assert saved_filing.get("extra") == "extra"
 

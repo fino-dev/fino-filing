@@ -99,6 +99,7 @@ class Collection:
         if not data:
             return None
         data = dict(data)
+        # _filing_class からクラスを解決
         filing_cls_name = data.pop("_filing_class", None)
         cls = resolve_filing_class(filing_cls_name) or Filing
         return cls.from_dict(data)
@@ -129,6 +130,7 @@ class Collection:
         out: list[Filing] = []
         for data in results:
             data = dict(data)
+            # _filing_class からクラスを解決
             filing_cls_name = data.pop("_filing_class", None)
             cls = resolve_filing_class(filing_cls_name) or Filing
             out.append(cls.from_dict(data))

@@ -102,18 +102,18 @@ class Filing(metaclass=FilingMeta):
 
     def __setattr__(self, name: str, value: Any) -> None:
         """
-        属性設定時のimmutableチェック（Filingインスタンスの責務）
+        Filingの属性代入時にimmutableチェックを行う
 
         Args:
             name: 属性名
             value: 設定する値
         """
 
-        # Fieldとして定義されているかチェック
         cls = self.__class__
+        # Fieldとして定義されているかチェック
         if hasattr(cls, "_fields") and name in cls._fields:
             field = cls._fields[name]
-            # immutableフィールドで既に値が設定されている場合はエラー（同一値の再設定は許可）
+            # immutableフィールドで既に値が設定されている場合はすでに値が存在している状態のためエラー（同一値の再設定は許可）
             if (
                 field.immutable
                 and name in self._data  # type: ignore[attr-defined]
