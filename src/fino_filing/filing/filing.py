@@ -175,6 +175,11 @@ class Filing(metaclass=FilingMeta):
                 )
                 required_fields.append(attr_name)
                 continue
+            # filingのcore fieldは空文字を許容しない
+            if attr_name in self._core_fields and data_value == "":
+                type_errors.append(f"{attr_name!r}: core field cannot be empty")
+                type_fields.append(attr_name)
+                continue
 
             # 型チェック（_field_type が未注入の場合はスキップ）
             if field._field_type is None:

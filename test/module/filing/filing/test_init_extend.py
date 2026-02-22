@@ -434,6 +434,7 @@ class TestExtendFiling_Initialize_ExistingFieldDefault:
     - 正常系: 指定したDefault値が設定されることを確認する
     - 正常系: 指定したDefault値をインスタンス化の際に定義した場合、Default値が上書きされている場合
     - 正常系: 指定したDefault値をインスタンス化の際に指定せずその後、上書きを行う場合
+    - 異常系: filingのcore fieldに空文字のDefault値は許容されない
     """
 
     def test_initialize_success(self, datetime_now: datetime) -> None:
@@ -475,6 +476,21 @@ class TestExtendFiling_Initialize_ExistingFieldDefault:
         )
         f.checksum = "overwrite_checksum"
         assert f.checksum == "overwrite_checksum"
+
+    def test_overwrite_after_initialize_with_core_field_empty_failed(
+        self, datetime_now: datetime
+    ) -> None:
+        with pytest.raises(FilingValidationError) as fve:
+
+            class ExistingFieldDefaultFilingWithEmptyCoreField(Filing):
+                id = ""
+                source = ""
+                checksum = ""
+                name = ""
+                format = ""
+                created_at = datetime_now
+
+        assert fve.value.fields == ["id", "source", "checksum", "name", "format"]
 
 
 # ================ Existing Immutable Field With Default Value Extend Filing ================

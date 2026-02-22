@@ -94,6 +94,18 @@ class FilingMeta(type):
                     f"{attr_name!r}: Required field cannot have default None"
                 )
                 required_error_fields.append(attr_name)
+
+        # 5b. core field の default に空文字を許容しない
+        core_fields: list[str] = []
+        for base in bases:
+            if hasattr(base, "_core_fields"):
+                core_fields = getattr(base, "_core_fields", [])
+                break
+        for attr_name in core_fields:
+            if defaults.get(attr_name) == "":
+                required_errors.append(f"{attr_name!r}: core field cannot be empty")
+                required_error_fields.append(attr_name)
+
         if required_errors:
             from fino_filing.filing.error import FieldRequiredError
 

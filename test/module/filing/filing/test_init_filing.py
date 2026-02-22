@@ -16,6 +16,7 @@ class TestFiling_Initialize:
     - 正常系: すべてのフィールドが設定されている場合
     - 異常系: 必須フィールドが設定されていない場合
     - 異常系: 型が一致しない場合
+    - 異常系: core fieldは空文字は許容されない
     """
 
     def test_filing_init_success(self) -> None:
@@ -124,6 +125,19 @@ class TestFiling_Initialize:
                 created_at=123,
             )
         assert fve.value.fields == ["name", "is_zip", "created_at"]
+
+    def test_filing_init_with_core_field_empty_failed(self) -> None:
+        with pytest.raises(FilingValidationError) as fve:
+            Filing(
+                id="",
+                source="",
+                checksum="",
+                name="",
+                is_zip=True,
+                format="",
+                created_at=datetime.now(),
+            )
+        assert fve.value.fields == ["id", "source", "checksum", "name", "format"]
 
 
 class TestFiling_Initialize_ImmutableField:
