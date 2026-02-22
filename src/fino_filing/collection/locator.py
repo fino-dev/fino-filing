@@ -15,6 +15,9 @@ class Locator:
 
     def resolve(self, filing: Filing) -> str:
         """
-        Filing metadata → storage path変換
+        Filing metadata → storage path変換（partition + ファイル名 + 拡張子）。
+        拡張子は Filing.is_zip に応じて .zip または .xbrl とする。
         """
-        return f"{filing.source}/{filing.id}"
+        base = f"{filing.source or '_'}/{filing.id or '_'}"
+        suffix = ".zip" if filing.is_zip else ".xbrl"
+        return base + suffix

@@ -34,6 +34,34 @@ class TestCollection_Add:
             actual_content = f.read()
         assert actual_content == content
 
+        # Locator により storage_key が使われ、形式に応じた拡張子で保存される
+        assert path.endswith(".xbrl")  # sample_filing is is_zip=False
+        assert "test_source" in path and "test_id_001" in path
+
+    def test_add_uses_locator_storage_key_zip_extension(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """is_zip=True の Filing は .zip 拡張子で保存される（Locator の storage_key が使われる）"""
+        content = b"zip content"
+        checksum = hashlib.sha256(content).hexdigest()
+        filing = Filing(
+            id="zip_id_001",
+            source="edinet",
+            checksum=checksum,
+            name="report.zip",
+            is_zip=True,
+            created_at=datetime_now,
+        )
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        _, path = collection.add(filing, content)
+        assert path.endswith(".zip")
+        assert "edinet" in path and "zip_id_001" in path
+        with open(path, "rb") as f:
+            assert f.read() == content
+
     def test_add_filing_and_content_success_with_inheritance(
         self,
         temp_storage: LocalStorage,

@@ -5,7 +5,9 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
+
+from fino_filing.collection.storage import _sanitize_storage_key
 
 logger = logging.getLogger(__name__)
 
@@ -42,20 +44,36 @@ class LocalStorage:
         with open(self.registry_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-    def save(self, id_: str, content: bytes, metadata: dict | None = None) -> str:
-        """保存（ファイル名=checksum）"""
-        checksum = hashlib.sha256(content).hexdigest()
-        filename = f"{checksum}.zip"
+    def save(
+        self,
+        id_: str,
+        content: bytes,
+        metadata: dict[str, Any] | None = None,
+        storage_key: str | None = None,
+    ) -> str:
+        """
+        保存。
+        storage_key が渡された場合はそれを相対パスとして使用し、
+        渡されない場合は従来どおり {checksum}.zip で保存する（後方互換）。
+        """
+        if storage_key is not None:
+            full_path = _sanitize_storage_key(storage_key, self.base_dir)
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+            full_path.write_bytes(content)
+            registry_key = str(full_path.relative_to(self.base_dir.resolve()))
+        else:
+            checksum = hashlib.sha256(content).hexdigest()
+            filename = f"{checksum}.zip"
+            full_path = self.base_dir / filename
+            full_path.write_bytes(content)
+            registry_key = filename
 
-        file_path = self.base_dir / filename
-        file_path.write_bytes(content)
-
-        self._index[id_] = filename
+        self._index[id_] = registry_key
         if metadata is not None:
             self._metadata[id_] = metadata
         self._save_registry()
 
-        return str(file_path)
+        return str(full_path)
 
     def load(self, id_: str) -> bytes:
         """読み込み"""

@@ -55,6 +55,7 @@ class Collection:
 
         self._storage = storage
         self._catalog = catalog
+        self._locator = locator if locator is not None else Locator()
 
     # ========== 追加系 ==========
 
@@ -77,9 +78,12 @@ class Collection:
         if self._storage.exists(id_):
             raise CatalogAlreadyExistsError(filing_id=id_)
 
-        # 3. Storage保存（metadataをRegistryに格納）
+        # 3. Locatorでstorage_keyを解決し、Storage保存（metadataをRegistryに格納）
         metadata = filing.to_dict()
-        actual_path = self._storage.save(id_, content, metadata)
+        storage_key = self._locator.resolve(filing)
+        actual_path = self._storage.save(
+            id_, content, metadata, storage_key=storage_key
+        )
 
         # 4. pathを設定してCatalog登録
         self._catalog.index(filing)
