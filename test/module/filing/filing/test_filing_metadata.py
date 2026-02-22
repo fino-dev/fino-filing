@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from fino_filing import Filing
@@ -33,13 +34,9 @@ class TestFiling_GetIndexedFields:
 
         class ExtendedFiling(Filing):
             # indexed=True のフィールド
-            ticker: Annotated[
-                str, Field(indexed=True, description="Ticker Symbol")
-            ]
+            ticker: Annotated[str, Field(indexed=True, description="Ticker Symbol")]
             # indexed=False のフィールド
-            revenue: Annotated[
-                float, Field(indexed=False, description="Revenue")
-            ]
+            revenue: Annotated[float, Field(indexed=False, description="Revenue")]
 
         indexed_fields = ExtendedFiling.get_indexed_fields()
 
@@ -63,12 +60,8 @@ class TestFiling_GetIndexedFields:
         """indexed=Falseのフィールドのみを追加した継承Filingの場合"""
 
         class ExtendedFiling(Filing):
-            revenue: Annotated[
-                float, Field(indexed=False, description="Revenue")
-            ]
-            profit: Annotated[
-                float, Field(indexed=False, description="Profit")
-            ]
+            revenue: Annotated[float, Field(indexed=False, description="Revenue")]
+            profit: Annotated[float, Field(indexed=False, description="Profit")]
 
         indexed_fields = ExtendedFiling.get_indexed_fields()
 
@@ -130,11 +123,11 @@ class TestFiling_GetIndexedFields:
 class TestFiling_Repr:
     """
     Filing.__repr__() のテスト
-    - 正常系: 文字列表現が正しいこと
-    - 正常系: id, sourceが含まれること
+    - 正常系: クラス名が含まれていること・すべてのフィールドが含まれること
+    - 正常系: 継承クラスでも同様に正しく生成されること
     """
 
-    def test_repr_success(self, datetime_now) -> None:
+    def test_repr_success(self, datetime_now: datetime) -> None:
         """文字列表現が正しく生成されることを確認"""
         filing = Filing(
             id="test_id",
@@ -149,11 +142,16 @@ class TestFiling_Repr:
         repr_str = repr(filing)
 
         assert "Filing" in repr_str
-        assert "test_id" in repr_str
-        assert "test_source" in repr_str
-        assert repr_str == "Filing(id='test_id', source='test_source')"
+        # すべてのフィールドが含まれること
+        assert "id" in repr_str
+        assert "source" in repr_str
+        assert "checksum" in repr_str
+        assert "name" in repr_str
+        assert "is_zip" in repr_str
+        assert "format" in repr_str
+        assert "created_at" in repr_str
 
-    def test_repr_extended_filing(self, datetime_now) -> None:
+    def test_repr_extended_filing(self, datetime_now: datetime) -> None:
         """継承Filingの文字列表現"""
 
         class ExtendedFiling(Filing):
@@ -175,4 +173,3 @@ class TestFiling_Repr:
         assert "ExtendedFiling" in repr_str
         assert "extended_id" in repr_str
         assert "extended_source" in repr_str
-        assert repr_str == "ExtendedFiling(id='extended_id', source='extended_source')"

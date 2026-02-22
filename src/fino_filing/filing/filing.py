@@ -280,6 +280,9 @@ class Filing(metaclass=FilingMeta):
         return self._data == getattr(other, "_data", None)
 
     def __repr__(self) -> str:
-        id_ = self._data.get("id", "???")
-        source = self._data.get("source", "???")
-        return f"{self.__class__.__name__}(id={id_!r}, source={source!r})"
+        all_fields = self._data.keys()
+        all_fields_values = [self._data[field] for field in all_fields]
+        all_fields_str = ", ".join(
+            [f"{field}={value}" for field, value in zip(all_fields, all_fields_values)]
+        )
+        return f"{self.__class__.__name__}({all_fields_str})"
