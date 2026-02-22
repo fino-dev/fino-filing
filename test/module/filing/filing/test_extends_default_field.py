@@ -48,6 +48,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
     def test_initialize_success(self, datetime_now: datetime) -> None:
         f = ImmutableDefaultFieldNoOverrideFiling(
             id="test_id",
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.checksum == "default_checksum"
@@ -62,6 +63,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
     ) -> None:
         f = ImmutableDefaultFieldMutableOverrideFiling(
             id="test_id",
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.checksum == "override_checksum"
@@ -99,6 +101,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
             ImmutableDefaultFieldNoOverrideFiling(
                 id="test_id",
                 source="override_source",
+                format="xbrl",
                 created_at=datetime_now,
             )
         assert fve.value.field == "source"
@@ -112,6 +115,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
                 id="test_id",
                 additional_field="override_additional_field",
                 source="override_source",
+                format="xbrl",
                 created_at=datetime_now,
             )
         assert fve.value.field == "additional_field"
@@ -122,6 +126,7 @@ class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
         """親クラスのimmutableなDefault値は子クラスでインスタンス化後の代入を許容しない"""
         f = ImmutableDefaultFieldNoOverrideFiling(
             id="test_id",
+            format="xbrl",
             created_at=datetime_now,
         )
         with pytest.raises(FieldImmutableError) as fve:

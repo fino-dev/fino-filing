@@ -31,6 +31,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         b = Filing(
@@ -39,6 +40,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert a == b
@@ -52,6 +54,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         b = Filing.from_dict(a.to_dict())
@@ -66,6 +69,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         b = Filing(
@@ -74,6 +78,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert a != b
@@ -93,6 +98,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             extra="x",
         )
@@ -102,6 +108,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             extra="x",
         )
@@ -122,6 +129,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             extra="x",
         )
@@ -131,6 +139,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             extra="y",
         )
@@ -149,6 +158,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         extended = ExtendedFiling(
@@ -156,6 +166,7 @@ class TestFiling_Eq:
             checksum="c",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert base != extended
@@ -172,6 +183,7 @@ class TestFiling_Eq:
             source="src",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         b = DefaultFieldFiling(
@@ -179,6 +191,7 @@ class TestFiling_Eq:
             source="src",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert a == b
@@ -197,6 +210,7 @@ class TestFiling_Eq:
             source="src",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         b = DefaultFieldFiling(
@@ -205,6 +219,7 @@ class TestFiling_Eq:
             checksum="d",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert a != b

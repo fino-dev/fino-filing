@@ -34,6 +34,7 @@ class TestExtendFiling_Initialize:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.id == "test_id"
@@ -50,6 +51,7 @@ class TestExtendFiling_Initialize:
                 id="test_id",
                 source="test_source",
                 checksum="test_checksum",
+                format="xbrl",
             )
 
         assert fve.value.fields == ["name", "is_zip", "created_at"]
@@ -63,6 +65,7 @@ class TestExtendFiling_Initialize:
                 checksum="test_checksum",
                 name=123,
                 is_zip="test_is_zip",
+                format="xbrl",
                 created_at=123,
             )
         assert fve.value.fields == ["name", "is_zip", "created_at"]
@@ -95,6 +98,7 @@ class TestExtendFiling_Initialize_AdditionalFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             additional_field="test_additional_field",
             additional_field_2=123,
@@ -119,6 +123,7 @@ class TestExtendFiling_Initialize_AdditionalFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.additional_field is None
@@ -130,6 +135,7 @@ class TestExtendFiling_Initialize_AdditionalFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             additional_field="test_additional_field",
         )
@@ -142,6 +148,7 @@ class TestExtendFiling_Initialize_AdditionalFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             additional_field_2=123,
         )
@@ -159,6 +166,7 @@ class TestExtendFiling_Initialize_AdditionalFields:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=False,
+                format="xbrl",
                 created_at=datetime_now,
                 additional_field=False,
                 additional_field_2=123.456,
@@ -175,6 +183,7 @@ class TestExtendFiling_Initialize_AdditionalFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             additional_field="test_additional_field",
             additional_field_2=123,
@@ -218,6 +227,7 @@ class TestExtendFiling_Initialize_AdditionalImmutableFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             unspecified_mutable_token="test_unspecified_mutable_token",
             mutable_token="test_mutable_token",
@@ -235,6 +245,7 @@ class TestExtendFiling_Initialize_AdditionalImmutableFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.unspecified_mutable_token is None
@@ -249,6 +260,7 @@ class TestExtendFiling_Initialize_AdditionalImmutableFields:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             unspecified_mutable_token="test_unspecified_mutable_token",
             mutable_token="test_mutable_token",
@@ -301,6 +313,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 
@@ -318,6 +331,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             unspecified_mutable_token="test_unspecified_mutable_token",
             mutable_token="test_mutable_token",
@@ -338,6 +352,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=False,
+                format="xbrl",
                 created_at=datetime_now,
                 immutable_token="test_immutable_token",
             )
@@ -353,6 +368,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 
@@ -371,6 +387,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             unspecified_mutable_token="test_unspecified_mutable_token",
             mutable_token="test_mutable_token",
@@ -391,6 +408,7 @@ class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 
@@ -425,6 +443,7 @@ class TestExtendFiling_Initialize_ExistingFieldDefault:
             source="test_source",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.checksum == "default_checksum"
@@ -439,6 +458,7 @@ class TestExtendFiling_Initialize_ExistingFieldDefault:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.checksum == "test_checksum"
@@ -450,6 +470,7 @@ class TestExtendFiling_Initialize_ExistingFieldDefault:
             source="test_source",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         f.checksum = "overwrite_checksum"
@@ -479,6 +500,7 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.source == "default_source"
@@ -494,6 +516,7 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=False,
+                format="xbrl",
                 created_at=datetime_now,
             )
         assert fve.value.field == "source"
@@ -505,6 +528,7 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         with pytest.raises(FieldImmutableError) as fve:
@@ -588,6 +612,7 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
             checksum="csum",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
         assert f.doc_number == "default_doc_number"
@@ -608,6 +633,7 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
             checksum="csum",
             name="n",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             doc_number="DOC-001",
         )
@@ -641,6 +667,7 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
                 checksum="csum",
                 name="n",
                 is_zip=False,
+                format="xbrl",
                 created_at=datetime_now,
             )
         assert "doc_number" in exc_info.value.fields

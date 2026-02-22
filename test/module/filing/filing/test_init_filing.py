@@ -27,6 +27,7 @@ class TestFiling_Initialize:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
 
@@ -45,6 +46,7 @@ class TestFiling_Initialize:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         assert fve.value.fields == ["id"]
@@ -56,6 +58,7 @@ class TestFiling_Initialize:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
 
@@ -68,6 +71,7 @@ class TestFiling_Initialize:
                 source="test_source",
                 name="test_name",
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         assert fve.value.fields == ["checksum"]
@@ -79,6 +83,7 @@ class TestFiling_Initialize:
                 source="test_source",
                 checksum="test_checksum",
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         assert fve.value.fields == ["name"]
@@ -90,6 +95,7 @@ class TestFiling_Initialize:
                 source="test_source",
                 checksum="test_checksum",
                 name="test_name",
+                format="zip",
                 created_at=datetime.now(),
             )
         assert fve.value.fields == ["is_zip"]
@@ -102,6 +108,7 @@ class TestFiling_Initialize:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=True,
+                format="zip",
             )
         assert fve.value.fields == ["created_at"]
 
@@ -113,6 +120,7 @@ class TestFiling_Initialize:
                 checksum="test_checksum",
                 name=123,
                 is_zip="test_is_zip",
+                format="zip",
                 created_at=123,
             )
         assert fve.value.fields == ["name", "is_zip", "created_at"]
@@ -133,6 +141,7 @@ class TestFiling_Initialize_ImmutableField:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
         assert f.id == "test_id"

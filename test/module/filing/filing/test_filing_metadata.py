@@ -22,10 +22,11 @@ class TestFiling_GetIndexedFields:
         assert "checksum" in indexed_fields
         assert "name" in indexed_fields
         assert "is_zip" in indexed_fields
+        assert "format" in indexed_fields
         assert "created_at" in indexed_fields
 
-        # 6つのフィールドが存在すること
-        assert len(indexed_fields) == 6
+        # 7つのフィールドが存在すること
+        assert len(indexed_fields) == 7
 
     def test_get_indexed_fields_extended_filing_with_indexed(self) -> None:
         """indexedフィールドを追加した継承Filingの場合"""
@@ -48,14 +49,15 @@ class TestFiling_GetIndexedFields:
         assert "checksum" in indexed_fields
         assert "name" in indexed_fields
         assert "is_zip" in indexed_fields
+        assert "format" in indexed_fields
         assert "created_at" in indexed_fields
         assert "ticker" in indexed_fields
 
         # revenue は indexed=False なので含まれない
         assert "revenue" not in indexed_fields
 
-        # 7つのフィールドが存在すること
-        assert len(indexed_fields) == 7
+        # 8つのフィールドが存在すること
+        assert len(indexed_fields) == 8
 
     def test_get_indexed_fields_extended_filing_without_indexed(self) -> None:
         """indexed=Falseのフィールドのみを追加した継承Filingの場合"""
@@ -76,14 +78,15 @@ class TestFiling_GetIndexedFields:
         assert "checksum" in indexed_fields
         assert "name" in indexed_fields
         assert "is_zip" in indexed_fields
+        assert "format" in indexed_fields
         assert "created_at" in indexed_fields
 
         # 追加フィールドは含まれない
         assert "revenue" not in indexed_fields
         assert "profit" not in indexed_fields
 
-        # 6つのフィールドが存在すること（基本Filingと同じ）
-        assert len(indexed_fields) == 6
+        # 7つのフィールドが存在すること（基本Filingと同じ）
+        assert len(indexed_fields) == 7
 
     def test_get_indexed_fields_multiple_inheritance(self) -> None:
         """多段階継承の場合"""
@@ -105,8 +108,8 @@ class TestFiling_GetIndexedFields:
         # indexed=False のフィールドは含まれない
         assert "field3" not in indexed_fields
 
-        # 8つのindexedフィールドが存在すること
-        assert len(indexed_fields) == 8
+        # 9つのindexedフィールドが存在すること（基本7 + field1 + field2）
+        assert len(indexed_fields) == 9
 
     def test_get_indexed_fields_unspecified_indexed(self) -> None:
         """indexedを指定しなかった場合（デフォルトFalse）"""
@@ -120,8 +123,8 @@ class TestFiling_GetIndexedFields:
         # custom_field は indexed=False なので含まれない
         assert "custom_field" not in indexed_fields
 
-        # 基本Filingと同じ6つのフィールド
-        assert len(indexed_fields) == 6
+        # 基本Filingと同じ7つのフィールド
+        assert len(indexed_fields) == 7
 
 
 class TestFiling_Repr:
@@ -139,6 +142,7 @@ class TestFiling_Repr:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
 
@@ -161,6 +165,7 @@ class TestFiling_Repr:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 

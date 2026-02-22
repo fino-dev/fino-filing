@@ -87,7 +87,7 @@ class Filing(metaclass=FilingMeta):
             immutable=True,
             description="File format / extension for storage key (e.g. zip, xbrl, pdf, csv) => derived from is_zip.",
         ),
-    ] = ""
+    ]
     created_at: Annotated[
         datetime,
         Field(
@@ -174,12 +174,6 @@ class Filing(metaclass=FilingMeta):
                     f"{attr_name!r}: required field is missing or None"
                 )
                 required_fields.append(attr_name)
-                continue
-
-            # core fieldsは空文字を許容しない
-            if attr_name in self._core_fields and data_value == "":
-                type_errors.append(f"{attr_name!r}: core field cannot be empty")
-                type_fields.append(attr_name)
                 continue
 
             # 型チェック（_field_type が未注入の場合はスキップ）

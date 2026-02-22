@@ -26,6 +26,7 @@ class TestFiling_ToDict:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
 
@@ -48,6 +49,7 @@ class TestFiling_ToDict:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 
@@ -69,6 +71,8 @@ class TestFiling_ToDict:
             id="test_id",
             source="test_source",
             name="test_name",
+            is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 
@@ -90,6 +94,7 @@ class TestFiling_ToDict:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
             revenue=1000000.0,
         )
@@ -118,6 +123,7 @@ class TestFiling_FromDict:
             "checksum": "test_checksum",
             "name": "test_name",
             "is_zip": True,
+            "format": "zip",
             "created_at": datetime_now,
         }
 
@@ -138,6 +144,7 @@ class TestFiling_FromDict:
             "checksum": "test_checksum",
             "name": "test_name",
             "is_zip": False,
+            "format": "xbrl",
             "created_at": "2024-01-15T10:30:45.123456",
         }
 
@@ -170,6 +177,7 @@ class TestFiling_FromDict:
             "checksum": "test_checksum",
             "name": 123,  # str ではなく int
             "is_zip": "invalid",  # bool ではなく str
+            "format": "xbrl",
             "created_at": "2024-01-15T10:30:45",
         }
 
@@ -191,6 +199,7 @@ class TestFiling_FromDict:
             "checksum": "test_checksum",
             "name": "test_name",
             "is_zip": True,
+            "format": "zip",
             "created_at": "2024-01-15T10:30:45",
             "revenue": 1000000.0,
         }
@@ -217,6 +226,7 @@ class TestFiling_ToDict_FromDict_RoundTrip:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
 
@@ -267,6 +277,7 @@ class TestFiling_ToDict_FromDict_RoundTrip:
             checksum="test_checksum",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             revenue=1000000.0,
             period_start=period_start,
@@ -294,6 +305,7 @@ class TestFiling_ToDict_FromDict_RoundTrip:
             source="test_source",
             name="test_name",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
         )
 

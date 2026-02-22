@@ -46,6 +46,7 @@ def sample_filing():
         checksum=checksum,
         name="test_filing.txt",
         is_zip=False,
+        format="xbrl",
         created_at=datetime.now(),
     )
 

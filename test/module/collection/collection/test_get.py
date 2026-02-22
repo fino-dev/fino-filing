@@ -59,6 +59,7 @@ class TestCollection_Get:
             checksum=checksum,
             name="test_filing.txt",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             doc_id="test_doc_id",
             edinet_code="test_edinet_code",

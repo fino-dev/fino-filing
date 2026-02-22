@@ -11,6 +11,7 @@ class TestFiling_Initialize_EDINET:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
             doc_id="test_doc_id",
             edinet_code="test_edinet_code",

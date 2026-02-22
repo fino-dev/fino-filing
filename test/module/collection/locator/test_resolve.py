@@ -19,6 +19,7 @@ class TestLocator_Resolve:
             checksum="1234567890",
             name="test.zip",
             is_zip=True,
+            format="zip",
             created_at=datetime(2024, 1, 15),
         )
         path = locator.resolve(filing)
@@ -35,6 +36,7 @@ class TestLocator_Resolve:
             checksum="",
             name="",
             is_zip=False,
+            format="xbrl",
             created_at=datetime(2024, 1, 15),
         )
 

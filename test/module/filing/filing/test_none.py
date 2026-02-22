@@ -22,6 +22,7 @@ class TestFiling_Initialize_ExplicitNone:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         assert "id" in fve.value.fields
@@ -33,6 +34,7 @@ class TestFiling_Initialize_ExplicitNone:
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         assert "source" in fve.value.fields
@@ -44,6 +46,7 @@ class TestFiling_Initialize_ExplicitNone:
                 checksum="test_checksum",
                 name=None,  # type: ignore
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         assert "name" in fve.value.fields
@@ -59,6 +62,7 @@ class TestFiling_Initialize_ExplicitNone:
                 checksum="test_checksum",
                 name=None,  # type: ignore
                 is_zip=True,
+                format="zip",
                 created_at=datetime.now(),
             )
         # すべてのNoneフィールドがエラーに含まれること
@@ -86,6 +90,7 @@ class TestFiling_Initialize_ExplicitNone:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
             custom_field=None,  # type: ignore
         )

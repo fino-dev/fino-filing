@@ -53,6 +53,7 @@ class TestCollection_Add:
             checksum=checksum,
             name="report.zip",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
@@ -106,6 +107,7 @@ class TestCollection_Add:
             checksum=filing.checksum,
             name=filing.name,
             is_zip=filing.is_zip,
+            format=filing.format,
             created_at=filing.created_at,
             extra="extra",
         )
@@ -138,6 +140,7 @@ class TestCollection_Add:
             checksum=checksum,
             name="test_filing.txt",
             is_zip=False,
+            format="xbrl",
             created_at=datetime_now,
             doc_id="test_doc_id",
             edinet_code="test_edinet_code",
