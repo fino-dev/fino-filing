@@ -11,7 +11,7 @@ from fino_filing.filing.filing import Filing
 from .catalog import Catalog
 from .locator import Locator
 from .storage import Storage
-from .storage.flat_local import LocalStorage
+from .storages import LocalStorage
 
 logger = logging.getLogger(__name__)
 

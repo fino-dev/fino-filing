@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fino_filing.collection.catalog import Catalog
 from fino_filing.collection.collection import Collection
-from fino_filing.collection.storage.flat_local import LocalStorage
+from fino_filing.collection.storages import LocalStorage
 
 
 class TestCollection_Initialize:

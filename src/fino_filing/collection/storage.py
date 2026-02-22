@@ -1,10 +1,5 @@
-# collection/storage/__init__.py
-"""Storage抽象化（pathを意識しない設計）"""
-
 from pathlib import Path
 from typing import Iterator, Protocol
-
-from .flat_local import LocalStorage
 
 
 class Storage(Protocol):
@@ -43,9 +38,3 @@ class Storage(Protocol):
     def get_metadata(self, id_: str) -> dict | None:
         """Registryに格納されたmetadata取得"""
         ...
-
-
-__all__ = [
-    "Storage",
-    "LocalStorage",
-]

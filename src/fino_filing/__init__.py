@@ -5,7 +5,8 @@ from .collection.filing_resolver import (
     default_resolver,
     register_filing_class,
 )
-from .collection.storage import LocalStorage, Storage
+from .collection.storage import Storage
+from .collection.storages import LocalStorage
 from .filing.expr import Expr
 from .filing.field import Field
 from .filing.filing import Filing

@@ -1,7 +1,8 @@
 import hashlib
 from datetime import datetime
 
-from fino_filing import Catalog, Collection, EDINETFiling, Filing, LocalStorage
+from fino_filing import Catalog, Collection, EDINETFiling, Filing
+from fino_filing.collection.storages import LocalStorage
 
 
 class TestCollection_Get:

@@ -2,7 +2,8 @@ import hashlib
 from datetime import datetime
 from typing import Annotated
 
-from fino_filing import Catalog, Collection, EDINETFiling, Field, Filing, LocalStorage
+from fino_filing import Catalog, Collection, EDINETFiling, Field, Filing
+from fino_filing.collection.storages import LocalStorage
 
 
 class TestCollection_Add:

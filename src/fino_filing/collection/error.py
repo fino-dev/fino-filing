@@ -1,3 +1,5 @@
+from typing import Any
+
 from fino_filing.core.error import FinoFilingException
 
 
@@ -16,3 +18,18 @@ class CollectionChecksumMismatchError(FinoFilingException, ValueError):
         self.filing_id = filing_id
         self.actual_checksum = actual_checksum
         self.expected_checksum = expected_checksum
+
+
+class CatalogRequiredValueError(FinoFilingException, ValueError):
+    """Required value error"""
+
+    def __init__(
+        self,
+        field: str,
+        actual_value: Any,
+    ):
+        super().__init__(
+            f"Required field '{field}' is missing or empty: value: {actual_value}"
+        )
+        self.field = field
+        self.value = actual_value

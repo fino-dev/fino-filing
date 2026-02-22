@@ -1,4 +1,5 @@
-from fino_filing import Catalog, Collection, Filing, LocalStorage
+from fino_filing import Catalog, Collection, Filing
+from fino_filing.collection.storages import LocalStorage
 
 
 class TestCollection_GetContent:

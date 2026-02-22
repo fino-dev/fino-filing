@@ -4,6 +4,7 @@ from typing import Any
 
 import duckdb
 
+from fino_filing.collection.error import CatalogRequiredValueError
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
@@ -74,7 +75,9 @@ class Catalog:
             filing: 索引するFiling
         """
         dict_filing = filing.to_dict()
-        dict_filing["_filing_class"] = f"{type(filing).__module__}.{type(filing).__qualname__}"
+        dict_filing["_filing_class"] = (
+            f"{type(filing).__module__}.{type(filing).__qualname__}"
+        )
 
         core_values: dict[str, Any] = {
             "id": dict_filing.get("id"),
@@ -95,8 +98,10 @@ class Catalog:
             "created_at",
         ]:
             # filing自体のvalidationで検証された状態だが、ここでも保存前に検証を行った
-            if core_values[key] is None:
-                raise ValueError(f"Required field '{key}' is missing")
+            if core_values[key] is None or core_values[key] == "":
+                raise CatalogRequiredValueError(
+                    field=key, actual_value=core_values[key]
+                )
 
         # datetime変換
         if isinstance(core_values["created_at"], str):
@@ -134,13 +139,15 @@ class Catalog:
         Args:
             filings: Filing一覧
         """
-        rows = []
+        rows: list[list[Any]] = []
 
         for filing in filings:
             data = filing.to_dict()
-            data["_filing_class"] = f"{type(filing).__module__}.{type(filing).__qualname__}"
+            data["_filing_class"] = (
+                f"{type(filing).__module__}.{type(filing).__qualname__}"
+            )
 
-            core_values = {
+            core_values: dict[str, Any] = {
                 "id": data.get("id"),
                 "source": data.get("source"),
                 "checksum": data.get("checksum"),
@@ -292,7 +299,7 @@ class Catalog:
         result = self.conn.execute(sql, params).fetchone()
         return result[0] if result else 0
 
-    def stats(self) -> dict:
+    def stats(self) -> dict[str, Any]:
         """
         統計情報
 
@@ -309,10 +316,10 @@ class Catalog:
         """).fetchone()
 
         return {
-            "total": result[0],
-            "sources": result[1],
-            "earliest": result[2],
-            "latest": result[3],
+            "total": result[0] if result else None,
+            "sources": result[1] if result else None,
+            "earliest": result[2] if result else None,
+            "latest": result[3] if result else None,
         }
 
     def clear(self):
