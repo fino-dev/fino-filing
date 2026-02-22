@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from fino_filing.collection.error import CollectionChecksumMismatchError
-from fino_filing.collection.filing_resolver import resolve_filing_class
+from fino_filing.collection.filing_resolver import FilingResolver, default_resolver
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
@@ -35,6 +35,7 @@ class Collection:
         storage: Optional[Storage] = None,
         catalog: Optional[Catalog] = None,
         locator: Optional[Locator] = None,
+        resolver: Optional[FilingResolver] = None,
     ) -> None:
         # Default configuration
         if storage is None or catalog is None:
@@ -54,6 +55,7 @@ class Collection:
 
         self._storage = storage
         self._catalog = catalog
+        self._resolver = resolver if resolver is not None else default_resolver
 
     # ========== 追加系 ==========
 
@@ -101,7 +103,7 @@ class Collection:
         data = dict(data)
         # _filing_class からクラスを解決
         filing_cls_name = data.pop("_filing_class", None)
-        cls = resolve_filing_class(filing_cls_name) or Filing
+        cls = self._resolver.resolve(filing_cls_name) or Filing
         return cls.from_dict(data)
 
     def get_content(self, id: str) -> bytes | None:
@@ -132,6 +134,6 @@ class Collection:
             data = dict(data)
             # _filing_class からクラスを解決
             filing_cls_name = data.pop("_filing_class", None)
-            cls = resolve_filing_class(filing_cls_name) or Filing
+            cls = self._resolver.resolve(filing_cls_name) or Filing
             out.append(cls.from_dict(data))
         return out
