@@ -8,10 +8,12 @@ from fino_filing import Catalog, Collection, EDINETFiling, Field, Filing, LocalS
 class TestCollection_Add:
     """
     Collectionのadd()メソッドをテストする。
-    - 正常系: Filingとcontentを追加できる
-    - 正常系: 継承したFilingでも追加できる
-    - 正常系: 継承したFilingでも追加できる (EDINETFiling)
+    - 正常系: Filingとcontentを追加でき、値が保存されている
+    - 正常系: defaultとadditionalなFieldを持つFilingとcontentを追加でき、値が保存されている
+    - 正常系: EDINETFilingとcontentを追加でき、値が保存されている
     """
+
+    # TODO: - 異常系: すでに同じidが存在する場合はエラーになる
 
     def test_add_filing_and_content_success(
         self,

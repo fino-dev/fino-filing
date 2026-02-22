@@ -4,9 +4,12 @@ from fino_filing import Catalog, Collection, Filing, LocalStorage
 class TestCollection_GetFiling:
     """
     Collectionのget_filing()メソッドをテストする。
-    - 正常系: add後にget_filingでFilingが取得できる
-    - 正常型: 存在しないidでNoneが返る
+    - 正常系: add後にget_filingでFilingが取得できる（fieldsとdataが一致した状態で取得できる）
+    - 正常系: add後にget_filingで継承したFilingが取得できる（追加したfieldsとdefaultsとdataが一致した状態で取得できる）
+    - 正常系: 存在しないidでNoneが返る
     """
+
+    # TODO: 既存のdbが存在する場合に既存のFilingが返る
 
     def test_get_filing_success(
         self,

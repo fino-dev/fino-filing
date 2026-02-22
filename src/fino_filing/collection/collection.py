@@ -25,9 +25,7 @@ class Collection:
     - get: Get Filing from the collection by ID
     - get_filing: Get Filing from the collection by ID
     - get_content: Get saved file bytes by ID (e.g. for arelle parsing)
-    - find: Search Filing from the collection
-    - clear: Clear the collection
-    - close: Close the collection
+    - search: Search Filing from the collection
     """
 
     def __init__(
@@ -113,7 +111,7 @@ class Collection:
         except FileNotFoundError:
             return None
 
-    def find(
+    def search(
         self,
         expr: "Expr | None" = None,
         limit: int = 100,

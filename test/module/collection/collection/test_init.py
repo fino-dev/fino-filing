@@ -15,6 +15,8 @@ class TestCollection_Initialize:
     - 正常系: カスタム初期化（storage, catalog指定）
     """
 
+    # TODO: 既存のdbが存在する場合をチェック
+
     def test_collection_init_with_defaults(self, temp_work_dir: Path) -> None:
         """デフォルト初期化（storage, catalogなし）のテスト。CWDにstorageとcatalogが作成される。"""
         default_collection_dir = temp_work_dir / ".fino" / "collection"

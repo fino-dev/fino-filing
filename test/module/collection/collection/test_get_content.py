@@ -5,8 +5,10 @@ class TestCollection_GetContent:
     """
     Collectionのget_content()をテストする。
     - 正常系: add後にget_contentで同じバイト列が取得できる
-    - 存在しないidでNoneが返る
+    - 正常系: 存在しないidでNoneが返る
     """
+
+    # TODO: 既存のdbが存在する場合に既存のバイト列が返る
 
     def test_get_content_returns_saved_bytes(
         self,
