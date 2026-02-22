@@ -33,3 +33,14 @@ class CatalogRequiredValueError(FinoFilingException, ValueError):
         )
         self.field = field
         self.value = actual_value
+
+
+class CatalogAlreadyExistsError(FinoFilingException, ValueError):
+    """Already exists in catalog error"""
+
+    def __init__(
+        self,
+        filing_id: str,
+    ):
+        super().__init__(f"Filing id: {filing_id} already exists in catalog")
+        self.filing_id = filing_id

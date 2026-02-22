@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 import duckdb
 
 from fino_filing.collection.error import CatalogRequiredValueError
+from fino_filing.collection.filing_resolver import FilingResolver
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
@@ -13,25 +16,34 @@ class Catalog:
     """
     Catalog (Collection Index Database <Repository>)
 
+    責務:
+    - Filing の索引（index / index_batch）と _filing_class の付与
+    - 検索（get / search）と Filing 復元（FilingResolver によるクラス解決）
+
     Methods:
     - index: Add Filing to the catalog
     - index_batch: Add multiple Filing to the catalog
     - get: Get Filing from the catalog by ID
+    - get_raw: Get raw dict from the catalog by ID
     - search: Search Filing from the catalog
-    - search_raw: Search Filing from the catalog using raw SQL
+    - search_raw: Execute raw SQL (advanced)
     - count: Count the number of Filing in the catalog
     - stats: Get statistics of the catalog
     - clear: Clear the catalog
     - close: Close the catalog
     """
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, resolver: Optional[FilingResolver] = None) -> None:
         """
         Args:
             db_path: DuckDBファイルパス
+            resolver: Filing 復元用の解決器。None のときは default_resolver を使用
         """
+        from fino_filing.collection.filing_resolver import default_resolver
+
         self.db_path = db_path
         self.conn = duckdb.connect(db_path)
+        self._resolver = resolver if resolver is not None else default_resolver
         self._init_schema()
 
     def _init_schema(self):
@@ -67,7 +79,7 @@ class Catalog:
 
         self.conn.commit()
 
-    def index(self, filing: Filing):
+    def index(self, filing: Filing) -> None:
         """
         Filing索引
 
@@ -85,7 +97,7 @@ class Catalog:
             "created_at": dict_filing.get("created_at"),
         }
 
-        # Collection内で_filing_class を保存
+        # Catalog で復元時にクラスを解決するため _filing_class を保存
         dict_filing["_filing_class"] = (
             f"{type(filing).__module__}.{type(filing).__qualname__}"
         )
@@ -188,15 +200,37 @@ class Catalog:
 
         self.conn.commit()
 
-    def get(self, id: str) -> dict[str, Any] | None:
+    def _resolve_data_to_filing(self, data: dict[str, Any]) -> Filing:
+        """data から _filing_class を解決し Filing インスタンスを返す"""
+        data = dict(data)
+        filing_cls_name = data.pop("_filing_class", None)
+        cls = self._resolver.resolve(filing_cls_name) or Filing
+        return cls.from_dict(data)
+
+    def get(self, id: str) -> Filing | None:
         """
-        ID指定取得
+        ID指定取得（Filing として復元）
 
         Args:
-            id_: Filing ID
+            id: Filing ID
 
         Returns:
-            Filing辞書 or None
+            Filing または None
+        """
+        raw = self.get_raw(id)
+        if raw is None:
+            return None
+        return self._resolve_data_to_filing(raw)
+
+    def get_raw(self, id: str) -> dict[str, Any] | None:
+        """
+        ID指定取得（生の辞書。Filing に復元しない）
+
+        Args:
+            id: Filing ID
+
+        Returns:
+            data 辞書または None
         """
         result = self.conn.execute(
             """
@@ -217,9 +251,9 @@ class Catalog:
         offset: int = 0,
         order_by: str = "created_at",
         desc: bool = True,
-    ) -> list[dict[str, Any]]:
+    ) -> list[Filing]:
         """
-        検索（Expression API）
+        検索（Expression API）。Filing として復元して返す。
 
         Args:
             expr: 検索条件（Exprオブジェクト）
@@ -229,10 +263,10 @@ class Catalog:
             desc: 降順フラグ
 
         Returns:
-            Filing辞書リスト
+            Filing リスト
         """
         sql = "SELECT data FROM filings"
-        params = []
+        params: list[Any] = []
 
         # WHERE句
         if expr:
@@ -262,8 +296,8 @@ class Catalog:
 
         # 実行
         rows = self.conn.execute(sql, params).fetchall()
-
-        return [json.loads(row[0]) for row in rows]
+        raw_list = [json.loads(row[0]) for row in rows]
+        return [self._resolve_data_to_filing(d) for d in raw_list]
 
     def search_raw(self, sql: str, params: list[Any] | None = None) -> list[Any]:
         """

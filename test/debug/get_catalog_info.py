@@ -84,14 +84,14 @@ def main() -> None:
             st["latest"],
         )
 
-        # 全件を search で取得（data は Filing の to_dict() の JSON）
+        # 全件を search で取得（Filing インスタンスのリスト）
         rows = catalog.search(limit=total)
         logger.info("--- Listing filings (id, source, name, created_at) ---")
-        for i, data in enumerate(rows, start=1):
-            fid = data.get("id", "?")
-            source = data.get("source", "?")
-            name = data.get("name", "?")
-            created = data.get("created_at", "?")
+        for i, filing in enumerate(rows, start=1):
+            fid = getattr(filing, "id", "?")
+            source = getattr(filing, "source", "?")
+            name = getattr(filing, "name", "?")
+            created = getattr(filing, "created_at", "?")
             logger.info("%d. id=%s source=%s name=%s created_at=%s", i, fid, source, name, created)
 
         logger.info("--- End of list ---")

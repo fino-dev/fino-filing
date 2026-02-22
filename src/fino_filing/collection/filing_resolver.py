@@ -3,7 +3,7 @@ Filing 具象クラス解決器
 
 責務:
 - 完全修飾クラス名と Filing サブクラスのマッピングを保持する
-- get/search 時に _filing_class から復元に使うクラスを解決する
+- Catalog の get/search で _filing_class から復元に使うクラスを解決する
 - 未登録の場合は完全修飾名から動的インポートで解決を試みる
 """
 
@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 
 class FilingResolver:
     """
-    Filing 具象クラス解決器（Collection 層が所有する）
+    Filing 具象クラス解決器（Catalog が所有する）
 
-    Collection が保存時に付与した _filing_class（完全修飾クラス名）から、
+    Catalog が index 時に付与した _filing_class（完全修飾クラス名）から、
     復元に使う Filing サブクラスを解決する責務を担う。
     """
 

@@ -3,8 +3,11 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fino_filing.collection.error import CollectionChecksumMismatchError
-from fino_filing.collection.filing_resolver import FilingResolver, default_resolver
+from fino_filing.collection.error import (
+    CatalogAlreadyExistsError,
+    CatalogRequiredValueError,
+    CollectionChecksumMismatchError,
+)
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
@@ -33,7 +36,6 @@ class Collection:
         storage: Optional[Storage] = None,
         catalog: Optional[Catalog] = None,
         locator: Optional[Locator] = None,
-        resolver: Optional[FilingResolver] = None,
     ) -> None:
         # Default configuration
         if storage is None or catalog is None:
@@ -53,7 +55,6 @@ class Collection:
 
         self._storage = storage
         self._catalog = catalog
-        self._resolver = resolver if resolver is not None else default_resolver
 
     # ========== 追加系 ==========
 
@@ -72,9 +73,9 @@ class Collection:
         # 2. 重複チェック
         id_ = filing.id
         if id_ is None:
-            raise ValueError("id is required")
+            raise CatalogRequiredValueError(field="id", actual_value=id_)
         if self._storage.exists(id_):
-            raise ValueError(f"Filing {id_} already exists")
+            raise CatalogAlreadyExistsError(filing_id=id_)
 
         # 3. Storage保存（metadataをRegistryに格納）
         metadata = filing.to_dict()
@@ -95,14 +96,7 @@ class Collection:
 
     def get_filing(self, id: str) -> Filing | None:
         """ID specified retrieval (Filing only)"""
-        data = self._catalog.get(id)
-        if not data:
-            return None
-        data = dict(data)
-        # _filing_class からクラスを解決
-        filing_cls_name = data.pop("_filing_class", None)
-        cls = self._resolver.resolve(filing_cls_name) or Filing
-        return cls.from_dict(data)
+        return self._catalog.get(id)
 
     def get_content(self, id: str) -> bytes | None:
         """ID specified retrieval (Content only)"""
@@ -120,18 +114,10 @@ class Collection:
         desc: bool = True,
     ) -> list[Filing]:
         """Search (Expression API)"""
-        results = self._catalog.search(
+        return self._catalog.search(
             expr=expr,
             limit=limit,
             offset=offset,
             order_by=order_by,
             desc=desc,
         )
-        out: list[Filing] = []
-        for data in results:
-            data = dict(data)
-            # _filing_class からクラスを解決
-            filing_cls_name = data.pop("_filing_class", None)
-            cls = self._resolver.resolve(filing_cls_name) or Filing
-            out.append(cls.from_dict(data))
-        return out
