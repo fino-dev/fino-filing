@@ -3,19 +3,18 @@
 
 確認ポイント:
 - add 時に _filing_class へ完全修飾名が記録されること
-- get / find 時に動的インポートで保存時の型として復元されること
+- get / search 時に動的インポートで保存時の型として復元されること
 """
 
 import hashlib
 import logging
-import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
 from fino_filing import Collection, Field, Filing
 from fino_filing.collection.catalog import Catalog
-from fino_filing.collection.storage.flat_local import LocalStorage
+from fino_filing.collection.storages import LocalStorage
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -30,10 +29,8 @@ class CustomFiling(Filing):
 
 
 # ========== セットアップ ==========
-
-tmpdir = Path(tempfile.mkdtemp())
-storage = LocalStorage(tmpdir)
-catalog = Catalog(str(tmpdir / "index.db"))
+storage = LocalStorage(base_dir=Path.cwd() / ".fino" / "collection")
+catalog = Catalog(db_path=str(Path.cwd() / ".fino" / "collection" / "index.db"))
 collection = Collection(storage=storage, catalog=catalog)
 
 content = b"sample filing content"
@@ -65,11 +62,11 @@ print(f"[get] report_type: {fetched_filing.report_type if fetched_filing else No
 print(f"[get] fiscal_year: {fetched_filing.fiscal_year if fetched_filing else None}")
 print(f"[get] content matches: {fetched_content == content}")
 
-# ========== find (型の復元確認) ==========
+# ========== search (型の復元確認) ==========
 
-results = collection.find()
-print(f"\n[find] count: {len(results)}")
+results = collection.search()
+print(f"\n[search] count: {len(results)}")
 first = results[0] if results else None
-print(f"[find] type: {type(first)}")
-print(f"[find] is CustomFiling: {type(first) is CustomFiling}")
-print(f"[find] report_type: {first.report_type if first else None}")
+print(f"[search] type: {type(first)}")
+print(f"[search] is CustomFiling: {type(first) is CustomFiling}")
+print(f"[search] report_type: {first.report_type if first else None}")

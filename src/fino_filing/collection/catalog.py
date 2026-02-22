@@ -75,9 +75,6 @@ class Catalog:
             filing: 索引するFiling
         """
         dict_filing = filing.to_dict()
-        dict_filing["_filing_class"] = (
-            f"{type(filing).__module__}.{type(filing).__qualname__}"
-        )
 
         core_values: dict[str, Any] = {
             "id": dict_filing.get("id"),
@@ -87,6 +84,11 @@ class Catalog:
             "is_zip": dict_filing.get("is_zip", False),
             "created_at": dict_filing.get("created_at"),
         }
+
+        # Collection内で_filing_class を保存
+        dict_filing["_filing_class"] = (
+            f"{type(filing).__module__}.{type(filing).__qualname__}"
+        )
 
         # 必須フィールド検証
         for key in [
