@@ -45,6 +45,15 @@ class Filing(metaclass=FilingMeta):
 
     # ========== Core Fields (Descriptor) ==========
     # required=True: Collection が前提とする必須項目。拡張時も Field(required=True) で同様の挙動を指定可能。
+    _core_fields: list[str] = [
+        "id",
+        "source",
+        "checksum",
+        "name",
+        "is_zip",
+        "format",
+        "created_at",
+    ]
     id: Annotated[
         str,
         Field(indexed=True, immutable=True, required=True, description="Filing ID"),
@@ -70,6 +79,15 @@ class Filing(metaclass=FilingMeta):
         bool,
         Field(indexed=True, required=True, description="ZIP flag"),
     ]
+    format: Annotated[
+        str,
+        Field(
+            indexed=True,
+            required=True,
+            immutable=True,
+            description="File format / extension for storage key (e.g. zip, xbrl, pdf, csv) => derived from is_zip.",
+        ),
+    ] = ""
     created_at: Annotated[
         datetime,
         Field(
@@ -151,11 +169,17 @@ class Filing(metaclass=FilingMeta):
             is_required = getattr(field, "required", False)
 
             # 必須フィールドに値が無い or None の場合
-            if is_required and (data_value is None):
+            if is_required and data_value is None:
                 required_errors.append(
                     f"{attr_name!r}: required field is missing or None"
                 )
                 required_fields.append(attr_name)
+                continue
+
+            # core fieldsは空文字を許容しない
+            if attr_name in self._core_fields and data_value == "":
+                type_errors.append(f"{attr_name!r}: core field cannot be empty")
+                type_fields.append(attr_name)
                 continue
 
             # 型チェック（_field_type が未注入の場合はスキップ）

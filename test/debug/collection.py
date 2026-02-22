@@ -15,6 +15,7 @@ edinet_filing = EDINETFiling(
     name="test_name",
     is_zip=False,
     created_at=datetime.now(),
+    doc_id="test_doc_id",
     edinet_code="test_edinet_code",
     sec_code="test_sec_code",
     jcn="test_jcn",

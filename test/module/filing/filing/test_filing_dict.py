@@ -230,7 +230,26 @@ class TestFiling_ToDict_FromDict_RoundTrip:
         assert restored.checksum == original.checksum
         assert restored.name == original.name
         assert restored.is_zip == original.is_zip
+        assert restored.format == original.format
         assert restored.created_at == original.created_at
+
+    def test_roundtrip_preserves_format(self) -> None:
+        """format を指定した Filing は to_dict() -> from_dict() で format が復元される"""
+        datetime_now = datetime(2024, 1, 15, 10, 30, 45)
+        original = Filing(
+            id="test_id",
+            source="test_source",
+            checksum="test_checksum",
+            name="report.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+        )
+        data = original.to_dict()
+        assert data.get("format") == "pdf"
+        restored = Filing.from_dict(data)
+        assert restored.format == "pdf"
+        assert restored.id == original.id
 
     def test_roundtrip_with_extended_filing(self) -> None:
         """継承Filingのラウンドトリップ"""

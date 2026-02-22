@@ -62,6 +62,31 @@ class TestCollection_Add:
         with open(path, "rb") as f:
             assert f.read() == content
 
+    def test_add_uses_format_extension_pdf(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """format=pdf の Filing は .pdf 拡張子で保存され、get_content で読める"""
+        content = b"pdf binary content"
+        checksum = hashlib.sha256(content).hexdigest()
+        filing = Filing(
+            id="pdf_id_001",
+            source="edinet",
+            checksum=checksum,
+            name="report.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+        )
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        _, path = collection.add(filing, content)
+        assert path.endswith(".pdf")
+        assert "edinet" in path and "pdf_id_001" in path
+        loaded = collection.get_content(filing.id)
+        assert loaded == content
+
     def test_add_filing_and_content_success_with_inheritance(
         self,
         temp_storage: LocalStorage,
@@ -114,6 +139,7 @@ class TestCollection_Add:
             name="test_filing.txt",
             is_zip=False,
             created_at=datetime_now,
+            doc_id="test_doc_id",
             edinet_code="test_edinet_code",
             sec_code="test_sec_code",
             jcn="test_jcn",
@@ -140,6 +166,7 @@ class TestCollection_Add:
         assert saved_filing.created_at == edinet_filing.created_at
 
         assert isinstance(saved_filing, EDINETFiling)
+        assert saved_filing.doc_id == edinet_filing.doc_id
         assert saved_filing.edinet_code == edinet_filing.edinet_code
         assert saved_filing.sec_code == edinet_filing.sec_code
         assert saved_filing.jcn == edinet_filing.jcn

@@ -24,3 +24,8 @@ content = collection.get_content("edinet:S100XXXX:a1b2c3d4")
 ```
 
 > Note: rebuild_index, verify_integrity, migrate は現在未実装
+
+## 設計: 物理名・Partition の責務
+
+- **Locator**: Filing のメタデータからストレージ用の論理キー（partition + ファイル名 + 拡張子）を決定する。拡張子は **format** が設定されていればそれを使用（空の場合は **is_zip** に応じて .zip / .xbrl）。ユーザーは Locator を差し替えることで partition やファイル名ルールをカスタマイズできる。
+- **Storage**: 渡された `storage_key` をそのまま保存先として使用する。キー生成は行わない（LocalStorage は `storage_key` 未指定時のみ従来の checksum.zip で後方互換）。

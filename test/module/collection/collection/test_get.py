@@ -60,6 +60,7 @@ class TestCollection_Get:
             name="test_filing.txt",
             is_zip=False,
             created_at=datetime_now,
+            doc_id="test_doc_id",
             edinet_code="test_edinet_code",
             sec_code="test_sec_code",
             jcn="test_jcn",
@@ -79,8 +80,19 @@ class TestCollection_Get:
         assert filing is not None
         assert isinstance(filing, EDINETFiling)
         assert filing.id == edinet_filing.id
+        assert filing.doc_id == edinet_filing.doc_id
         assert filing.edinet_code == edinet_filing.edinet_code
+        assert filing.sec_code == edinet_filing.sec_code
+        assert filing.jcn == edinet_filing.jcn
         assert filing.filer_name == edinet_filing.filer_name
+        assert filing.ordinance_code == edinet_filing.ordinance_code
+        assert filing.form_code == edinet_filing.form_code
+        assert filing.doc_type_code == edinet_filing.doc_type_code
+        assert filing.doc_description == edinet_filing.doc_description
+        assert filing.period_start == edinet_filing.period_start
+        assert filing.period_end == edinet_filing.period_end
+        assert filing.submit_datetime == edinet_filing.submit_datetime
+        assert filing.parent_doc_id == edinet_filing.parent_doc_id
 
     def test_get_filing_and_content_not_found(
         self,

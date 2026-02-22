@@ -24,10 +24,10 @@ class TestLocator_Resolve:
         path = locator.resolve(filing)
         assert path is not None
         assert isinstance(path, str)
-        assert path == "test/test:001:abc12345"
+        assert path == "test/test:001:abc12345.zip"
 
-    def test_resolve_with_enpty_values(self) -> None:
-        """空の値でresolve成功"""
+    def test_resolve_with_empty_values(self) -> None:
+        """空の source/id のときはプレースホルダ _ を使い拡張子付きで返す"""
         locator = Locator()
         filing = Filing(
             id="",
@@ -41,4 +41,58 @@ class TestLocator_Resolve:
         path = locator.resolve(filing)
         assert path is not None
         assert isinstance(path, str)
-        assert path == "/"  # TODO これはまずい、そもそもIDをうわけ渡すのがよくなさそう
+        assert path == "_/_.xbrl"
+
+    def test_resolve_uses_format_when_set_pdf(self) -> None:
+        """format=pdf のときは .pdf 拡張子が付く"""
+        locator = Locator()
+        filing = Filing(
+            id="doc:001",
+            source="edinet",
+            checksum="abc",
+            name="report.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime(2024, 1, 15),
+        )
+        path = locator.resolve(filing)
+        assert path == "edinet/doc:001.pdf"
+
+    def test_resolve_uses_format_when_set_csv(self) -> None:
+        """format=csv のときは .csv 拡張子が付く"""
+        locator = Locator()
+        filing = Filing(
+            id="data:001",
+            source="custom",
+            checksum="def",
+            name="data.csv",
+            is_zip=False,
+            format="csv",
+            created_at=datetime(2024, 1, 15),
+        )
+        path = locator.resolve(filing)
+        assert path == "custom/data:001.csv"
+
+    def test_resolve_fallback_to_is_zip_when_format_empty(self) -> None:
+        """format が空のときは is_zip で .zip または .xbrl にフォールバック"""
+        locator = Locator()
+        filing_zip = Filing(
+            id="z:1",
+            source="s",
+            checksum="x",
+            name="n",
+            is_zip=True,
+            format="",
+            created_at=datetime(2024, 1, 15),
+        )
+        filing_xbrl = Filing(
+            id="x:1",
+            source="s",
+            checksum="x",
+            name="n",
+            is_zip=False,
+            format="",
+            created_at=datetime(2024, 1, 15),
+        )
+        assert locator.resolve(filing_zip) == "s/z:1.zip"
+        assert locator.resolve(filing_xbrl) == "s/x:1.xbrl"
