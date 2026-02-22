@@ -74,6 +74,7 @@ class Catalog:
             filing: 索引するFiling
         """
         dict_filing = filing.to_dict()
+        dict_filing["_filing_class"] = f"{type(filing).__module__}.{type(filing).__qualname__}"
 
         core_values: dict[str, Any] = {
             "id": dict_filing.get("id"),
@@ -137,6 +138,7 @@ class Catalog:
 
         for filing in filings:
             data = filing.to_dict()
+            data["_filing_class"] = f"{type(filing).__module__}.{type(filing).__qualname__}"
 
             core_values = {
                 "id": data.get("id"),
@@ -170,7 +172,7 @@ class Catalog:
             """
             INSERT OR REPLACE INTO filings 
             (id, source, checksum, name, is_zip, created_at, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
             rows,
         )

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from fino_filing.collection.error import CollectionChecksumMismatchError
+from fino_filing.collection.filing_resolver import resolve_filing_class
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
@@ -97,7 +98,10 @@ class Collection:
         data = self._catalog.get(id)
         if not data:
             return None
-        return Filing.from_dict(data)
+        data = dict(data)
+        filing_cls_name = data.pop("_filing_class", None)
+        cls = resolve_filing_class(filing_cls_name) or Filing
+        return cls.from_dict(data)
 
     def get_content(self, id: str) -> bytes | None:
         """ID specified retrieval (Content only)"""
@@ -122,4 +126,10 @@ class Collection:
             order_by=order_by,
             desc=desc,
         )
-        return [Filing.from_dict(dict(r)) for r in results]
+        out: list[Filing] = []
+        for data in results:
+            data = dict(data)
+            filing_cls_name = data.pop("_filing_class", None)
+            cls = resolve_filing_class(filing_cls_name) or Filing
+            out.append(cls.from_dict(data))
+        return out

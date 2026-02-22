@@ -44,17 +44,26 @@ class TestCollection_Add:
 
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
         filing, content = sample_filing
+        extended = ExtendedFiling(
+            id=filing.id,
+            source=filing.source,
+            checksum=filing.checksum,
+            name=filing.name,
+            is_zip=filing.is_zip,
+            created_at=filing.created_at,
+            extra="extra",
+        )
 
-        saved_filing, path = collection.add(filing, content)
+        saved_filing, path = collection.add(extended, content)
 
-        assert temp_storage.exists(filing.id)
+        assert temp_storage.exists(extended.id)
         assert temp_storage.exists(saved_filing.id)
 
         with open(path, "rb") as f:
             actual_content = f.read()
         assert actual_content == content
 
-        assert isinstance(saved_filing, Filing)
+        assert isinstance(saved_filing, ExtendedFiling)
         assert saved_filing.get("extra") == "extra"
 
     def test_add_filing_and_content_success_with_inheritance_edinet(

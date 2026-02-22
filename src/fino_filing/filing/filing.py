@@ -113,8 +113,12 @@ class Filing(metaclass=FilingMeta):
         cls = self.__class__
         if hasattr(cls, "_fields") and name in cls._fields:
             field = cls._fields[name]
-            # immutableフィールドで既に値が設定されている場合はエラー
-            if field.immutable and name in self._data:  # type: ignore[attr-defined]
+            # immutableフィールドで既に値が設定されている場合はエラー（同一値の再設定は許可）
+            if (
+                field.immutable
+                and name in self._data  # type: ignore[attr-defined]
+                and self._data[name] != value  # type: ignore[attr-defined]
+            ):
                 from fino_filing.filing.error import FieldImmutableError
 
                 raise FieldImmutableError(
