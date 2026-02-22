@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Annotated, Any, Self
 
 from fino_filing.filing.error import (
-    FieldRequiredError,
     FieldValidationError,
+    FilingRequiredError,
     FilingValidationError,
 )
 from fino_filing.filing.meta import FilingMeta
@@ -154,7 +154,7 @@ class Filing(metaclass=FilingMeta):
         必須項目と型を検証する。
         required: Field.required が True のフィールドのみ必須。default の有無は判定に含めない。
         （required=False で default が無くても、インスタンス時に None のままであればエラーにしない）
-        必須不足時は FieldRequiredError、型不一致時は FilingValidationError を送出する。
+        必須不足時は FilingRequiredError、型不一致時は FilingValidationError を送出する。
         """
         cls = self.__class__
         fields: dict[str, Any] = getattr(cls, "_fields", {})
@@ -195,7 +195,7 @@ class Filing(metaclass=FilingMeta):
                 type_fields.append(attr_name)
 
         if required_errors:
-            raise FieldRequiredError(
+            raise FilingRequiredError(
                 "Required field is missing or None",
                 errors=required_errors,
                 fields=required_fields,

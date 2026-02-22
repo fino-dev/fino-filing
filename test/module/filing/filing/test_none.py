@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from fino_filing.filing.error import FieldRequiredError, FilingValidationError
+from fino_filing.filing.error import FilingRequiredError
 from fino_filing.filing.filing import Filing
 
 
@@ -15,7 +15,7 @@ class TestFiling_Initialize_ExplicitNone:
 
     def test_filing_init_with_explicit_none_for_required_field_failed(self) -> None:
         """必須フィールドに明示的にNoneを渡した場合はエラー"""
-        with pytest.raises(FieldRequiredError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
             Filing(
                 id=None,  # type: ignore
                 source="test_source",
@@ -27,7 +27,7 @@ class TestFiling_Initialize_ExplicitNone:
             )
         assert "id" in fve.value.fields
 
-        with pytest.raises(FieldRequiredError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
             Filing(
                 id="test_id",
                 source=None,  # type: ignore
@@ -39,7 +39,7 @@ class TestFiling_Initialize_ExplicitNone:
             )
         assert "source" in fve.value.fields
 
-        with pytest.raises(FieldRequiredError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
             Filing(
                 id="test_id",
                 source="test_source",
@@ -55,7 +55,7 @@ class TestFiling_Initialize_ExplicitNone:
         self,
     ) -> None:
         """複数の必須フィールドに明示的にNoneを渡した場合はエラー"""
-        with pytest.raises(FieldRequiredError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
             Filing(
                 id=None,  # type: ignore
                 source=None,  # type: ignore

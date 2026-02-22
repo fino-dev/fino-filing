@@ -4,7 +4,7 @@ from typing import Annotated, Any
 import pytest
 
 from fino_filing import Filing
-from fino_filing.filing.error import FieldRequiredError, FilingValidationError
+from fino_filing.filing.error import FilingRequiredError, FilingValidationError
 from fino_filing.filing.field import Field
 
 
@@ -162,7 +162,7 @@ class TestFiling_FromDict:
             # name, is_zip, created_at が不足
         }
 
-        with pytest.raises(FieldRequiredError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
             Filing.from_dict(data)
 
         assert "name" in fve.value.fields

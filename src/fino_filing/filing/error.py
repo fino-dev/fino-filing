@@ -75,7 +75,7 @@ class FilingImmutableError(FinoFilingException, ValueError):
         return f"{self.message}\n " + "\n ".join(self.errors)
 
 
-class FieldRequiredError(FinoFilingException, ValueError):
+class FilingRequiredError(FinoFilingException, ValueError):
     """
     Required Field Error
     Prohibited to set None to required fields.

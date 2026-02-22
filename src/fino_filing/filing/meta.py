@@ -107,9 +107,9 @@ class FilingMeta(type):
                 required_error_fields.append(attr_name)
 
         if required_errors:
-            from fino_filing.filing.error import FieldRequiredError
+            from fino_filing.filing.error import FilingRequiredError
 
-            raise FieldRequiredError(
+            raise FilingRequiredError(
                 "Required fields cannot have default None",
                 errors=required_errors,
                 fields=required_error_fields,

@@ -5,7 +5,7 @@ import pytest
 
 from fino_filing.filing.error import (
     FieldImmutableError,
-    FieldRequiredError,
+    FilingRequiredError,
     FilingValidationError,
 )
 from fino_filing.filing.field import Field
@@ -46,7 +46,7 @@ class TestExtendFiling_Initialize:
 
     def test_initialize_with_lack_field_failed(self, datetime_now: datetime) -> None:
         """値を設定しない場合はエラーになることを確認する"""
-        with pytest.raises(FieldRequiredError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
             ExtendFiling(
                 id="test_id",
                 source="test_source",
@@ -480,7 +480,7 @@ class TestExtendFiling_Initialize_ExistingFieldDefault:
     def test_overwrite_after_initialize_with_core_field_empty_failed(
         self, datetime_now: datetime
     ) -> None:
-        with pytest.raises(FilingValidationError) as fve:
+        with pytest.raises(FilingRequiredError) as fve:
 
             class ExistingFieldDefaultFilingWithEmptyCoreField(Filing):
                 id = ""
@@ -560,17 +560,17 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
     Field(required=True) のフィールドに default None を設定することを禁止する仕様のテスト。
     Filing のコアフィールドは required=True で定義されている。
     ユーザーが独自フィールドに required=True を指定した場合も同様の挙動となる。
-    - 異常系: required=True のフィールドに default None を設定したサブクラス定義時に FieldRequiredError が発生する
-    - 異常系: required=True のフィールドに nullable な型と default None を設定したサブクラス定義時に FieldRequiredError が発生する
-    - 正常系: required=True のフィールドに default を設定したサブクラス定義時に FieldRequiredError が発生しない
+    - 異常系: required=True のフィールドに default None を設定したサブクラス定義時に FilingRequiredError が発生する
+    - 異常系: required=True のフィールドに nullable な型と default None を設定したサブクラス定義時に FilingRequiredError が発生する
+    - 正常系: required=True のフィールドに default を設定したサブクラス定義時に FilingRequiredError が発生しない
     - 正常系: ユーザー定義の Field(required=True) は default なしで定義し、インスタンス化時に値を渡すと成功する
-    - 異常系: ユーザー定義の Field(required=True) に default None を設定した場合も FieldRequiredError が発生する
-    - 異常系: ユーザー定義の Field(required=True) を渡さないと FieldRequiredError が発生する
+    - 異常系: ユーザー定義の Field(required=True) に default None を設定した場合も FilingRequiredError が発生する
+    - 異常系: ユーザー定義の Field(required=True) を渡さないと FilingRequiredError が発生する
     """
 
     def test_required_field_default_none_raises(self) -> None:
-        """required=True のフィールドに default None を設定したサブクラス定義時に FieldRequiredError が発生する"""
-        with pytest.raises(FieldRequiredError) as exc_info:
+        """required=True のフィールドに default None を設定したサブクラス定義時に FilingRequiredError が発生する"""
+        with pytest.raises(FilingRequiredError) as exc_info:
 
             class BadFiling(Filing):
                 id = None  # type: ignore
@@ -591,8 +591,8 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
         assert len(exc_info.value.errors) == 6
 
     def test_required_field_default_none_raises_with_nullable_annotation(self) -> None:
-        """required=True のフィールドに default None を設定したサブクラス定義時に FieldRequiredError が発生する"""
-        with pytest.raises(FieldRequiredError) as exc_info:
+        """required=True のフィールドに default None を設定したサブクラス定義時に FilingRequiredError が発生する"""
+        with pytest.raises(FilingRequiredError) as exc_info:
 
             class BadFiling(Filing):
                 id: Annotated[str | None, Field(required=True)] = None  # type: ignore
@@ -656,8 +656,8 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
         assert f.doc_number == "DOC-001"
 
     def test_user_defined_required_field_default_none_raises(self) -> None:
-        """ユーザー定義の Field(required=True) に default None を設定した場合も FieldRequiredError が発生する"""
-        with pytest.raises(FieldRequiredError) as exc_info:
+        """ユーザー定義の Field(required=True) に default None を設定した場合も FilingRequiredError が発生する"""
+        with pytest.raises(FilingRequiredError) as exc_info:
 
             class BadCustomFiling(Filing):
                 doc_number: Annotated[
@@ -669,14 +669,14 @@ class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
     def test_user_defined_required_field_missing_raises(
         self, datetime_now: datetime
     ) -> None:
-        """ユーザー定義の Field(required=True) を渡さないと FieldRequiredError が発生する"""
+        """ユーザー定義の Field(required=True) を渡さないと FilingRequiredError が発生する"""
 
         class CustomDocFiling(Filing):
             doc_number: Annotated[
                 str, Field(required=True, description="Document number")
             ]
 
-        with pytest.raises(FieldRequiredError) as exc_info:
+        with pytest.raises(FilingRequiredError) as exc_info:
             CustomDocFiling(
                 id="id1",
                 source="src",
