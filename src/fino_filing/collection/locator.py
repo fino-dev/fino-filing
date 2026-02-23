@@ -29,11 +29,13 @@ class Locator:
     Filingの内容は知らない（metadataのみ使用）
     """
 
-    def resolve(self, filing: Filing) -> str:
+    def resolve(self, filing: Filing | None) -> str | None:
         """
         Filing metadata → storage path変換（partition + ファイル名 + 拡張子）。
         拡張子は format が設定されていればそれを使用（サニタイズ済み）、
         空の場合は is_zip に応じて .zip または .xbrl とする。
         """
+        if filing is None:
+            return None
         base = f"{filing.source}/{filing.id}"
         return base + _suffix(filing)

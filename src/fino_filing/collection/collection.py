@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Optional
 
 from fino_filing.collection.error import (
-    CatalogAlreadyExistsError,
     CatalogRequiredValueError,
     CollectionChecksumMismatchError,
 )
@@ -61,7 +60,7 @@ class Collection:
 
     def add(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
         """Add Filing to the collection"""
-        # 1. Checksum検証
+        # Checksum検証
         actual_checksum = hashlib.sha256(content).hexdigest()
         expected_checksum = filing.checksum
         if actual_checksum != expected_checksum:
@@ -71,32 +70,37 @@ class Collection:
                 expected_checksum=expected_checksum,
             )
 
-        # 2. 重複チェック
+        # 最低限のID検証
         id_ = filing.id
-        if id_ is None:
+        if id_ is None or id_ == "":
             raise CatalogRequiredValueError(field="id", actual_value=id_)
-        if self._storage.exists(id_):
-            raise CatalogAlreadyExistsError(filing_id=id_)
 
-        # 3. Locatorでstorage_keyを解決し、Storage保存（metadataをRegistryに格納）
+        # Locatorでstorage_keyを解決し、Storage保存（metadataをRegistryに格納）
         metadata = filing.to_dict()
         storage_key = self._locator.resolve(filing)
         actual_path = self._storage.save(
             id_, content, metadata, storage_key=storage_key
         )
 
-        # 4. pathを設定してCatalog登録
+        # 重複チェック
+        if self._storage.exists(id_):
+            logger.warning("Filing id: %s already exists in storage", id_)
+            return filing, actual_path
+
+        # pathを設定してCatalog登録
         self._catalog.index(filing)
 
         return filing, actual_path
 
     # ========== 検索系 ==========
 
-    def get(self, id: str) -> tuple[Filing | None, bytes | None]:
+    def get(self, id: str) -> tuple[Filing | None, bytes | None, str | None]:
         """ID specified retrieval (Filing and content)"""
         filing = self.get_filing(id)
         content = self.get_content(id)
-        return filing, content
+        # pathをlocatorで取得 (get_pathは内部でget_filingを呼び出しているため、重複実行を避けるためここでは使用しない)
+        path = self._locator.resolve(filing)
+        return filing, content, path
 
     def get_filing(self, id: str) -> Filing | None:
         """ID specified retrieval (Filing only)"""
@@ -108,6 +112,11 @@ class Collection:
             return self._storage.load(id)
         except FileNotFoundError:
             return None
+
+    def get_path(self, id: str) -> str | None:
+        """ID specified retrieval (Path only)"""
+        filing = self.get_filing(id)
+        return self._locator.resolve(filing)
 
     def search(
         self,

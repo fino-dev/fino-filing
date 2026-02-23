@@ -92,11 +92,6 @@ class LocalStorage:
         """全id列挙"""
         return iter(self._index.keys())
 
-    def get_path(self, id_: str) -> str | None:
-        """物理パス取得"""
-        filename = self._index.get(id_)
-        return str(self.base_dir / filename) if filename else None
-
     def get_metadata(self, id_: str) -> dict | None:
         """Registryに格納されたmetadata取得"""
         return self._metadata.get(id_)

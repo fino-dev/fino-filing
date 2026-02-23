@@ -49,8 +49,6 @@ class Catalog:
     def _init_schema(self):
         """
         スキーマ初期化
-
-        物理カラムは Filing.get_indexed_fields() から自動決定
         """
         # 基本テーブル作成
         self.conn.execute("""

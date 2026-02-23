@@ -54,13 +54,6 @@ class Storage(Protocol):
         """全id列挙"""
         ...
 
-    def get_path(self, id_: str) -> str | None:
-        """
-        実際の物理パス取得（デバッグ用）
-        Collectionは通常これを使わない
-        """
-        ...
-
     def get_metadata(self, id_: str) -> dict | None:
         """Registryに格納されたmetadata取得"""
         ...

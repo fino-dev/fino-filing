@@ -36,7 +36,7 @@ class TestCollection_Get:
         assert temp_storage.exists(saved_filing.id)
 
         # catalogに登録されていることを確認
-        filing, content = collection.get(filing.id)
+        filing, content, path = collection.get(filing.id)
         assert filing is not None
         assert isinstance(filing, Filing)
         assert filing.id == saved_filing.id
@@ -44,6 +44,9 @@ class TestCollection_Get:
         assert content is not None
         assert isinstance(content, bytes)
         assert content == b"test content"
+        assert path is not None
+        assert isinstance(path, str)
+        assert path == actual_path
 
     def test_get_filing_returns_edinet_filing_when_saved_as_edinet(
         self,
@@ -106,6 +109,7 @@ class TestCollection_Get:
         filing, content = sample_filing
         collection.add(filing, content)
 
-        filing, content = collection.get("nonexistent_id")
+        filing, content, path = collection.get("nonexistent_id")
         assert filing is None
         assert content is None
+        assert path is None

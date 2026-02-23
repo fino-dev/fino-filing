@@ -6,10 +6,10 @@ collection = Collection()
 
 filing = EDINETFiling(
     id="test_id",
-    checksum="test_checksum",
+    checksum="6ae8a75555209fd6c44157c0aed8016e763ff435a19cf186f76863140143ff72",
     name="test_name",
     is_zip=True,
-    format="zip",
+    format="txt",
     created_at=datetime.now(),
     doc_id="test_doc_id",
     edinet_code="test_edinet_code",
@@ -19,3 +19,14 @@ filing = EDINETFiling(
 )
 
 print(filing)
+print("----------------------------------------------------------------")
+
+saved, path = collection.add(filing, b"test content")
+print(path)
+print("----------------------------------------------------------------")
+
+get, content, path = collection.get(filing.id)
+print(get)
+print(content)
+print(path)
+print("----------------------------------------------------------------")
