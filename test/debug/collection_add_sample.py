@@ -14,6 +14,7 @@ edinet_filing = EDINETFiling(
     checksum="1562649a12b68d136e6a5fca40244a822e8b5907ad13ef715d2931c239929a99",
     name="test_name",
     is_zip=False,
+    format="xbrl",
     created_at=datetime.now(),
     doc_id="test_doc_id",
     edinet_code="test_edinet_code",
@@ -28,6 +29,5 @@ try:
 except Exception as e:
     print(e)
 
-file, content = collection.get(edinet_filing.id)
+file, content, path = collection.get(edinet_filing.id)
 print(file)
-print(content)

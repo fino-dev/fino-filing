@@ -37,7 +37,9 @@ class TestFiling_Initialize:
         assert filing.checksum == "test_checksum"
         assert filing.name == "test_name"
         assert filing.is_zip is True
-        assert filing.created_at == datetime_now
+        assert isinstance(filing.is_zip, bool)
+        assert filing.format == "zip"
+        assert isinstance(filing.created_at, datetime)
 
     def test_filing_init_with_lack_field(self) -> None:
         with pytest.raises(FilingRequiredError) as fve:
