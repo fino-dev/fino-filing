@@ -37,6 +37,7 @@ class TestFiling_ToDict:
         assert result["checksum"] == "test_checksum"
         assert result["name"] == "test_name"
         assert result["is_zip"] is True
+        assert result["format"] == "zip"
         assert result["created_at"] == datetime_now.isoformat()
 
     def test_to_dict_datetime_conversion(self) -> None:
@@ -134,6 +135,7 @@ class TestFiling_FromDict:
         assert filing.checksum == "test_checksum"
         assert filing.name == "test_name"
         assert filing.is_zip is True
+        assert filing.format == "zip"
         assert filing.created_at == datetime_now
 
     def test_from_dict_datetime_conversion(self) -> None:
