@@ -45,15 +45,6 @@ class Filing(metaclass=FilingMeta):
 
     # ========== Core Fields (Descriptor) ==========
     # required=True: Collection が前提とする必須項目。拡張時も Field(required=True) で同様の挙動を指定可能。
-    _core_fields: list[str] = [
-        "id",
-        "source",
-        "checksum",
-        "name",
-        "is_zip",
-        "format",
-        "created_at",
-    ]
     id: Annotated[
         str,
         Field(indexed=True, immutable=True, required=True, description="Filing ID"),
@@ -96,6 +87,16 @@ class Filing(metaclass=FilingMeta):
             required=True,
             description="Created timestamp",
         ),
+    ]
+
+    _core_fields: list[str] = [
+        "id",
+        "source",
+        "checksum",
+        "name",
+        "is_zip",
+        "format",
+        "created_at",
     ]
 
     def __init__(self, **kwargs: Any) -> None:

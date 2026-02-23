@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from typing import Any, Optional
 
 import duckdb
@@ -58,6 +57,7 @@ class Catalog:
                 checksum VARCHAR NOT NULL,
                 name VARCHAR NOT NULL,
                 is_zip BOOLEAN NOT NULL,
+                format VARCHAR NOT NULL,
                 created_at TIMESTAMP NOT NULL,
                 data JSON NOT NULL
             )
@@ -71,6 +71,7 @@ class Catalog:
         )
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_name ON filings(name)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_is_zip ON filings(is_zip)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_foramt ON filings(format)")
         self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_created_at ON filings(created_at)"
         )
@@ -84,52 +85,40 @@ class Catalog:
         Args:
             filing: 索引するFiling
         """
-        dict_filing = filing.to_dict()
+        filing_dict = filing.to_dict()
 
         core_values: dict[str, Any] = {
-            "id": dict_filing.get("id"),
-            "source": dict_filing.get("source"),
-            "checksum": dict_filing.get("checksum"),
-            "name": dict_filing.get("name"),
-            "is_zip": dict_filing.get("is_zip", False),
-            "created_at": dict_filing.get("created_at"),
+            "id": filing_dict.get("id"),
+            "source": filing_dict.get("source"),
+            "checksum": filing_dict.get("checksum"),
+            "name": filing_dict.get("name"),
+            "is_zip": filing_dict.get("is_zip"),
+            "format": filing_dict.get("format"),
+            "created_at": filing_dict.get("created_at"),
         }
 
         # Catalog で復元時にクラスを解決するため _filing_class を保存
-        dict_filing["_filing_class"] = (
+        filing_dict["_filing_class"] = (
             f"{type(filing).__module__}.{type(filing).__qualname__}"
         )
 
         # 必須フィールド検証
-        for key in [
-            "id",
-            "source",
-            "checksum",
-            "name",
-            "is_zip",
-            "created_at",
-        ]:
+        for key, value in core_values.items():
             # filing自体のvalidationで検証された状態だが、ここでも保存前に検証を行った
-            if core_values[key] is None or core_values[key] == "":
+            if value is None or value == "":
                 raise CatalogRequiredValueError(
                     field=key, actual_value=core_values[key]
                 )
 
-        # datetime変換
-        if isinstance(core_values["created_at"], str):
-            core_values["created_at"] = datetime.fromisoformat(
-                core_values["created_at"]
-            )
-
         # JSON化
-        json_data = json.dumps(dict_filing, ensure_ascii=False, default=str)
+        filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
 
         # 挿入
         self.conn.execute(
             """
             INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, created_at, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (id, source, checksum, name, is_zip, format, created_at, data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             [
                 core_values["id"],
@@ -137,8 +126,9 @@ class Catalog:
                 core_values["checksum"],
                 core_values["name"],
                 core_values["is_zip"],
+                core_values["format"],
                 core_values["created_at"],
-                json_data,
+                filing_json,
             ],
         )
 
@@ -151,29 +141,26 @@ class Catalog:
         Args:
             filings: Filing一覧
         """
+        # SQLの挿入用のリスト
         rows: list[list[Any]] = []
 
         for filing in filings:
-            data = filing.to_dict()
-            data["_filing_class"] = (
+            filing_dict = filing.to_dict()
+            filing_dict["_filing_class"] = (
                 f"{type(filing).__module__}.{type(filing).__qualname__}"
             )
 
             core_values: dict[str, Any] = {
-                "id": data.get("id"),
-                "source": data.get("source"),
-                "checksum": data.get("checksum"),
-                "name": data.get("name"),
-                "is_zip": data.get("is_zip", False),
-                "created_at": data.get("created_at"),
+                "id": filing_dict.get("id"),
+                "source": filing_dict.get("source"),
+                "checksum": filing_dict.get("checksum"),
+                "name": filing_dict.get("name"),
+                "is_zip": filing_dict.get("is_zip", False),
+                "format": filing_dict.get("format"),
+                "created_at": filing_dict.get("created_at"),
             }
 
-            if isinstance(core_values["created_at"], str):
-                core_values["created_at"] = datetime.fromisoformat(
-                    core_values["created_at"]
-                )
-
-            json_data = json.dumps(data, ensure_ascii=False, default=str)
+            filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
 
             rows.append(
                 [
@@ -182,16 +169,17 @@ class Catalog:
                     core_values["checksum"],
                     core_values["name"],
                     core_values["is_zip"],
+                    core_values["format"],
                     core_values["created_at"],
-                    json_data,
+                    filing_json,
                 ]
             )
 
         self.conn.executemany(
             """
             INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, created_at, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (id, source, checksum, name, is_zip, format, created_at, data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             rows,
         )
@@ -199,7 +187,10 @@ class Catalog:
         self.conn.commit()
 
     def _resolve_data_to_filing(self, data: dict[str, Any]) -> Filing:
-        """data から _filing_class を解決し Filing インスタンスを返す"""
+        """
+        data から _filing_class を解決し Filing インスタンスを返す
+        """
+
         data = dict(data)
         filing_cls_name = data.pop("_filing_class", None)
         cls = self._resolver.resolve(filing_cls_name) or Filing
@@ -281,6 +272,7 @@ class Catalog:
             "checksum",
             "name",
             "is_zip",
+            "format",
             "created_at",
         }
 
