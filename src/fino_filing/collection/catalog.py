@@ -6,12 +6,10 @@ from typing import Any, Optional, Type
 
 import duckdb
 
-from fino_filing.filing.filing import Filing
-
 from fino_filing.collection.error import CatalogRequiredValueError
 from fino_filing.collection.filing_resolver import FilingResolver
 from fino_filing.filing.expr import Expr
-
+from fino_filing.filing.filing import Filing
 
 # 物理カラムとして常に存在するコアフィールド（INSERT 順序の先頭）
 _CORE_COLUMNS = (
@@ -22,6 +20,7 @@ _CORE_COLUMNS = (
     "is_zip",
     "format",
     "created_at",
+    "_filing_class",
     "data",
 )
 
@@ -82,7 +81,7 @@ class Catalog:
         """
         スキーマ初期化
         """
-        # 基本テーブル作成
+        # 基本テーブル作成（_filing_class は復元時の具象クラス解決用の物理カラム）
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS filings (
                 id VARCHAR PRIMARY KEY,
@@ -92,6 +91,7 @@ class Catalog:
                 is_zip BOOLEAN NOT NULL,
                 format VARCHAR NOT NULL,
                 created_at TIMESTAMP NOT NULL,
+                _filing_class VARCHAR,
                 data JSON NOT NULL
             )
         """)
@@ -107,6 +107,9 @@ class Catalog:
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_foramt ON filings(format)")
         self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_created_at ON filings(created_at)"
+        )
+        self.conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_filing_class ON filings("_filing_class")'
         )
 
         self.conn.commit()
@@ -136,9 +139,7 @@ class Catalog:
             field = fields.get(name)
             py_type = getattr(field, "_field_type", None) if field else None
             duck_type = _py_type_to_duckdb(py_type) if py_type else "VARCHAR"
-            self.conn.execute(
-                f'ALTER TABLE filings ADD COLUMN "{name}" {duck_type}'
-            )
+            self.conn.execute(f'ALTER TABLE filings ADD COLUMN "{name}" {duck_type}')
             self.conn.execute(
                 f'CREATE INDEX IF NOT EXISTS idx_{name} ON filings("{name}")'
             )
@@ -317,7 +318,7 @@ class Catalog:
         order_direction = "DESC" if desc else "ASC"
         table_columns = set(self._get_table_column_names())
         if order_by in table_columns and order_by != "data":
-            sql += f" ORDER BY \"{order_by}\" {order_direction}"
+            sql += f' ORDER BY "{order_by}" {order_direction}'
         else:
             sql += f" ORDER BY json_extract(data, '$.{order_by}') {order_direction}"
 
