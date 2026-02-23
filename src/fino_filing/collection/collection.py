@@ -1,26 +1,34 @@
-"""Collection Facade - Filing IDの一意性保証・検索インデックス提供"""
-
 import hashlib
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
+from fino_filing.collection.error import (
+    CollectionChecksumMismatchError,
+    LocatorPathResolutionError,
+)
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
 
 from .catalog import Catalog
 from .locator import Locator
 from .storage import Storage
-from .storage.flat_local import LocalStorage
-
-if TYPE_CHECKING:
-    pass
+from .storages import LocalStorage
 
 logger = logging.getLogger(__name__)
 
 
 class Collection:
-    """Collection Facade（Filing IDの一意性保証・検索インデックス提供）"""
+    """
+    Collection (Filing Collection <Facade>)
+
+    Methods:
+    - add: Add Filing to the collection
+    - get: Get Filing from the collection by ID
+    - get_filing: Get Filing from the collection by ID
+    - get_content: Get saved file bytes by ID (e.g. for arelle parsing)
+    - search: Search Filing from the collection
+    """
 
     def __init__(
         self,
@@ -30,6 +38,7 @@ class Collection:
     ) -> None:
         # Default configuration
         if storage is None or catalog is None:
+            # デフォルトのディレクトリはCurrent Working Directoryの.fino/collectionにする
             default_dir = Path.cwd() / ".fino" / "collection"
             default_dir.mkdir(parents=True, exist_ok=True)
             logger.info("Using default collection directory: %s", default_dir)
@@ -45,46 +54,84 @@ class Collection:
 
         self._storage = storage
         self._catalog = catalog
+        self._locator = locator if locator is not None else Locator()
 
     # ========== 追加系 ==========
 
-    def add(self, filing: Filing, content: bytes) -> str:
-        """Filing追加"""
-        # 1. Checksum検証
+    def add(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
+        """
+        Add Filing to the collection
+
+        Args:
+            filing: Filing to add
+            content: Content to add
+
+        Returns:
+            tuple[Filing, str]: Filing and path
+        """
+        # Checksumチェック
         actual_checksum = hashlib.sha256(content).hexdigest()
-        expected_checksum = filing.get("checksum")
+        expected_checksum = filing.checksum
         if actual_checksum != expected_checksum:
-            raise ValueError(
-                f"Checksum mismatch: {actual_checksum} != {expected_checksum}"
+            raise CollectionChecksumMismatchError(
+                filing_id=filing.id,
+                actual_checksum=actual_checksum,
+                expected_checksum=expected_checksum,
             )
 
-        # 2. 重複チェック
-        id_ = filing.get("id")
-        if id_ is None:
-            raise ValueError("id is required")
-        if self._storage.exists(id_):
-            raise ValueError(f"Filing {id_} already exists")
+        filing_id = filing.id
+        # pathを生成する (Locator)
+        storage_key = self._locator.resolve(filing)
+        if storage_key is None:
+            raise LocatorPathResolutionError(filing=filing)
 
-        # 3. Storage保存（metadataをRegistryに格納）
-        metadata = filing.to_dict()
-        actual_path = self._storage.save(id_, content, metadata)
+        # Catalog重複チェック or Catalog保存
+        if self._catalog.get(filing_id) is not None:
+            logger.warning(
+                "Filing id: %s already exists in catalog so skip saving in catalog",
+                filing_id,
+            )
+        else:
+            self._catalog.index(filing)
 
-        # 4. pathを設定してCatalog登録
-        filing.set("path", actual_path)
-        self._catalog.index(filing)
+        # Storage保存
+        actual_path = self._storage.save(content, storage_key=storage_key)
 
-        return actual_path
+        return filing, actual_path
 
     # ========== 検索系 ==========
 
-    def get(self, id_: str) -> Filing | None:
-        """ID取得"""
-        data = self._catalog.get(id_)
-        if not data:
-            return None
-        return Filing.from_dict(data, self._storage)
+    def get(self, id: str) -> tuple[Filing | None, bytes | None, str | None]:
+        """ID specified retrieval (Filing and content)"""
+        filing = self.get_filing(id)
+        content = self.get_content(id)
+        # pathをlocatorで取得 (get_pathは内部でget_filingを呼び出しているため、重複実行を避けるためここでは使用しない)
+        path = self._locator.resolve(filing)
+        return filing, content, path
 
-    def find(
+    def get_filing(self, id: str) -> Filing | None:
+        """ID specified retrieval (Filing only)"""
+        return self._catalog.get(id)
+
+    def get_content(self, id: str) -> bytes | None:
+        """ID specified retrieval (Content only). PathはCatalog+Locatorで解決する。"""
+        filing = self._catalog.get(id)
+        if filing is None:
+            return None
+        path = self._locator.resolve(filing)
+        if path is None:
+            return None
+        try:
+            return self._storage.load_by_path(path)
+        except FileNotFoundError:
+            return None
+
+    def get_path(self, id: str) -> str | None:
+        """ID specified retrieval (Path only)"""
+        filing = self.get_filing(id)
+        return self._locator.resolve(filing)
+
+    def search(
         self,
         expr: "Expr | None" = None,
         limit: int = 100,
@@ -92,12 +139,11 @@ class Collection:
         order_by: str = "created_at",
         desc: bool = True,
     ) -> list[Filing]:
-        """検索"""
-        results = self._catalog.search(
+        """Search (Expression API)"""
+        return self._catalog.search(
             expr=expr,
             limit=limit,
             offset=offset,
             order_by=order_by,
             desc=desc,
         )
-        return [Filing.from_dict(dict(r), self._storage) for r in results]

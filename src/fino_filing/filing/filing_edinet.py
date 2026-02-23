@@ -16,6 +16,7 @@ class EDINETFiling(Filing):
 
     EDINET Additional Fields
 
+    - doc_id(書類管理番号): str
     - edinet_code(EDINETコード): str
     - sec_code(証券コード): str
     - jcn(法人番号): str
@@ -37,6 +38,7 @@ class EDINETFiling(Filing):
     source = "EDINET"
 
     # EDINET 固有フィールド
+    doc_id: Annotated[str, Field(description="Doc ID(書類管理番号)")]
     edinet_code: Annotated[str, Field(description="EDINET CODE(EDINETコード)")]
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
     jcn: Annotated[str, Field(description="JCN(法人番号)")]

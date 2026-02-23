@@ -22,12 +22,8 @@ package "Collection Boundary" {
 
     package "Storage Layer" {
         interface Storage <<Protocol>> {
-            + save(filing_id, content, metadata): str
-            + load(filing_id): bytes
-            + exists(filing_id): bool
-            + list_all(): Iterator[str]
-            + get_path(filing_id): str
-            + get_metadata(filing_id): dict
+            + save(filing_id, content, metadata, storage_key): str
+            + load_by_path(relative_path: str): bytes
         }
         
         class LocalStorage {}

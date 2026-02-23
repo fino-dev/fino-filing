@@ -11,12 +11,13 @@ class TestField_Initialize:
     """
 
     def test_field_initialize_with_positional_arguments(self) -> None:
-        field = Field("test_field", str, True, True, "test_description")
+        field = Field("test_field", str, True, True, False, "test_description")
 
         assert field.name == "test_field"
         assert field._field_type is str
         assert field.indexed is True
         assert field.immutable is True
+        assert field.required is False
         assert field.description == "test_description"
 
     def test_field_initialize_with_named_arguments(self) -> None:
@@ -25,6 +26,7 @@ class TestField_Initialize:
             _field_type=str,
             indexed=True,
             immutable=True,
+            required=True,
             description="test_description",
         )
 
@@ -32,6 +34,7 @@ class TestField_Initialize:
         assert field._field_type is str
         assert field.indexed is True
         assert field.immutable is True
+        assert field.required is True
         assert field.description == "test_description"
 
     def test_field_initialize_without_optional_arguments(self) -> None:
@@ -41,4 +44,5 @@ class TestField_Initialize:
         assert field._field_type is None
         assert field.indexed is False
         assert field.immutable is False
+        assert field.required is False
         assert field.description is None

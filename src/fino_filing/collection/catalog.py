@@ -1,47 +1,53 @@
-# collection/catalog.py
 from __future__ import annotations
 
 import json
-from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any, Optional
 
 import duckdb
 
-if TYPE_CHECKING:
-    from .expr import Expr
-    from .filing import Filing
+from fino_filing.collection.error import CatalogRequiredValueError
+from fino_filing.collection.filing_resolver import FilingResolver
+from fino_filing.filing.expr import Expr
+from fino_filing.filing.filing import Filing
 
 
 class Catalog:
     """
-    Catalog（解釈しない検索エンジン）
+    Catalog (Collection Index Database <Repository>)
 
     責務:
-        - 保存
-        - クエリ実行
-        - Index管理
+    - Filing の索引（index / index_batch）と _filing_class の付与
+    - 検索（get / search）と Filing 復元（FilingResolver によるクラス解決）
 
-    🚨 重要: モデルを解釈しない
-
-    - フィールドの意味を知らない
-    - ドメイン知識を持たない
-    - Exprをコンパイルするだけ
+    Methods:
+    - index: Add Filing to the catalog
+    - index_batch: Add multiple Filing to the catalog
+    - get: Get Filing from the catalog by ID
+    - get_raw: Get raw dict from the catalog by ID
+    - search: Search Filing from the catalog
+    - search_raw: Execute raw SQL (advanced)
+    - count: Count the number of Filing in the catalog
+    - stats: Get statistics of the catalog
+    - clear: Clear the catalog
+    - close: Close the catalog
     """
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, resolver: Optional[FilingResolver] = None) -> None:
         """
         Args:
             db_path: DuckDBファイルパス
+            resolver: Filing 復元用の解決器。None のときは default_resolver を使用
         """
+        from fino_filing.collection.filing_resolver import default_resolver
+
         self.db_path = db_path
         self.conn = duckdb.connect(db_path)
+        self._resolver = resolver if resolver is not None else default_resolver
         self._init_schema()
 
     def _init_schema(self):
         """
         スキーマ初期化
-
-        物理カラムは Filing.get_indexed_fields() から自動決定
         """
         # 基本テーブル作成
         self.conn.execute("""
@@ -51,71 +57,67 @@ class Catalog:
                 checksum VARCHAR NOT NULL,
                 name VARCHAR NOT NULL,
                 is_zip BOOLEAN NOT NULL,
+                format VARCHAR NOT NULL,
                 created_at TIMESTAMP NOT NULL,
-                path VARCHAR NOT NULL,
                 data JSON NOT NULL
             )
         """)
 
         # インデックス作成
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_id ON filings(id)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_source ON filings(source)")
         self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_created_at ON filings(created_at)"
-        )
-        self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_checksum ON filings(checksum)"
+        )
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_name ON filings(name)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_is_zip ON filings(is_zip)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_foramt ON filings(format)")
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_created_at ON filings(created_at)"
         )
 
         self.conn.commit()
 
-    def index(self, filing: Filing):
+    def index(self, filing: Filing) -> None:
         """
         Filing索引
 
         Args:
             filing: 索引するFiling
         """
-        data = filing.to_dict()
+        filing_dict = filing.to_dict()
 
-        # 物理カラム値抽出
-        indexed_fields = filing.get_indexed_fields()
-
-        core_values = {
-            "id": data.get("id"),
-            "source": data.get("source"),
-            "checksum": data.get("checksum"),
-            "name": data.get("name"),
-            "is_zip": data.get("is_zip", False),
-            "created_at": data.get("created_at"),
-            "path": data.get("path"),
+        core_values: dict[str, Any] = {
+            "id": filing_dict.get("id"),
+            "source": filing_dict.get("source"),
+            "checksum": filing_dict.get("checksum"),
+            "name": filing_dict.get("name"),
+            "is_zip": filing_dict.get("is_zip"),
+            "format": filing_dict.get("format"),
+            "created_at": filing_dict.get("created_at"),
         }
 
-        # 必須フィールド検証
-        for key in [
-            "id",
-            "source",
-            "checksum",
-            "name",
-            "created_at",
-            "path",
-        ]:
-            if core_values[key] is None:
-                raise ValueError(f"Required field '{key}' is missing")
+        # Catalog で復元時にクラスを解決するため _filing_class を保存
+        filing_dict["_filing_class"] = (
+            f"{type(filing).__module__}.{type(filing).__qualname__}"
+        )
 
-        # datetime変換
-        if isinstance(core_values["created_at"], str):
-            core_values["created_at"] = datetime.fromisoformat(
-                core_values["created_at"]
-            )
+        # 必須フィールド検証
+        for key, value in core_values.items():
+            # filing自体のvalidationで検証された状態だが、ここでも保存前に検証を行った
+            if value is None or value == "":
+                raise CatalogRequiredValueError(
+                    field=key, actual_value=core_values[key]
+                )
 
         # JSON化
-        json_data = json.dumps(data, ensure_ascii=False, default=str)
+        filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
 
         # 挿入
         self.conn.execute(
             """
             INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, created_at, path, data)
+            (id, source, checksum, name, is_zip, format, created_at, data)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             [
@@ -124,9 +126,9 @@ class Catalog:
                 core_values["checksum"],
                 core_values["name"],
                 core_values["is_zip"],
+                core_values["format"],
                 core_values["created_at"],
-                core_values["path"],
-                json_data,
+                filing_json,
             ],
         )
 
@@ -139,27 +141,26 @@ class Catalog:
         Args:
             filings: Filing一覧
         """
-        rows = []
+        # SQLの挿入用のリスト
+        rows: list[list[Any]] = []
 
         for filing in filings:
-            data = filing.to_dict()
+            filing_dict = filing.to_dict()
+            filing_dict["_filing_class"] = (
+                f"{type(filing).__module__}.{type(filing).__qualname__}"
+            )
 
-            core_values = {
-                "id": data.get("id"),
-                "source": data.get("source"),
-                "checksum": data.get("checksum"),
-                "name": data.get("name"),
-                "is_zip": data.get("is_zip", False),
-                "created_at": data.get("created_at"),
-                "path": data.get("path"),
+            core_values: dict[str, Any] = {
+                "id": filing_dict.get("id"),
+                "source": filing_dict.get("source"),
+                "checksum": filing_dict.get("checksum"),
+                "name": filing_dict.get("name"),
+                "is_zip": filing_dict.get("is_zip", False),
+                "format": filing_dict.get("format"),
+                "created_at": filing_dict.get("created_at"),
             }
 
-            if isinstance(core_values["created_at"], str):
-                core_values["created_at"] = datetime.fromisoformat(
-                    core_values["created_at"]
-                )
-
-            json_data = json.dumps(data, ensure_ascii=False, default=str)
+            filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
 
             rows.append(
                 [
@@ -168,16 +169,16 @@ class Catalog:
                     core_values["checksum"],
                     core_values["name"],
                     core_values["is_zip"],
+                    core_values["format"],
                     core_values["created_at"],
-                    core_values["path"],
-                    json_data,
+                    filing_json,
                 ]
             )
 
         self.conn.executemany(
             """
             INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, created_at, path, data)
+            (id, source, checksum, name, is_zip, format, created_at, data)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             rows,
@@ -185,21 +186,46 @@ class Catalog:
 
         self.conn.commit()
 
-    def get(self, id_: str) -> dict | None:
+    def _resolve_data_to_filing(self, data: dict[str, Any]) -> Filing:
         """
-        ID指定取得
+        data から _filing_class を解決し Filing インスタンスを返す
+        """
+
+        data = dict(data)
+        filing_cls_name = data.pop("_filing_class", None)
+        cls = self._resolver.resolve(filing_cls_name) or Filing
+        return cls.from_dict(data)
+
+    def get(self, id: str) -> Filing | None:
+        """
+        ID指定取得（Filing として復元）
 
         Args:
-            id_: Filing ID
+            id: Filing ID
 
         Returns:
-            Filing辞書 or None
+            Filing または None
+        """
+        raw = self.get_raw(id)
+        if raw is None:
+            return None
+        return self._resolve_data_to_filing(raw)
+
+    def get_raw(self, id: str) -> dict[str, Any] | None:
+        """
+        ID指定取得（生の辞書。Filing に復元しない）
+
+        Args:
+            id: Filing ID
+
+        Returns:
+            data 辞書または None
         """
         result = self.conn.execute(
             """
             SELECT data FROM filings WHERE id = ?
         """,
-            [id_],
+            [id],
         ).fetchone()
 
         if not result:
@@ -214,9 +240,9 @@ class Catalog:
         offset: int = 0,
         order_by: str = "created_at",
         desc: bool = True,
-    ) -> list[dict]:
+    ) -> list[Filing]:
         """
-        検索（Expression API）
+        検索（Expression API）。Filing として復元して返す。
 
         Args:
             expr: 検索条件（Exprオブジェクト）
@@ -226,10 +252,10 @@ class Catalog:
             desc: 降順フラグ
 
         Returns:
-            Filing辞書リスト
+            Filing リスト
         """
         sql = "SELECT data FROM filings"
-        params = []
+        params: list[Any] = []
 
         # WHERE句
         if expr:
@@ -246,8 +272,8 @@ class Catalog:
             "checksum",
             "name",
             "is_zip",
+            "format",
             "created_at",
-            "path",
         }
 
         if order_by in physical_columns:
@@ -260,10 +286,10 @@ class Catalog:
 
         # 実行
         rows = self.conn.execute(sql, params).fetchall()
+        raw_list = [json.loads(row[0]) for row in rows]
+        return [self._resolve_data_to_filing(d) for d in raw_list]
 
-        return [json.loads(row[0]) for row in rows]
-
-    def search_raw(self, sql: str, params: list = None) -> list[Any]:
+    def search_raw(self, sql: str, params: list[Any] | None = None) -> list[Any]:
         """
         SQL直接実行（高度なユーザー向け）
 
@@ -299,7 +325,7 @@ class Catalog:
         result = self.conn.execute(sql, params).fetchone()
         return result[0] if result else 0
 
-    def stats(self) -> dict:
+    def stats(self) -> dict[str, Any]:
         """
         統計情報
 
@@ -316,10 +342,10 @@ class Catalog:
         """).fetchone()
 
         return {
-            "total": result[0],
-            "sources": result[1],
-            "earliest": result[2],
-            "latest": result[3],
+            "total": result[0] if result else None,
+            "sources": result[1] if result else None,
+            "earliest": result[2] if result else None,
+            "latest": result[3] if result else None,
         }
 
     def clear(self):

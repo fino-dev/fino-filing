@@ -1,0 +1,73 @@
+# fino-filing デザインパターン・カタログ
+
+GoF パターンのうち、fino-filing に**参考にして取り入れるべき**ものを整理する。  
+既存実装で使っているものは「既存」、これから取り入れるとよいものを「推奨」とする。
+
+---
+
+## 生成関連
+
+| パターン | 状態 | 説明 |
+|----------|------|------|
+| **Factory Method** | 推奨 | `Filing.from_dict` はその一種。Catalog/Storage/Collection の生成をファクトリーに集約すると、テスト用モック・拡張がしやすくなる（redesign 指摘の「オブジェクト生成ロジックの散在」解消）。 |
+| **Abstract Factory** | 任意 | ストレージ＋カタログの「ファミリ」をまとめて生成する需要が増えたら検討。現状は単品注入で足りる。 |
+| **Builder** | 推奨 | Collection の「default_dir + LocalStorage + Catalog」など複雑な初期化を段階的構築できるようにすると、利用者・テスト双方が楽になる（redesign 指摘）。 |
+| **Prototype** | 不要 | Filing のクローン需要は現状ほぼない。 |
+| **Singleton** | 不要 | ライブラリであり、インスタンスは利用者が持つ設計のため不要。 |
+
+---
+
+## 構造関連
+
+| パターン | 状態 | 説明 |
+|----------|------|------|
+| **Adapter** | 既存 | `Storage`(Protocol) と `LocalStorage`。外部（ファイルシステム）を統一インターフェースで扱っている。S3 等追加時も Adapter として実装する想定。 |
+| **Bridge** | 任意 | 「ストレージの実装」と「インデックス（Catalog）の実装」を独立に拡張する需要が強くなったら、Bridge で分離を検討。 |
+| **Composite** | 不要 | Expr の AND/OR はツリーではなくフラットな結合で足りている。 |
+| **Decorator** | 任意 | ストレージに「圧縮」「暗号化」などを被せたい場合に検討。 |
+| **Facade** | 既存 | `Collection` が Facade（component_collection.puml およびコメントで明示）。add/get/find の統一 API。 |
+| **Flyweight** | 不要 | Field 等の共有によるメモリ最適化は現状優先度低。 |
+| **Proxy** | 任意 | 遅延読込・キャッシュ付き Storage などが必要になったら検討。 |
+
+---
+
+## 振る舞い関連
+
+| パターン | 状態 | 説明 |
+|----------|------|------|
+| **Chain of Responsibility** | 不要 | 検索・保存のパイプライン化は現状要求されていない。 |
+| **Command** | 任意 | add/clear 等を Command にして undo/redo やログ再生が必要になったら検討。 |
+| **Iterator** | 任意 | `find()` が list 一括返しのため、大量件数ではイテレータで返す API を検討の余地あり。 |
+| **Mediator** | 不要 | Collection が Facade で十分。 |
+| **Memento** | 不要 | スナップショット復元の要求なし。 |
+| **Observer** | 任意 | 同期進捗・イベント通知が必要になったら検討。 |
+| **State** | 不要 | コレクションの状態遷移は単純。 |
+| **Strategy** | 既存＋推奨 | **既存**: `Locator` が「Filing → path」の Strategy。**推奨**: メタデータストア（Catalog 実装）の切り替えを Strategy 化すると拡張しやすい（redesign の「Strategy: ストレージ・メタデータストアの切り替え」）。 |
+| **Template Method** | 既存 | `FilingMeta` によるクラス定義解析 → Field 注入の流れ。Filing サブクラスは「テンプレート」に沿って定義する。 |
+| **Visitor** | 不要 | Expr/Field の走査を多様に分岐する需要は現状ない。 |
+
+---
+
+## 優先して取り入れるとよいもの（要約）
+
+1. **Factory Method / ファクトリー**  
+   オブジェクト生成（Catalog, Storage, デフォルト Collection）の一元化。テスト・拡張のしやすさ向上。
+
+2. **Builder**  
+   Collection やクライアント設定の段階的構築。オプション増加に強い。
+
+3. **Strategy**  
+   メタデータストア（DuckDB / 他 DB）の切り替えをインターフェース化。プラグイン化の土台。
+
+4. **Adapter**（継続）  
+   新規ストレージ（S3 等）追加時も Storage Protocol に沿った Adapter として実装する。
+
+5. **Facade**（継続）  
+   公開 API は Collection 経由に保ち、内部の再編時も利用者への影響を抑える。
+
+---
+
+## 参照
+
+- `docs/idea/oss/fino-architecture-redesign.md` — Factory / Builder / Strategy の推奨
+- `docs/collection/component_collection.puml` — Collection(Facade), Storage(Repository/Adapter)

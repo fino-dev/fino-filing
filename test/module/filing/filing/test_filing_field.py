@@ -18,6 +18,7 @@ class TestFiling_Field:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
         )
 

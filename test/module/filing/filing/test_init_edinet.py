@@ -11,7 +11,9 @@ class TestFiling_Initialize_EDINET:
             checksum="test_checksum",
             name="test_name",
             is_zip=True,
+            format="zip",
             created_at=datetime_now,
+            doc_id="test_doc_id",
             edinet_code="test_edinet_code",
             sec_code="test_sec_code",
             jcn="test_jcn",
@@ -32,6 +34,7 @@ class TestFiling_Initialize_EDINET:
         assert edinet_filing.name == "test_name"
         assert edinet_filing.is_zip is True
         assert edinet_filing.created_at == datetime_now
+        assert edinet_filing.doc_id == "test_doc_id"
         assert edinet_filing.edinet_code == "test_edinet_code"
         assert edinet_filing.sec_code == "test_sec_code"
         assert edinet_filing.jcn == "test_jcn"
