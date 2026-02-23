@@ -69,9 +69,8 @@ class Collection:
         Returns:
             tuple[Filing, str]: Filing and path
         """
-        # contentからchecksumを計算
+        # Checksumチェック
         actual_checksum = hashlib.sha256(content).hexdigest()
-        # filingのchecksumとcontentのchecksumを比較
         expected_checksum = filing.checksum
         if actual_checksum != expected_checksum:
             raise CollectionChecksumMismatchError(
@@ -81,12 +80,12 @@ class Collection:
             )
 
         filing_id = filing.id
-        # storage_key(path)をlocatorにより取得する
+        # pathを生成する (Locator)
         storage_key = self._locator.resolve(filing)
         if storage_key is None:
             raise LocatorPathResolutionError(filing=filing)
 
-        # CatalogにおけるFilingの重複チェックし、重複していなければCatalogに保存する
+        # Catalog重複チェック or Catalog保存
         if self._catalog.get(filing_id) is not None:
             logger.warning(
                 "Filing id: %s already exists in catalog so skip saving in catalog",
@@ -95,7 +94,7 @@ class Collection:
         else:
             self._catalog.index(filing)
 
-        # StorageにFilingを保存する
+        # Storage保存
         actual_path = self._storage.save(content, storage_key=storage_key)
 
         return filing, actual_path
