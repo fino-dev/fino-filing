@@ -5,6 +5,7 @@ from typing import Optional
 
 from fino_filing.collection.error import (
     CollectionChecksumMismatchError,
+    LocatorPathResolutionError,
 )
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
@@ -58,9 +59,19 @@ class Collection:
     # ========== 追加系 ==========
 
     def add(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
-        """Add Filing to the collection"""
-        # Checksum検証
+        """
+        Add Filing to the collection
+
+        Args:
+            filing: Filing to add
+            content: Content to add
+
+        Returns:
+            tuple[Filing, str]: Filing and path
+        """
+        # contentからchecksumを計算
         actual_checksum = hashlib.sha256(content).hexdigest()
+        # filingのchecksumとcontentのchecksumを比較
         expected_checksum = filing.checksum
         if actual_checksum != expected_checksum:
             raise CollectionChecksumMismatchError(
@@ -70,19 +81,22 @@ class Collection:
             )
 
         filing_id = filing.id
+        # storage_key(path)をlocatorにより取得する
         storage_key = self._locator.resolve(filing)
         if storage_key is None:
-            raise ValueError("Locator did not resolve path for filing")
-        metadata = filing.to_dict()
+            raise LocatorPathResolutionError(filing=filing)
 
-        # 重複チェック（Catalogを正とする）
+        # CatalogにおけるFilingの重複チェックし、重複していなければCatalogに保存する
         if self._catalog.get(filing_id) is not None:
-            logger.warning("Filing id: %s already exists in catalog", filing_id)
+            logger.warning(
+                "Filing id: %s already exists in catalog so skip saving in catalog",
+                filing_id,
+            )
+        else:
+            self._catalog.index(filing)
 
-        actual_path = self._storage.save(
-            filing_id, content, metadata, storage_key=storage_key
-        )
-        self._catalog.index(filing)
+        # StorageにFilingを保存する
+        actual_path = self._storage.save(content, storage_key=storage_key)
 
         return filing, actual_path
 

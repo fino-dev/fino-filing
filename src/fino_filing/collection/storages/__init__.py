@@ -1,3 +1,3 @@
-from .flat_local import LocalStorage
+from .local import LocalStorage
 
 __all__ = ["LocalStorage"]

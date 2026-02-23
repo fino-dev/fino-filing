@@ -1,6 +1,7 @@
 from typing import Any
 
 from fino_filing.core.error import FinoFilingException
+from fino_filing.filing.filing import Filing
 
 
 class CollectionChecksumMismatchError(FinoFilingException, ValueError):
@@ -18,6 +19,14 @@ class CollectionChecksumMismatchError(FinoFilingException, ValueError):
         self.filing_id = filing_id
         self.actual_checksum = actual_checksum
         self.expected_checksum = expected_checksum
+
+
+class LocatorPathResolutionError(FinoFilingException, ValueError):
+    """Locator path resolution error"""
+
+    def __init__(self, filing: Filing | None):
+        super().__init__(f"Locator did not resolve path for filing: {filing}")
+        self.filing = filing
 
 
 class CatalogRequiredValueError(FinoFilingException, ValueError):

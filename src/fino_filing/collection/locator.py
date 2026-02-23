@@ -22,16 +22,13 @@ class Locator:
     Locator (Filing Path Resolver<Strategy>)
 
     責務:
-        - Filing metadata → storage path変換
-        - 保存戦略の実装
-        - パーティション戦略
-
-    Filingの内容は知らない（metadataのみ使用）
+        - Filingの保存戦略の実装
+        - パーティション戦略）
     """
 
     def resolve(self, filing: Filing | None) -> str | None:
         """
-        Filing metadata → storage path変換（partition + ファイル名 + 拡張子）。
+        Filing → storage path変換（partition + ファイル名 + 拡張子）。
         拡張子は format が設定されていればそれを使用（サニタイズ済み）、
         空の場合は is_zip に応じて .zip または .xbrl とする。
         """

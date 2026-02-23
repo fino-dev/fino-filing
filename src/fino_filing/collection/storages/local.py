@@ -3,7 +3,6 @@
 
 import logging
 from pathlib import Path
-from typing import Any
 
 from fino_filing.collection.storage import _sanitize_storage_key
 
@@ -19,14 +18,12 @@ class LocalStorage:
 
     def save(
         self,
-        id_: str,
         content: bytes,
-        metadata: dict[str, Any] | None = None,
         storage_key: str | None = None,
     ) -> str:
         """
-        保存。
-        storage_key（Locatorで解決された相対パス）を必須とし、そのパスに書き込む。
+        Save content to the local storage
+        - save content to the storage_key path (relative path)
         """
         if storage_key is None:
             raise ValueError("storage_key is required (resolve path via Locator)")

@@ -28,17 +28,19 @@ class Storage(Protocol):
 
     def save(
         self,
-        id_: str,
         content: bytes,
-        metadata: dict | None = None,
         storage_key: str | None = None,
     ) -> str:
         """
-        Filing保存。
-        storage_key が渡された場合はそれを物理キー（Localでは相対パス）として使用する。
+        Save content to the storage
+        - save content to the storage_key path (relative path)
+
+        Args:
+            content: Content to save
+            storage_key: Storage key (relative path)
 
         Returns:
-            実際に保存されたパス（Storage実装に依存）
+            str: Saved absolute path
         """
         ...
 
