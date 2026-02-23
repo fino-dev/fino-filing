@@ -32,8 +32,8 @@ class TestCollection_Get:
         assert isinstance(actual_path, str)
         assert isinstance(saved_filing, Filing)
 
-        assert temp_storage.exists(filing.id)
-        assert temp_storage.exists(saved_filing.id)
+        assert temp_catalog.get(filing.id) is not None
+        assert temp_catalog.get(saved_filing.id) is not None
 
         # catalogに登録されていることを確認
         filing, content, path = collection.get(filing.id)
@@ -46,7 +46,8 @@ class TestCollection_Get:
         assert content == b"test content"
         assert path is not None
         assert isinstance(path, str)
-        assert path == actual_path
+        # path は Locator の相対パス、actual_path は Storage の絶対パス（path を含む）
+        assert path in actual_path.replace("\\", "/")
 
     def test_get_filing_returns_edinet_filing_when_saved_as_edinet(
         self,

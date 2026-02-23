@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterator, Protocol
+from typing import Protocol
 
 
 def _sanitize_storage_key(storage_key: str, base_dir: Path) -> Path:
@@ -42,18 +42,6 @@ class Storage(Protocol):
         """
         ...
 
-    def load(self, id_: str) -> bytes:
-        """Filing読み込み（idで直接アクセス）"""
-        ...
-
-    def exists(self, id_: str) -> bool:
-        """存在確認"""
-        ...
-
-    def list_all(self) -> Iterator[str]:
-        """全id列挙"""
-        ...
-
-    def get_metadata(self, id_: str) -> dict | None:
-        """Registryに格納されたmetadata取得"""
+    def load_by_path(self, relative_path: str) -> bytes:
+        """相対パス指定でFiling実体を読み込む。id→pathの解決は呼び出し側（Catalog+Locator）の責務。"""
         ...

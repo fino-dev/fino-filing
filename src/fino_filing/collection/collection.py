@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Optional
 
 from fino_filing.collection.error import (
-    CatalogRequiredValueError,
     CollectionChecksumMismatchError,
 )
 from fino_filing.filing.expr import Expr
@@ -70,24 +69,19 @@ class Collection:
                 expected_checksum=expected_checksum,
             )
 
-        # 最低限のID検証
-        id_ = filing.id
-        if id_ is None or id_ == "":
-            raise CatalogRequiredValueError(field="id", actual_value=id_)
-
-        # Locatorでstorage_keyを解決し、Storage保存（metadataをRegistryに格納）
-        metadata = filing.to_dict()
+        filing_id = filing.id
         storage_key = self._locator.resolve(filing)
+        if storage_key is None:
+            raise ValueError("Locator did not resolve path for filing")
+        metadata = filing.to_dict()
+
+        # 重複チェック（Catalogを正とする）
+        if self._catalog.get(filing_id) is not None:
+            logger.warning("Filing id: %s already exists in catalog", filing_id)
+
         actual_path = self._storage.save(
-            id_, content, metadata, storage_key=storage_key
+            filing_id, content, metadata, storage_key=storage_key
         )
-
-        # 重複チェック
-        if self._storage.exists(id_):
-            logger.warning("Filing id: %s already exists in storage", id_)
-            return filing, actual_path
-
-        # pathを設定してCatalog登録
         self._catalog.index(filing)
 
         return filing, actual_path
@@ -107,9 +101,15 @@ class Collection:
         return self._catalog.get(id)
 
     def get_content(self, id: str) -> bytes | None:
-        """ID specified retrieval (Content only)"""
+        """ID specified retrieval (Content only). PathはCatalog+Locatorで解決する。"""
+        filing = self._catalog.get(id)
+        if filing is None:
+            return None
+        path = self._locator.resolve(filing)
+        if path is None:
+            return None
         try:
-            return self._storage.load(id)
+            return self._storage.load_by_path(path)
         except FileNotFoundError:
             return None
 

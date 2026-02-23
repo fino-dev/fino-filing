@@ -27,8 +27,8 @@ class TestCollection_Add:
         filing, content = sample_filing
         saved_filing, path = collection.add(filing, content)
 
-        assert temp_storage.exists(filing.id)
-        assert temp_storage.exists(saved_filing.id)
+        assert temp_catalog.get(filing.id) is not None
+        assert temp_catalog.get(saved_filing.id) is not None
 
         with open(path, "rb") as f:
             actual_content = f.read()
@@ -114,8 +114,8 @@ class TestCollection_Add:
 
         saved_filing, path = collection.add(extended, content)
 
-        assert temp_storage.exists(extended.id)
-        assert temp_storage.exists(saved_filing.id)
+        assert temp_catalog.get(extended.id) is not None
+        assert temp_catalog.get(saved_filing.id) is not None
 
         with open(path, "rb") as f:
             actual_content = f.read()
@@ -158,8 +158,8 @@ class TestCollection_Add:
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
         saved_filing, path = collection.add(edinet_filing, content)
 
-        assert temp_storage.exists(edinet_filing.id)
-        assert temp_storage.exists(saved_filing.id)
+        assert temp_catalog.get(edinet_filing.id) is not None
+        assert temp_catalog.get(saved_filing.id) is not None
 
         assert saved_filing.id == edinet_filing.id
         assert saved_filing.checksum == edinet_filing.checksum
