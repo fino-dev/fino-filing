@@ -146,6 +146,23 @@ class Catalog:
             existing.add(name)
         self.conn.commit()
 
+    def _data_only_dict(
+        self, filing_dict: dict[str, Any], physical_columns: set[str]
+    ) -> dict[str, Any]:
+        """
+        物理カラムに存在するキーを除いた辞書を返す。
+        data カラムには追加フィールド（core/indexed 以外）のみ保存する。
+        """
+        return {k: v for k, v in filing_dict.items() if k not in physical_columns}
+
+    def _row_to_full_doc(self, columns: list[str], row: tuple[Any, ...]) -> dict[str, Any]:
+        """1行（物理カラム）と data の JSON をマージして完全な辞書を返す。"""
+        row_dict = dict(zip(columns, row))
+        data_str = row_dict.pop("data", None)
+        extra: dict[str, Any] = json.loads(data_str) if data_str else {}
+        row_dict.update(extra)
+        return row_dict
+
     def index(self, filing: Filing) -> None:
         """
         Filing索引
@@ -175,8 +192,10 @@ class Catalog:
         # 不足している indexed カラムをテーブルに追加
         self._ensure_indexed_columns(type(filing))
 
-        filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
         columns = self._get_table_column_names()
+        physical_columns = set(columns) - {"data"}
+        data_only = self._data_only_dict(filing_dict, physical_columns)
+        filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
         indexed_set = set(type(filing).get_indexed_fields())
 
         values: list[Any] = []
@@ -209,6 +228,7 @@ class Catalog:
             self._ensure_indexed_columns(type(filing))
 
         columns = self._get_table_column_names()
+        physical_columns = set(columns) - {"data"}
         core_set: set[str] = {c for c in _CORE_COLUMNS if c != "data"}
         rows: list[list[Any]] = []
 
@@ -217,7 +237,8 @@ class Catalog:
             filing_dict["_filing_class"] = (
                 f"{type(filing).__module__}.{type(filing).__qualname__}"
             )
-            filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
+            data_only = self._data_only_dict(filing_dict, physical_columns)
+            filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
             indexed_set = set(type(filing).get_indexed_fields())
 
             values: list[Any] = []
@@ -267,23 +288,25 @@ class Catalog:
         """
         ID指定取得（生の辞書。Filing に復元しない）
 
+        物理カラムと data カラム（追加フィールドのみの JSON）をマージした完全な辞書を返す。
+
         Args:
             id: Filing ID
 
         Returns:
-            data 辞書または None
+            完全なフィールド辞書または None
         """
-        result = self.conn.execute(
-            """
-            SELECT data FROM filings WHERE id = ?
-        """,
+        columns = self._get_table_column_names()
+        cols_str = ", ".join(f'"{c}"' for c in columns)
+        row = self.conn.execute(
+            f"SELECT {cols_str} FROM filings WHERE id = ?",
             [id],
         ).fetchone()
 
-        if not result:
+        if not row:
             return None
 
-        return json.loads(result[0])
+        return self._row_to_full_doc(columns, row)
 
     def search(
         self,
@@ -306,7 +329,9 @@ class Catalog:
         Returns:
             Filing リスト
         """
-        sql = "SELECT data FROM filings"
+        columns = self._get_table_column_names()
+        cols_str = ", ".join(f'"{c}"' for c in columns)
+        sql = f"SELECT {cols_str} FROM filings"
         params: list[Any] = []
 
         # WHERE句
@@ -316,7 +341,7 @@ class Catalog:
 
         # ORDER BY（物理カラムならそのまま、それ以外は json_extract）
         order_direction = "DESC" if desc else "ASC"
-        table_columns = set(self._get_table_column_names())
+        table_columns = set(columns)
         if order_by in table_columns and order_by != "data":
             sql += f' ORDER BY "{order_by}" {order_direction}'
         else:
@@ -325,9 +350,9 @@ class Catalog:
         # LIMIT/OFFSET
         sql += f" LIMIT {limit} OFFSET {offset}"
 
-        # 実行
+        # 実行（物理カラム + data の追加フィールドをマージして復元）
         rows = self.conn.execute(sql, params).fetchall()
-        raw_list = [json.loads(row[0]) for row in rows]
+        raw_list = [self._row_to_full_doc(columns, row) for row in rows]
         return [self._resolve_data_to_filing(d) for d in raw_list]
 
     def search_raw(self, sql: str, params: list[Any] | None = None) -> list[Any]:

@@ -8,6 +8,7 @@ Catalog の _filing_class 振る舞いのテスト。
 """
 
 import hashlib
+import json
 from datetime import datetime
 
 from fino_filing import Catalog, EDINETFiling, Filing
@@ -119,7 +120,9 @@ class TestCatalog_FilingClass_Behavior:
         assert restored.doc_id == "doc1"
         assert restored.filer_name == "Test Inc."
 
-    def test_get_returns_filing_when_indexed_as_base(self, temp_catalog: Catalog) -> None:
+    def test_get_returns_filing_when_indexed_as_base(
+        self, temp_catalog: Catalog
+    ) -> None:
         """Filing として index した場合は get で Filing として復元される"""
         content = b"dummy"
         checksum = hashlib.sha256(content).hexdigest()
@@ -210,3 +213,90 @@ class TestCatalog_FilingClass_Behavior:
         ).fetchone()
         assert row is not None
         assert row[0] == "fino_filing.filing.filing.Filing"
+
+    def test_data_column_contains_only_extra_fields_not_core(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """data カラムには core / _filing_class を保存せず、追加フィールドのみ保存される"""
+        content = b"dummy"
+        checksum = hashlib.sha256(content).hexdigest()
+        filing = Filing(
+            id="fc_data_only_001",
+            source="test",
+            checksum=checksum,
+            name="f.txt",
+            is_zip=False,
+            format="xbrl",
+            created_at=datetime.now(),
+        )
+        temp_catalog.index(filing)
+
+        row = temp_catalog.conn.execute(
+            "SELECT data FROM filings WHERE id = ?", ["fc_data_only_001"]
+        ).fetchone()
+        assert row is not None
+        data_parsed = json.loads(row[0])
+        for key in (
+            "id",
+            "source",
+            "checksum",
+            "name",
+            "is_zip",
+            "format",
+            "created_at",
+            "_filing_class",
+        ):
+            assert key not in data_parsed, f"data に {key} が含まれてはいけない"
+        assert data_parsed == {}
+
+    def test_data_column_contains_only_extra_fields_edinet(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """EDINETFiling では data に追加フィールド（indexed でないもの）のみ入る想定；core と _filing_class は入らない"""
+        content = b"dummy"
+        checksum = hashlib.sha256(content).hexdigest()
+        now = datetime.now()
+        filing = EDINETFiling(
+            id="fc_data_edinet_001",
+            checksum=checksum,
+            name="f.txt",
+            is_zip=False,
+            format="xbrl",
+            created_at=now,
+            doc_id="d1",
+            edinet_code="E1",
+            sec_code="1",
+            jcn="1",
+            filer_name="F",
+            ordinance_code="010",
+            form_code="030101",
+            doc_type_code="120",
+            doc_description="d",
+            period_start=now,
+            period_end=now,
+            submit_datetime=now,
+        )
+        temp_catalog.index(filing)
+
+        row = temp_catalog.conn.execute(
+            "SELECT data FROM filings WHERE id = ?", ["fc_data_edinet_001"]
+        ).fetchone()
+        assert row is not None
+        data_parsed = json.loads(row[0])
+        for key in (
+            "id",
+            "source",
+            "checksum",
+            "name",
+            "is_zip",
+            "format",
+            "created_at",
+            "_filing_class",
+        ):
+            assert key not in data_parsed, f"data に {key} が含まれてはいけない"
+        # EDINETFiling の追加フィールドは indexed なので物理カラムに入り、data には core 以外の非 indexed のみ
+        # ここでは core/_filing_class が data に無いことだけ検証
+        full = temp_catalog.get_raw("fc_data_edinet_001")
+        assert full is not None
+        assert full["id"] == "fc_data_edinet_001"
+        assert full["_filing_class"] == "fino_filing.filing.filing_edinet.EDINETFiling"
