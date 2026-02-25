@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from typing import TYPE_CHECKING, Annotated, Any, Self
 
@@ -16,6 +17,26 @@ if TYPE_CHECKING:
     pass
 
 
+def _serialize_field_value(value: Any) -> str:
+    """id 生成用にフィールド値を文字列化する。"""
+    if value is None:
+        return ""
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
+def _generate_filing_id(filing_cls: type[Any], data: dict[str, Any]) -> str:
+    """
+    同一性フィールド（コアの source/name/is_zip/format ＋ ユーザー追加フィールド全て）の値から
+    決定論的に Filing ID を生成する。id / created_at / checksum は同一性に含めない。
+    """
+    identity_names = filing_cls.get_identity_fields()
+    parts = [f"{n}={_serialize_field_value(data.get(n))}" for n in identity_names]
+    payload = "|".join(parts)
+    return hashlib.sha256(payload.encode()).hexdigest()[:32]
+
+
 class Filing(metaclass=FilingMeta):
     """
     Filing Document（スキーマレス）
@@ -27,6 +48,10 @@ class Filing(metaclass=FilingMeta):
 
     Collectionに依存しない。
 
+    id と created_at は省略時は内部生成される。
+    id は同一性フィールド（コアの source/name/is_zip/format ＋ ユーザーが追加した全フィールド）の値から
+    決定論的に生成する。id/created_at/checksum は同一性に含めない。indexed は Catalog の物理カラム・検索専用。
+
     Usage:
         # モデルベース（Annotated形式）。default値は = 値 で指定
         # 必須にしたいフィールドは Field(required=True) で指定（コアと同様の挙動）
@@ -34,7 +59,8 @@ class Filing(metaclass=FilingMeta):
             filer_name: Annotated[str, Field("filer_name", description="提出者名")]
             revenue: Annotated[float, Field("revenue", description="売上")] = 0.0
 
-        filing = Filing(id="...", source="custom")
+        filing = Filing(source="custom", name="f.xbrl", checksum="...", format="xbrl", is_zip=False)
+        filing.id   # 内部生成
         filing.revenue  # 未設定時は 0.0
     """
 
@@ -102,7 +128,8 @@ class Filing(metaclass=FilingMeta):
     def __init__(self, **kwargs: Any) -> None:
         """
         Args:
-            **kwargs: フィールド値（id, source, name 等）。
+            **kwargs: フィールド値（source, name, checksum, format, is_zip 等）。
+                id と created_at は省略時は内部生成される。渡した場合はその値を使用する。
         """
 
         # データストア（フラット）を初期化（__setattr__をバイパス）
@@ -115,6 +142,12 @@ class Filing(metaclass=FilingMeta):
         # kwargs から値を設定（descriptor経由で _data に格納）
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+        # 内部生成: created_at / id が未設定の場合のみ補完（from_dict 復元時は渡される）
+        if self._data.get("created_at") is None:
+            setattr(self, "created_at", datetime.now())
+        if self._data.get("id") is None:
+            setattr(self, "id", _generate_filing_id(type(self), self._data))
 
         # validation check
         self.__validate_fields()
@@ -136,6 +169,7 @@ class Filing(metaclass=FilingMeta):
             if (
                 field.immutable
                 and name in self._data  # type: ignore[attr-defined]
+                and self._data[name] is not None  # type: ignore[attr-defined]
                 and self._data[name] != value  # type: ignore[attr-defined]
             ):
                 from fino_filing.filing.error import FieldImmutableError
@@ -265,9 +299,21 @@ class Filing(metaclass=FilingMeta):
         return self._data.get(key)
 
     @classmethod
+    def get_identity_fields(cls) -> list[str]:
+        """
+        ID ハッシュに含めるフィールド一覧（コアの source/name/is_zip/format ＋ ユーザー追加フィールド全て）。
+
+        Returns:
+            フィールド名リスト（ソート済み）
+        """
+        core_id = {"format", "is_zip", "name", "source"}
+        extra = [k for k in cls._fields if k not in cls._core_fields]
+        return sorted(core_id | set(extra))
+
+    @classmethod
     def get_indexed_fields(cls) -> list[str]:
         """
-        物理カラム化されるフィールド一覧
+        物理カラム化されるフィールド一覧（Catalog の保存・検索用。ID 生成には使わない）。
 
         Returns:
             フィールド名リスト

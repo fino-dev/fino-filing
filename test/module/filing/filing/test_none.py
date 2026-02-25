@@ -14,47 +14,31 @@ class TestFiling_Initialize_ExplicitNone:
     """
 
     def test_filing_init_with_explicit_none_for_required_field_failed(self) -> None:
-        """必須フィールドに明示的にNoneを渡した場合はエラー"""
+        """必須フィールドに明示的にNoneを渡した場合はエラー（id / created_at は省略時は内部生成）"""
         with pytest.raises(FilingRequiredError) as fve:
             Filing(
-                id=None,  # type: ignore
-                source="test_source",
-                checksum="test_checksum",
-                name="test_name",
-                is_zip=True,
-                format="zip",
-                created_at=datetime.now(),
-            )
-        assert "id" in fve.value.fields
-
-        with pytest.raises(FilingRequiredError) as fve:
-            Filing(
-                id="test_id",
                 source=None,  # type: ignore
                 checksum="test_checksum",
                 name="test_name",
                 is_zip=True,
                 format="zip",
-                created_at=datetime.now(),
             )
         assert "source" in fve.value.fields
 
         with pytest.raises(FilingRequiredError) as fve:
             Filing(
-                id="test_id",
                 source="test_source",
                 checksum="test_checksum",
                 name=None,  # type: ignore
                 is_zip=True,
                 format="zip",
-                created_at=datetime.now(),
             )
         assert "name" in fve.value.fields
 
     def test_filing_init_with_explicit_none_for_multiple_required_fields_failed(
         self,
     ) -> None:
-        """複数の必須フィールドに明示的にNoneを渡した場合はエラー"""
+        """複数の必須フィールドに明示的にNoneを渡した場合はエラー（id は None 時は内部生成）"""
         with pytest.raises(FilingRequiredError) as fve:
             Filing(
                 id=None,  # type: ignore
@@ -65,8 +49,6 @@ class TestFiling_Initialize_ExplicitNone:
                 format="zip",
                 created_at=datetime.now(),
             )
-        # すべてのNoneフィールドがエラーに含まれること
-        assert "id" in fve.value.fields
         assert "source" in fve.value.fields
         assert "name" in fve.value.fields
 

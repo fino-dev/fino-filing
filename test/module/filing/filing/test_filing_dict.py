@@ -156,12 +156,12 @@ class TestFiling_FromDict:
         assert filing.created_at == datetime(2024, 1, 15, 10, 30, 45, 123456)
 
     def test_from_dict_with_missing_fields_failed(self) -> None:
-        """必須フィールドが不足している場合はエラー"""
+        """必須フィールドが不足している場合はエラー（id / created_at は内部生成のため不足時は補完される）"""
         data = {
             "id": "test_id",
             "source": "test_source",
             "checksum": "test_checksum",
-            # name, is_zip, created_at が不足
+            # name, is_zip, format が不足
         }
 
         with pytest.raises(FilingRequiredError) as fve:
@@ -169,7 +169,7 @@ class TestFiling_FromDict:
 
         assert "name" in fve.value.fields
         assert "is_zip" in fve.value.fields
-        assert "created_at" in fve.value.fields
+        assert "format" in fve.value.fields
 
     def test_from_dict_with_invalid_type_failed(self) -> None:
         """型が一致しない場合はエラー"""

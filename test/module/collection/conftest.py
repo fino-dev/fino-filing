@@ -36,18 +36,16 @@ def temp_catalog() -> Iterator[Catalog]:
 
 @pytest.fixture
 def sample_filing():
-    """サンプルFilingを作成"""
+    """サンプルFilingを作成（id / created_at は内部生成）"""
     content = b"test content"
     checksum = hashlib.sha256(content).hexdigest()
 
     filing = Filing(
-        id="test_id_001",
         source="test_source",
         checksum=checksum,
         name="test_filing.txt",
         is_zip=False,
         format="xbrl",
-        created_at=datetime.now(),
     )
 
     return filing, content
