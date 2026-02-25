@@ -34,7 +34,7 @@ class TestCollection_Add:
 
         # Locator により storage_key が使われ、形式に応じた拡張子で保存される
         assert path.endswith(".xbrl")  # sample_filing is is_zip=False
-        assert "test_source" in path and "test_id_001" in path
+        assert "test_source" in path and filing.id in path
 
     def test_add_uses_locator_storage_key_zip_extension(
         self,
@@ -46,18 +46,16 @@ class TestCollection_Add:
         content = b"zip content"
         checksum = hashlib.sha256(content).hexdigest()
         filing = Filing(
-            id="zip_id_001",
             source="edinet",
             checksum=checksum,
             name="report.zip",
             is_zip=True,
             format="zip",
-            created_at=datetime_now,
         )
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
         _, path = collection.add(filing, content)
         assert path.endswith(".zip")
-        assert "edinet" in path and "zip_id_001" in path
+        assert "edinet" in path and filing.id in path
         with open(path, "rb") as f:
             assert f.read() == content
 
@@ -71,18 +69,16 @@ class TestCollection_Add:
         content = b"pdf binary content"
         checksum = hashlib.sha256(content).hexdigest()
         filing = Filing(
-            id="pdf_id_001",
             source="edinet",
             checksum=checksum,
             name="report.pdf",
             is_zip=False,
             format="pdf",
-            created_at=datetime_now,
         )
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
         _, path = collection.add(filing, content)
         assert path.endswith(".pdf")
-        assert "edinet" in path and "pdf_id_001" in path
+        assert "edinet" in path and filing.id in path
         loaded = collection.get_content(filing.id)
         assert loaded == content
 
@@ -134,12 +130,10 @@ class TestCollection_Add:
         content = b"test content"
         checksum = hashlib.sha256(content).hexdigest()
         edinet_filing = EDINETFiling(
-            id="test_id_001",
             checksum=checksum,
             name="test_filing.txt",
             is_zip=False,
             format="xbrl",
-            created_at=datetime_now,
             doc_id="test_doc_id",
             edinet_code="test_edinet_code",
             sec_code="test_sec_code",
