@@ -1,14 +1,46 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Optional
+from datetime import datetime as dt
+from typing import Any, Optional, Type
 
 import duckdb
+
+from fino_filing.filing.filing import Filing
 
 from fino_filing.collection.error import CatalogRequiredValueError
 from fino_filing.collection.filing_resolver import FilingResolver
 from fino_filing.filing.expr import Expr
-from fino_filing.filing.filing import Filing
+
+
+# 物理カラムとして常に存在するコアフィールド（INSERT 順序の先頭）
+_CORE_COLUMNS = (
+    "id",
+    "source",
+    "checksum",
+    "name",
+    "is_zip",
+    "format",
+    "created_at",
+    "data",
+)
+
+
+def _py_type_to_duckdb(py_type: Type[Any] | None) -> str:
+    """Python 型を DuckDB のカラム型に変換する。"""
+    if py_type is None:
+        return "VARCHAR"
+    if issubclass(py_type, str):
+        return "VARCHAR"
+    if issubclass(py_type, bool):
+        return "BOOLEAN"
+    if issubclass(py_type, dt):
+        return "TIMESTAMP"
+    if issubclass(py_type, int):
+        return "BIGINT"
+    if issubclass(py_type, float):
+        return "DOUBLE"
+    return "VARCHAR"
 
 
 class Catalog:
@@ -18,6 +50,7 @@ class Catalog:
     責務:
     - Filing の索引（index / index_batch）と _filing_class の付与
     - 検索（get / search）と Filing 復元（FilingResolver によるクラス解決）
+    - indexed なフィールドは動的に物理カラムとして追加する（スキーマ拡張）
 
     Methods:
     - index: Add Filing to the catalog
@@ -78,70 +111,104 @@ class Catalog:
 
         self.conn.commit()
 
+    def _get_table_column_names(self) -> list[str]:
+        """filings テーブルのカラム名一覧を取得（data 除く物理カラム＋data）。"""
+        result = self.conn.execute(
+            """
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = 'filings'
+            ORDER BY ordinal_position
+            """
+        ).fetchall()
+        return [row[0] for row in result] if result else []
+
+    def _ensure_indexed_columns(self, filing_cls: Type[Filing]) -> None:
+        """
+        Filing クラスの indexed フィールドがテーブルに存在しない場合、ADD COLUMN とインデックスを作成する。
+        """
+        existing = set(self._get_table_column_names())
+        indexed = filing_cls.get_indexed_fields()
+        fields = getattr(filing_cls, "_fields", {})
+
+        for name in indexed:
+            if name in existing or name == "data":
+                continue
+            field = fields.get(name)
+            py_type = getattr(field, "_field_type", None) if field else None
+            duck_type = _py_type_to_duckdb(py_type) if py_type else "VARCHAR"
+            self.conn.execute(
+                f'ALTER TABLE filings ADD COLUMN "{name}" {duck_type}'
+            )
+            self.conn.execute(
+                f'CREATE INDEX IF NOT EXISTS idx_{name} ON filings("{name}")'
+            )
+            existing.add(name)
+        self.conn.commit()
+
     def index(self, filing: Filing) -> None:
         """
         Filing索引
+
+        indexed なフィールドは物理カラムとして保存する（不足カラムは動的に ADD COLUMN）。
 
         Args:
             filing: 索引するFiling
         """
         filing_dict = filing.to_dict()
 
-        core_values: dict[str, Any] = {
-            "id": filing_dict.get("id"),
-            "source": filing_dict.get("source"),
-            "checksum": filing_dict.get("checksum"),
-            "name": filing_dict.get("name"),
-            "is_zip": filing_dict.get("is_zip"),
-            "format": filing_dict.get("format"),
-            "created_at": filing_dict.get("created_at"),
-        }
-
         # Catalog で復元時にクラスを解決するため _filing_class を保存
         filing_dict["_filing_class"] = (
             f"{type(filing).__module__}.{type(filing).__qualname__}"
         )
 
-        # 必須フィールド検証
-        for key, value in core_values.items():
-            # filing自体のvalidationで検証された状態だが、ここでも保存前に検証を行った
+        # コアフィールド（data 除く）の必須検証
+        for key in _CORE_COLUMNS:
+            if key == "data":
+                continue
+            value = filing_dict.get(key)
             if value is None or value == "":
                 raise CatalogRequiredValueError(
-                    field=key, actual_value=core_values[key]
+                    field=key, actual_value=filing_dict.get(key)
                 )
 
-        # JSON化
+        # 不足している indexed カラムをテーブルに追加
+        self._ensure_indexed_columns(type(filing))
+
         filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
+        columns = self._get_table_column_names()
+        indexed_set = set(type(filing).get_indexed_fields())
 
-        # 挿入
+        values: list[Any] = []
+        for col in columns:
+            if col == "data":
+                values.append(filing_json)
+            elif col in indexed_set or col in _CORE_COLUMNS:
+                values.append(filing_dict.get(col))
+            else:
+                values.append(None)
+
+        placeholders = ", ".join(["?"] * len(columns))
+        cols_str = ", ".join(f'"{c}"' for c in columns)
         self.conn.execute(
-            """
-            INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, format, created_at, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            [
-                core_values["id"],
-                core_values["source"],
-                core_values["checksum"],
-                core_values["name"],
-                core_values["is_zip"],
-                core_values["format"],
-                core_values["created_at"],
-                filing_json,
-            ],
+            f"INSERT OR REPLACE INTO filings ({cols_str}) VALUES ({placeholders})",
+            values,
         )
-
         self.conn.commit()
 
-    def index_batch(self, filings: list[Filing]):
+    def index_batch(self, filings: list[Filing]) -> None:
         """
         バッチ索引
+
+        各 Filing の型ごとに indexed カラムを確保してから、同一のカラム順で一括 INSERT する。
 
         Args:
             filings: Filing一覧
         """
-        # SQLの挿入用のリスト
+        for filing in filings:
+            self._ensure_indexed_columns(type(filing))
+
+        columns = self._get_table_column_names()
+        core_set: set[str] = {c for c in _CORE_COLUMNS if c != "data"}
         rows: list[list[Any]] = []
 
         for filing in filings:
@@ -149,41 +216,25 @@ class Catalog:
             filing_dict["_filing_class"] = (
                 f"{type(filing).__module__}.{type(filing).__qualname__}"
             )
-
-            core_values: dict[str, Any] = {
-                "id": filing_dict.get("id"),
-                "source": filing_dict.get("source"),
-                "checksum": filing_dict.get("checksum"),
-                "name": filing_dict.get("name"),
-                "is_zip": filing_dict.get("is_zip", False),
-                "format": filing_dict.get("format"),
-                "created_at": filing_dict.get("created_at"),
-            }
-
             filing_json = json.dumps(filing_dict, ensure_ascii=False, default=str)
+            indexed_set = set(type(filing).get_indexed_fields())
 
-            rows.append(
-                [
-                    core_values["id"],
-                    core_values["source"],
-                    core_values["checksum"],
-                    core_values["name"],
-                    core_values["is_zip"],
-                    core_values["format"],
-                    core_values["created_at"],
-                    filing_json,
-                ]
-            )
+            values: list[Any] = []
+            for col in columns:
+                if col == "data":
+                    values.append(filing_json)
+                elif col in indexed_set or col in core_set:
+                    values.append(filing_dict.get(col))
+                else:
+                    values.append(None)
+            rows.append(values)
 
+        placeholders = ", ".join(["?"] * len(columns))
+        cols_str = ", ".join(f'"{c}"' for c in columns)
         self.conn.executemany(
-            """
-            INSERT OR REPLACE INTO filings 
-            (id, source, checksum, name, is_zip, format, created_at, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+            f"INSERT OR REPLACE INTO filings ({cols_str}) VALUES ({placeholders})",
             rows,
         )
-
         self.conn.commit()
 
     def _resolve_data_to_filing(self, data: dict[str, Any]) -> Filing:
@@ -262,22 +313,11 @@ class Catalog:
             sql += f" WHERE {expr.sql}"
             params = expr.params
 
-        # ORDER BY
+        # ORDER BY（物理カラムならそのまま、それ以外は json_extract）
         order_direction = "DESC" if desc else "ASC"
-
-        # 物理カラムか判定
-        physical_columns = {
-            "id",
-            "source",
-            "checksum",
-            "name",
-            "is_zip",
-            "format",
-            "created_at",
-        }
-
-        if order_by in physical_columns:
-            sql += f" ORDER BY {order_by} {order_direction}"
+        table_columns = set(self._get_table_column_names())
+        if order_by in table_columns and order_by != "data":
+            sql += f" ORDER BY \"{order_by}\" {order_direction}"
         else:
             sql += f" ORDER BY json_extract(data, '$.{order_by}') {order_direction}"
 
