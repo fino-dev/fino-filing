@@ -10,6 +10,23 @@ from fino_filing import Catalog, Filing, LocalStorage
 
 
 @pytest.fixture
+def sample_filing() -> tuple[Filing, bytes]:
+    """サンプル Filing と content の組。戻り値型: tuple[Filing, bytes]。"""
+    content = b"test content"
+    checksum = hashlib.sha256(content).hexdigest()
+    filing = Filing(
+        id="test_id_001",
+        source="test_source",
+        checksum=checksum,
+        name="test_filing.txt",
+        is_zip=False,
+        format="xbrl",
+        created_at=datetime.now(),
+    )
+    return filing, content
+
+
+@pytest.fixture
 def temp_work_dir() -> Iterator[Path]:
     """毎回新しい一時作業ディレクトリを作成する。テストごとに必ず別のディレクトリが渡される。"""
     with tempfile.TemporaryDirectory(prefix="collection_test_") as tmpdir:
@@ -32,22 +49,3 @@ def temp_catalog() -> Iterator[Catalog]:
         catalog = Catalog(str(catalog_path))
         yield catalog
         catalog.close()
-
-
-@pytest.fixture
-def sample_filing():
-    """サンプルFilingを作成"""
-    content = b"test content"
-    checksum = hashlib.sha256(content).hexdigest()
-
-    filing = Filing(
-        id="test_id_001",
-        source="test_source",
-        checksum=checksum,
-        name="test_filing.txt",
-        is_zip=False,
-        format="xbrl",
-        created_at=datetime.now(),
-    )
-
-    return filing, content

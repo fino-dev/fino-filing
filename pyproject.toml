@@ -29,3 +29,18 @@ dev = [
     { include-group = "test" },
     { include-group = "typing" },
 ]
+
+[tool.pytest.ini_options]
+addopts = "--tb=short"
+testpaths = ["test"]
+
+[tool.coverage.run]
+source = ["src/fino_filing"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+]

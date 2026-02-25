@@ -1,5 +1,11 @@
 # テスト戦略（観点・ケース・ツール）
 
+## 0. テスト docstring 規約
+
+- **テストクラス**: 被テスト対象を明示し、観点（正常系 / 異常系 / 境界）のうちどれを主に確認するかを1行で書く。
+- **テストメソッド（異常系）**: 「仕様: （仕様の一文）」を必須とする。検証内容（例外型・戻り値・属性のうち何を assert するか）を書くとよい。
+- **テストメソッド（正常系）**: 何を確認するかを1行で書く。
+
 ## 1. テストが確認すべき観点
 
 ### 1.1 観点の分類
@@ -19,6 +25,16 @@
 - **Locator / Storage**: 拡張子・partition・storage_key の組み合わせ。異常系（不正 path 等）は必要に応じて。
 - **FilingResolver**: register → resolve の対応、None/未登録、動的インポート成功・失敗。
 - **Expr**: AND/OR/NOT の結合と params の順序・内容。Catalog の search との結合は統合で確認。
+
+### 1.3 Collection の位置づけ
+
+- **Collection はファサード**のため、単体ではテストしない。Collection の公開メソッド（add, get, get_filing, get_content, search）は、実の LocalStorage・Catalog・Locator を組み合わせた**結合テスト**で検証する。
+- 委譲先（Catalog, Locator, LocalStorage）はそれぞれ単体でテストする。Collection のテストでは「ファサードとしての振る舞い」に集中する。
+
+### 1.4 公開契約ベースのスコープ
+
+- テストすべきは**実装の全パターン**ではなく、**公開API の契約として意味のあるパターン**に限定する。
+- 同値類は代表値1つで代表し、`@pytest.mark.parametrize` で「同じロジック・異なる入力」をまとめる。
 
 ---
 
@@ -110,5 +126,6 @@ mutmut run --paths-to-mutate=src/fino_filing/filing/ --runner "pytest test/modul
 
 ## 6. 参照
 
+- [test-matrix.md](test-matrix.md): 公開API×観点ごとのテスト対応表。
 - AGENTS.md: pytest 前提、新規ユースケースにテスト追加、adapters 層は統合テスト寄りで可。
 - docs/collection/scenario.md: Collection の利用シナリオ。シナリオテストの意図の基準。
