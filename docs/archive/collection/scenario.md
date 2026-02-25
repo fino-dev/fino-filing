@@ -1,29 +1,32 @@
 ## 基本的な利用
 
 ```python
-from fino_filing.collection import Collection, LocalStorage, Catalog
+from fino_filing import Collection, LocalStorage, Catalog
 
 # 初期化
 storage = LocalStorage("./data")
 catalog = Catalog("./index.db")
-collection = Collection(storage, catalog)
+collection = Collection(storage=storage, catalog=catalog)
 
-# Filing追加(Collectorから)
-from fino_filing.edinet import EdinetCollector
+# Filing 追加（現状は手動。EDINET API 連携の Collector は今後実装予定）
+from fino_filing import EDINETFiling
 
-collector = EdinetCollector(collection, api_key="...")
-collector.collect_date(date(2024, 1, 15))
+filing = EDINETFiling(source="edinet", name="doc.xbrl", checksum="...", format="xbrl", is_zip=False)
+collection.add(filing, b"...")
 
 # 検索
-filings = collection.find(expr=..., limit=100, offset=0)
+from fino_filing import Expr, Field
+filings = collection.search(expr=Field("source") == "edinet", limit=100, offset=0)
 
 # 取得（メタデータ）
-filing = collection.get("edinet:S100XXXX:a1b2c3d4")
-# 取得（ファイル本体・arelle等で解析する場合）
-content = collection.get_content("edinet:S100XXXX:a1b2c3d4")
+filing = collection.get_filing("filing_id")
+# 取得（ファイル本体・arelle 等で解析する場合）
+content = collection.get_content("filing_id")
+# または一括
+filing, content, path = collection.get("filing_id")
 ```
 
-> Note: rebuild_index, verify_integrity, migrate は現在未実装
+> Note: rebuild_index, verify_integrity, migrate は現在未実装。収集（EdinetCollector 等）は今後実装予定。
 
 ## 設計: 物理名・Partition の責務
 

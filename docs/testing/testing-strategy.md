@@ -28,7 +28,7 @@
 
 ### 1.3 Collection の位置づけ
 
-- **Collection はファサード**のため、単体ではテストしない。Collection の公開メソッド（add, get, get_filing, get_content, search）は、実の LocalStorage・Catalog・Locator を組み合わせた**結合テスト**で検証する。
+- **Collection はファサード**のため、単体ではテストしない。Collection の公開メソッド（add, get, get_filing, get_content, get_path, search）は、実の LocalStorage・Catalog・Locator を組み合わせた**結合テスト**で検証する。
 - 委譲先（Catalog, Locator, LocalStorage）はそれぞれ単体でテストする。Collection のテストでは「ファサードとしての振る舞い」に集中する。
 
 ### 1.4 公開契約ベースのスコープ
@@ -51,7 +51,7 @@
   - **EDGARFiling**: EDINETFiling と同様の init/roundtrip が 1 本あると安心。
   - **Catalog**: index_batch, search の limit/offset/order、count, clear（既存 module で触っていないメソッドの最低 1 本）。
 - **コメントアウトされているシナリオ**
-  - `test/scenario/collection/test_collection.py`, `test/module/collection/collection/test_init.py` の find 系、`test_search.py` の find 復元型。
+  - `test/scenario/collection/test_collection.py`, `test/module/collection/collection/test_init.py` の search 系、`test_search.py` の search 復元型。
   - 仕様が固まっていれば有効化し、未実装なら「未実装であること」をテストで明示するか、スキップで意図を残す。
 
 ### 2.2 再構成で揃えたいこと
@@ -128,4 +128,4 @@ mutmut run --paths-to-mutate=src/fino_filing/filing/ --runner "pytest test/modul
 
 - [test-matrix.md](test-matrix.md): 公開API×観点ごとのテスト対応表。
 - AGENTS.md: pytest 前提、新規ユースケースにテスト追加、adapters 層は統合テスト寄りで可。
-- docs/collection/scenario.md: Collection の利用シナリオ。シナリオテストの意図の基準。
+- docs/archive/collection/scenario.md: Collection の利用シナリオ。シナリオテストの意図の基準。

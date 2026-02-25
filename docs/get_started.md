@@ -2,28 +2,43 @@
 
 ## ユースケース
 
-### 1. Getting Started Usecase
+### 1. Getting Started Usecase（現状実装）
 
 ```python
-# simple local usecase
-import fino-filing as fec
+import fino_filing as fec
 
-# decide wheare to collect filings. it's depending on your usecase and environmnet
-collection = fec.Collection(root_path="~/.edinet_file")
+# デフォルト: カレントディレクトリの .fino/collection に LocalStorage + Catalog
+collection = fec.Collection()
 
-edinet = fec.Edinet(api_key="hogehgoehogheohoge", collection=collection)
-edinet.sync_catalog()
+# または明示指定
+storage = fec.LocalStorage("/path/to/data")
+catalog = fec.Catalog("/path/to/index.db")
+collection = fec.Collection(storage=storage, catalog=catalog)
 
-result = edinet.collect(form_type=FormatType.ANNUAL)
-result.filings[0] # Filing Class with file path
-filing = filings[0]
-filing_name = filing.name
-filing_path = filing.path # easy to access file from result
-file = filing.open()
+# Filing を追加（例: EDINETFiling）
+filing = fec.EDINETFiling(
+    source="edinet",
+    name="doc.xbrl",
+    checksum="sha256hex...",
+    format="xbrl",
+    is_zip=False,
+    # 任意の indexed フィールド
+)
+content = b"..."
+collection.add(filing, content)
 
+# 検索（Expr API）
+from fino_filing import Expr, Field
+filings = collection.search(expr=Field("source") == "edinet", limit=100)
 
-collection.search(sec_code="1111")
-collection.get(docd="hgoehgeo")
-
-result.collection # provide same collection object from collect func result
+# ID で取得
+filing = collection.get_filing("filing_id")
+content = collection.get_content("filing_id")
+# または一括
+filing, content, path = collection.get("filing_id")
+if filing:
+    name = filing.name
+# path は保存先の相対パス（str | None）
 ```
+
+> 収集（EDINET API 連携・sync_catalog / collect）は今後実装予定。

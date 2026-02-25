@@ -73,14 +73,14 @@ Field("revenue", \_field_type=int) > 1_000_000
 
 4️⃣ F()関数について
 
-`def F(name: str) -> Field:`
-
-は不要。
+`def F(name: str) -> Field:` は設計上不要とする。
 
 理由：
 • Field自体が列参照DSL
 • 特別な弱モード概念は不要
 • APIを単純化できる
+
+（実装には `F` が field モジュールに残っているが、公開API `__all__` には含めていない。）
 
 ---
 

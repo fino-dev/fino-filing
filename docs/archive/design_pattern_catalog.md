@@ -25,7 +25,7 @@ GoF パターンのうち、fino-filing に**参考にして取り入れるべ�
 | **Bridge**    | 任意 | 「ストレージの実装」と「インデックス（Catalog）の実装」を独立に拡張する需要が強くなったら、Bridge で分離を検討。                              |
 | **Composite** | 不要 | Expr の AND/OR はツリーではなくフラットな結合で足りている。                                                                                   |
 | **Decorator** | 任意 | ストレージに「圧縮」「暗号化」などを被せたい場合に検討。                                                                                      |
-| **Facade**    | 既存 | `Collection` が Facade（component_collection.puml およびコメントで明示）。add/get/find の統一 API。                                           |
+| **Facade**    | 既存 | `Collection` が Facade（component_collection.puml およびコメントで明示）。add / get / get_filing / get_content / search の統一 API。           |
 | **Flyweight** | 不要 | Field 等の共有によるメモリ最適化は現状優先度低。                                                                                              |
 | **Proxy**     | 任意 | 遅延読込・キャッシュ付き Storage などが必要になったら検討。                                                                                   |
 
@@ -37,7 +37,7 @@ GoF パターンのうち、fino-filing に**参考にして取り入れるべ�
 | --------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Chain of Responsibility** | 不要       | 検索・保存のパイプライン化は現状要求されていない。                                                                                                                                                            |
 | **Command**                 | 任意       | add/clear 等を Command にして undo/redo やログ再生が必要になったら検討。                                                                                                                                      |
-| **Iterator**                | 任意       | `find()` が list 一括返しのため、大量件数ではイテレータで返す API を検討の余地あり。                                                                                                                          |
+| **Iterator**                | 任意       | `search()` が list 一括返しのため、大量件数ではイテレータで返す API を検討の余地あり。                                                                                                                         |
 | **Mediator**                | 不要       | Collection が Facade で十分。                                                                                                                                                                                 |
 | **Memento**                 | 不要       | スナップショット復元の要求なし。                                                                                                                                                                              |
 | **Observer**                | 任意       | 同期進捗・イベント通知が必要になったら検討。                                                                                                                                                                  |
