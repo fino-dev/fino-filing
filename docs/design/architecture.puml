@@ -139,6 +139,88 @@ package "Fino Filing" {
 
   Catalog --> Expr : search(expr)
 
+  package "Collector Boundary" {
+    abstract class BaseCollector <<Template Method>> {
+      - collection : Collection
+      --
+      + collect() : void
+      + add_to_collection(filing: Filing, content: bytes) : tuple[Filing, str]
+      --
+      # fetch_documents() : list[RawDocument]
+      # parse_response(raw) : Parsed
+      # build_filing(parsed) : Filing
+    }
+
+    class EdinetCollector {
+      - edinet : Edinet
+      --
+      # fetch_documents() : list[RawDocument]
+      # parse_response(raw) : Parsed
+      # build_filing(parsed) : EDINETFiling
+    }
+
+    class EdgerCollector {
+      - edger_sec_api : EdgerSecApi
+      - edger_bulk : EdgerBulkData
+      --
+      # fetch_documents() : list[RawDocument]
+      # build_filing_sec(parsed) : EDGARFiling
+      # build_filing_bulk(parsed) : EDGARFiling
+    }
+
+    class Edinet <<Strategy/Spec>> {
+      - config : EdinetConfig
+      --
+      + fetch_documents() : list[RawDocument]
+      + parse_response(raw) : Parsed
+      + to_filing(parsed) : EDINETFiling
+    }
+
+    class EdinetConfig {
+      + api_base : str
+      + timeout : int
+      --
+    }
+
+    class EdgerSecApi <<Strategy>> {
+      - config : EdgerConfig
+      --
+      + fetch_documents() : list[RawDocument]
+      + parse_response(raw) : Parsed
+      + to_filing(parsed) : EDGARFiling
+    }
+
+    class EdgerBulkData <<Strategy>> {
+      - config : EdgerConfig
+      --
+      + fetch_documents() : list[RawDocument]
+      + parse_response(raw) : Parsed
+      + to_filing(parsed) : EDGARFiling
+    }
+
+    class EdgerConfig {
+      + sec_api_base : str
+      + bulk_base : str
+      + timeout : int
+      --
+    }
+
+    BaseCollector <|-- EdinetCollector : extends
+    BaseCollector <|-- EdgerCollector : extends
+    BaseCollector o-- "Collection Boundary".Collection : collection
+    EdinetCollector o-- Edinet : edinet
+    EdgerCollector o-- EdgerSecApi : edger_sec_api
+    EdgerCollector o-- EdgerBulkData : edger_bulk
+    Edinet o-- EdinetConfig : config
+    EdgerSecApi o-- EdgerConfig : config
+    EdgerBulkData o-- EdgerConfig : config
+  }
+
+  BaseCollector --> "Collection Boundary".Collection : add_to_collection
+  Edinet ..> "Filing Boundary".EDINETFiling : to_filing
+  EdgerSecApi ..> "Filing Boundary".EDGARFiling : to_filing
+  EdgerBulkData ..> "Filing Boundary".EDGARFiling : to_filing
+
   package "Error Boundary" {
     class FinoFilingException <<Exception>> {
       + message : str
