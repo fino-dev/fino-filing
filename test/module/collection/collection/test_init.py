@@ -62,6 +62,7 @@ class TestCollection_Initialize:
             os.chdir(old_cwd)
 
 
+# get() は test_get.py でカバー。以下は Legacy（get の戻りが tuple に変わったため未使用）
 # class TestCollection_Get:
 #     """
 #     Collectionのget()メソッドをテストする。
@@ -98,14 +99,9 @@ class TestCollection_Initialize:
 #         assert retrieved is None
 
 
+# search() は test/module/collection/catalog/test_catalog.py で Catalog 単体、test_get.py で結合をカバー。
+# find は API が search に変更済み。以下は Legacy。
 # class TestCollection_Find:
-#     """
-#     Collectionのfind()メソッドをテストする。
-#     - 正常系: exprなしで全件検索
-#     - 正常系: exprを指定して条件検索
-#     - 正常系: limit, offsetの動作確認
-#     - 正常系: order_by, descの動作確認
-#     """
 
 #     def _create_multiple_filings(
 #         self, collection: Collection, count: int

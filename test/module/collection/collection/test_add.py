@@ -2,19 +2,17 @@ import hashlib
 from datetime import datetime
 from typing import Annotated
 
+import pytest
+
 from fino_filing import Catalog, Collection, EDINETFiling, Field, Filing
+from fino_filing.collection.error import CollectionChecksumMismatchError
 from fino_filing.collection.storages import LocalStorage
 
 
 class TestCollection_Add:
     """
-    Collectionのadd()メソッドをテストする。
-    - 正常系: Filingとcontentを追加でき、値が保存されている
-    - 正常系: defaultとadditionalなFieldを持つFilingとcontentを追加でき、値が保存されている
-    - 正常系: EDINETFilingとcontentを追加でき、値が保存されている
+    Collection.add(). 観点: 正常系、異常系（checksum 不一致）、契約（同一 id は上書き許容）
     """
-
-    # TODO: - 異常系: すでに同じidが存在する場合はエラーになる
 
     def test_add_filing_and_content_success(
         self,
@@ -180,3 +178,62 @@ class TestCollection_Add:
         with open(path, "rb") as f:
             actual_content = f.read()
         assert actual_content == content
+
+    def test_add_raises_checksum_mismatch(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """仕様: content の SHA256 が filing.checksum と不一致のとき CollectionChecksumMismatchError。検証: 例外型と filing_id, actual/expected checksum"""
+        content = b"actual content"
+        wrong_checksum = "0" * 64  # filing には別の checksum を渡す
+        filing = Filing(
+            id="checksum_test_id",
+            source="test",
+            checksum=wrong_checksum,
+            name="x.xbrl",
+            is_zip=False,
+            format="xbrl",
+            created_at=datetime_now,
+        )
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        with pytest.raises(CollectionChecksumMismatchError) as e:
+            collection.add(filing, content)
+        assert e.value.filing_id == "checksum_test_id"
+        assert e.value.expected_checksum == wrong_checksum
+        assert e.value.actual_checksum == hashlib.sha256(content).hexdigest()
+
+    def test_add_same_id_overwrites_storage(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """仕様: 同一 id で既に add 済みのときは上書き許容。catalog はスキップ、storage は上書き。検証: 2回目 add 後 get_content が新しい内容を返す"""
+        content1 = b"first content"
+        content2 = b"second content"
+        checksum1 = hashlib.sha256(content1).hexdigest()
+        checksum2 = hashlib.sha256(content2).hexdigest()
+        filing1 = Filing(
+            id="same_id",
+            source="test",
+            checksum=checksum1,
+            name="a.xbrl",
+            is_zip=False,
+            format="xbrl",
+            created_at=datetime_now,
+        )
+        filing2 = Filing(
+            id="same_id",
+            source="test",
+            checksum=checksum2,
+            name="b.xbrl",
+            is_zip=False,
+            format="xbrl",
+            created_at=datetime_now,
+        )
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        collection.add(filing1, content1)
+        collection.add(filing2, content2)
+        assert collection.get_content("same_id") == content2
