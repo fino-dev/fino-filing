@@ -1,0 +1,282 @@
+@startuml
+title Filing / Collection モジュール クラス関連図
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Fino Filing" {
+  package "Collection Boundary" {
+    class Collection <<Facade>> {
+      - _storage : Storage
+      - _catalog : Catalog
+      - _locator : Locator
+      + add(filing: Filing, content: bytes) : tuple[Filing, str]
+      + get(id: str) : tuple[Filing | None, bytes | None, str | None]
+      + get_filing(id: str) : Filing | None
+      + get_content(id: str) : bytes | None
+      + get_path(id: str) : str | None
+      + search(expr: Expr | None, limit, offset, order_by, desc) : list[Filing]
+    }
+
+    class Catalog <<Repository>> {
+      + db_path : str
+      + conn : Connection
+      - _resolver : FilingResolver
+      + index(filing: Filing) : void
+      + index_batch(filings: list[Filing]) : void
+      + get(id: str) : Filing | None
+      + get_raw(id: str) : dict | None
+      + search(expr, limit, offset, order_by, desc) : list[Filing]
+      + search_raw(sql: str, params) : list
+      + count(expr: Expr | None) : int
+      + stats() : dict
+      + clear() : void
+      + close() : void
+    }
+
+    class FilingResolver {
+      - _registry : dict[str, type[Filing]]
+      + register(cls: type[Filing]) : void
+      + resolve(name: str | None) : type[Filing] | None
+    }
+
+    class Locator <<Strategy>> {
+      + resolve(filing: Filing | None) : str | None
+    }
+
+    interface Storage <<Protocol>> {
+      + base_dir : Path
+      + save(content: bytes, storage_key: str | None) : str
+      + load_by_path(relative_path: str) : bytes
+    }
+
+    class LocalStorage {
+      + base_dir : Path
+      + save(content: bytes, storage_key: str | None) : str
+      + load_by_path(relative_path: str) : bytes
+    }
+  
+    Collection o-- Storage : _storage
+    Collection o-- Catalog : _catalog
+    Collection o-- Locator : _locator
+
+    Catalog o-- FilingResolver : _resolver
+    LocalStorage .u.|> Storage : implements
+  }
+
+  package "Filing Boundary" {
+    class Filing <<Document>> {
+      - _data : dict
+      $ _fields : dict
+      $ _defaults : dict
+      $ _core_fields : list[str]
+      --
+      core: id, source, checksum, name, is_zip, format, created_at
+      --
+      + to_dict() : dict[str, Any]
+      + from_dict(data: dict) : Self
+      + get(key: str) : Any
+      + {class} get_identity_fields() : list[str]
+      + {class} get_indexed_fields() : list[str]
+    }
+
+    class FilingMeta <<Metaclass>> {
+      + {static} __new__(mcs, name, bases, attrs) : type
+    }
+
+    class Field <<Descriptor>> {
+      + name : str
+      - _field_type : type | None
+      + indexed : bool
+      + immutable : bool
+      + required : bool
+      + description : str | None
+      --
+      + validate_value(value: Any) : void
+      + __eq__(value) : Expr
+      + __ne__(value) : Expr
+      + __gt__(value) : Expr
+      + __ge__(value) : Expr
+      + __lt__(value) : Expr
+      + __le__(value) : Expr
+      + contains(value: str) : Expr
+      + startswith(value: str) : Expr
+      + endswith(value: str) : Expr
+      + in_(values: list) : Expr
+      + not_in(values: list) : Expr
+      + is_null() : Expr
+      + is_not_null() : Expr
+      + between(lower, upper) : Expr
+    }
+
+    class Expr {
+      + sql : str
+      + params : list[Any]
+      --
+      + __and__(other: Expr) : Expr
+      + __or__(other: Expr) : Expr
+      + __invert__() : Expr
+    }
+    class EDINETFiling {
+      source = "EDINET"
+      doc_id, edinet_code, sec_code, jcn, filer_name, ...
+    }
+    class EDGARFiling {
+      cik, accession_number, company_name, form_type, ...
+    }
+
+    Filing --> FilingMeta : metaclass
+    Filing <|-- EDINETFiling : extends
+    Filing <|-- EDGARFiling : extends
+    Filing o-- Field : _fields
+    Field 0-- Expr
+  }
+
+  Catalog --> Filing : index, get, search
+  FilingResolver ..> Filing : resolve() -> type
+  Locator --> Filing : resolve(filing)
+
+  Catalog --> Expr : search(expr)
+
+  package "Collector Boundary" {
+    abstract class BaseCollector <<Template Method>> {
+      - collection : Collection
+      --
+      + collect() : void
+      + add_to_collection(filing: Filing, content: bytes) : tuple[Filing, str]
+      --
+      # fetch_documents() : list[RawDocument]
+      # parse_response(raw) : Parsed
+      # build_filing(parsed) : Filing
+    }
+
+    class EdinetCollector {
+      - edinet : Edinet
+      --
+      # fetch_documents() : list[RawDocument]
+      # parse_response(raw) : Parsed
+      # build_filing(parsed) : EDINETFiling
+    }
+
+    class EdgerCollector {
+      - edger_sec_api : EdgerSecApi
+      - edger_bulk : EdgerBulkData
+      --
+      # fetch_documents() : list[RawDocument]
+      # build_filing_sec(parsed) : EDGARFiling
+      # build_filing_bulk(parsed) : EDGARFiling
+    }
+
+    class Edinet <<Strategy/Spec>> {
+      - config : EdinetConfig
+      --
+      + fetch_documents() : list[RawDocument]
+      + parse_response(raw) : Parsed
+      + to_filing(parsed) : EDINETFiling
+    }
+
+    class EdinetConfig {
+      + api_base : str
+      + timeout : int
+      --
+    }
+
+    class EdgerSecApi <<Strategy>> {
+      - config : EdgerConfig
+      --
+      + fetch_documents() : list[RawDocument]
+      + parse_response(raw) : Parsed
+      + to_filing(parsed) : EDGARFiling
+    }
+
+    class EdgerBulkData <<Strategy>> {
+      - config : EdgerConfig
+      --
+      + fetch_documents() : list[RawDocument]
+      + parse_response(raw) : Parsed
+      + to_filing(parsed) : EDGARFiling
+    }
+
+    class EdgerConfig {
+      + sec_api_base : str
+      + bulk_base : str
+      + timeout : int
+      --
+    }
+
+    BaseCollector <|-- EdinetCollector : extends
+    BaseCollector <|-- EdgerCollector : extends
+    BaseCollector o-- "Collection Boundary".Collection : collection
+    EdinetCollector o-- Edinet : edinet
+    EdgerCollector o-- EdgerSecApi : edger_sec_api
+    EdgerCollector o-- EdgerBulkData : edger_bulk
+    Edinet o-- EdinetConfig : config
+    EdgerSecApi o-- EdgerConfig : config
+    EdgerBulkData o-- EdgerConfig : config
+  }
+
+  BaseCollector --> "Collection Boundary".Collection : add_to_collection
+  Edinet ..> "Filing Boundary".EDINETFiling : to_filing
+  EdgerSecApi ..> "Filing Boundary".EDGARFiling : to_filing
+  EdgerBulkData ..> "Filing Boundary".EDGARFiling : to_filing
+
+  package "Error Boundary" {
+    class FinoFilingException <<Exception>> {
+      + message : str
+      + __init__(message: str)
+    }
+
+    package "Collection Error"{
+      class CollectionChecksumMismatchError <<Exception>> {
+        + filing_id : str
+        + actual_checksum : str
+        + expected_checksum : str
+      }
+
+      class LocatorPathResolutionError <<Exception>> {
+        + filing : Filing | None
+      }
+
+      class CatalogRequiredValueError <<Exception>> {
+        + field : str
+        + value : Any
+      }
+
+      class CatalogAlreadyExistsError <<Exception>> {
+        + filing_id : str
+      }
+    }
+
+    package "Filing Error" {
+      class FieldValidationError <<Exception>> {
+        + field : str
+        + expected_type : type
+        + actual_type : type
+      }
+
+      class FieldImmutableError <<Exception>> {
+        + field : str
+        + current_value : Any
+        + attempt_value : Any
+      }
+
+      class FilingValidationError <<Exception>> {
+        + errors : list[str]
+        + fields : list[str]
+      }
+
+      class FilingImmutableError <<Exception>> {
+        + errors : list[str]
+        + fields : list[str]
+      }
+
+      class FilingRequiredError <<Exception>> {
+        + errors : list[str]
+        + fields : list[str]
+      }
+    }
+  }
+}
+
+@enduml

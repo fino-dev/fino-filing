@@ -32,7 +32,7 @@
 
 | 条件 | 結果 | 備考 |
 |------|------|------|
-| 存在しない id を指定 | `get_filing`: `None`。`get_content`: `None`。`get`: `(None, None, None)` | |
+| 存在しない id を指定 | `get_filing`: `None`。`get_content`: `None`。`get`: `(None, None, None)`（第3要素は path: str \| None） | |
 
 ## Locator.resolve
 
