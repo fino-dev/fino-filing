@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterator
 
 from fino_filing.collection.collection import Collection
 from fino_filing.filing.filing import Filing
@@ -48,14 +48,14 @@ class BaseCollector(ABC):
 
     def collect(self) -> list[tuple[Filing, str]]:
         """
-        収集を実行する。fetch → parse → build_filing → add_to_collection の順で処理する。
+        収集を実行する。1 件ずつ fetch → parse → build_filing → add_to_collection の順で処理し、
+        途中終了してもそれまでに処理した分は保存される。
 
         Returns:
             add_to_collection の戻り値のリスト（各要素は (Filing, path)）
         """
-        raw_list = self.fetch_documents()
         results: list[tuple[Filing, str]] = []
-        for raw in raw_list:
+        for raw in self.fetch_documents():
             parsed = self.parse_response(raw)
             filing = self.build_filing(parsed, raw)
             results.append(self.add_to_collection(filing, raw.content))
@@ -68,8 +68,8 @@ class BaseCollector(ABC):
         return self._collection.add(filing, content)
 
     @abstractmethod
-    def fetch_documents(self) -> list[RawDocument]:
-        """取得した生ドキュメントのリストを返す。サブクラスで実装する。"""
+    def fetch_documents(self) -> Iterator[RawDocument]:
+        """取得した生ドキュメントを 1 件ずつ yield する。サブクラスで実装する。"""
         ...
 
     @abstractmethod

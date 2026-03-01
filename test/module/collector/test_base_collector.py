@@ -1,6 +1,7 @@
 """BaseCollector のテンプレートメソッド collect() のフローを検証する"""
 
 import hashlib
+from typing import Iterator
 
 from fino_filing import Collection, Filing
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
@@ -16,9 +17,9 @@ class StubCollector(BaseCollector):
         self.build_called = 0
         self.raws: list[RawDocument] = []
 
-    def fetch_documents(self) -> list[RawDocument]:
+    def fetch_documents(self) -> Iterator[RawDocument]:
         self.fetch_called += 1
-        return self.raws
+        yield from self.raws
 
     def parse_response(self, raw: RawDocument) -> Parsed:
         self.parse_called += 1

@@ -1,5 +1,7 @@
 """EdgerCollector の collect フローと Collection 連携を検証する"""
 
+from typing import Iterator
+
 from fino_filing import EDGARFiling
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edger import EdgerBulkData, EdgerConfig, EdgerCollector, EdgerSecApi
@@ -20,10 +22,12 @@ class TestEdgerCollector:
         collection: Collection = temp_collection[0]
         sec_api = EdgerSecApi(edger_config)
         bulk = EdgerBulkData(edger_config)
-        # fetch_documents を差し替えてネットワークなしで 1 件返す Collector
+        # fetch_documents を差し替えてネットワークなしで 1 件 yield する Collector
         class OneDocEdgerCollector(EdgerCollector):
-            def fetch_documents(self, limit_per_company: int | None = None) -> list[RawDocument]:
-                return [sample_raw_document]
+            def fetch_documents(
+                self, limit_per_company: int | None = None
+            ) -> Iterator[RawDocument]:
+                yield sample_raw_document
 
         collector = OneDocEdgerCollector(
             collection=collection,

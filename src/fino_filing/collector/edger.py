@@ -13,9 +13,10 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterator
 
 from fino_filing.collection.collection import Collection
 from urllib.error import HTTPError, URLError
@@ -32,13 +33,18 @@ DEFAULT_USER_AGENT = "fino-filing/0.1.0 (compliance; contact: odukaki@gmail.com)
 
 @dataclass
 class EdgerConfig:
-    """EDGAR 用設定。SEC API と Bulk のベース URL およびタイムアウト。"""
+    """EDGAR 用設定。SEC API と Bulk のベース URL、タイムアウト、レート制限対策。"""
 
     sec_api_base: str = "https://data.sec.gov"
     archives_base: str = "https://www.sec.gov/Archives/edgar"
     bulk_base: str = "https://www.sec.gov/Archives/edgar/daily-index"
     timeout: int = 30
     user_agent: str = DEFAULT_USER_AGENT
+    # レート制限対策: リクエスト間隔（秒）。SEC は 1 秒あたり 10 リクエスト以下推奨。
+    request_delay_sec: float = 0.2
+    # 503 時: 最大リトライ回数と待機時間（秒）
+    retry_503_max: int = 3
+    retry_503_wait_sec: float = 2.0
 
 
 def _parse_edgar_date(s: str | None) -> datetime | None:
@@ -101,18 +107,18 @@ class EdgerSecApi:
         self,
         cik_list: list[str] | None = None,
         limit_per_company: int | None = None,
-    ) -> list[RawDocument]:
+    ) -> Iterator[RawDocument]:
         """
-        CIK リストに基づき submissions API を叩き、各 filing の本文を取得して RawDocument のリストを返す。
-        cik_list が None の場合は空リストを返す（呼び出し側で指定すること）。
+        CIK リストに基づき submissions API を叩き、各 filing の本文を 1 件ずつ yield する。
+        cik_list が None または空の場合は何も yield しない。
         """
         if not cik_list:
-            return []
+            return
         base = self._config.sec_api_base.rstrip("/")
         archives = self._config.archives_base.rstrip("/")
         headers = {"User-Agent": self._config.user_agent}
-        results: list[RawDocument] = []
         for cik in cik_list:
+            time.sleep(self._config.request_delay_sec)
             cik_pad = cik.zfill(10)
             url = f"{base}/submissions/CIK{cik_pad}.json"
             try:
@@ -173,8 +179,7 @@ class EdgerSecApi:
                     "primary_name": primary_name,
                     "_origin": "sec",
                 }
-                results.append(RawDocument(content=content, meta=meta))
-        return results
+                yield RawDocument(content=content, meta=meta)
 
     def _fetch_filing_content(
         self,
@@ -185,20 +190,41 @@ class EdgerSecApi:
     ) -> tuple[bytes, str]:
         """
         提出物の index ページを取得する。index を primary として保存する。
+        リクエスト間に delay、503 時はリトライする。
         戻り値: (content, primary_name)
         """
         if not accession:
             return b"", ""
+        time.sleep(self._config.request_delay_sec)
         acc_slash = _accession_to_slash(accession)
         primary_name = f"{accession}-index.htm"
         url = f"{archives}/data/{cik}/{acc_slash}/{primary_name}"
-        try:
-            req = Request(url, headers=headers)
-            with urlopen(req, timeout=self._config.timeout) as resp:
-                return resp.read(), primary_name
-        except (HTTPError, URLError) as e:
-            logger.debug("Failed to fetch content %s: %s", url, e)
-            return b"", ""
+        last_err: Exception | None = None
+        for attempt in range(self._config.retry_503_max):
+            try:
+                req = Request(url, headers=headers)
+                with urlopen(req, timeout=self._config.timeout) as resp:
+                    return resp.read(), primary_name
+            except HTTPError as e:
+                last_err = e
+                if e.code == 503 and attempt < self._config.retry_503_max - 1:
+                    logger.debug(
+                        "503 for %s, retry %s/%s in %.1fs",
+                        url,
+                        attempt + 1,
+                        self._config.retry_503_max,
+                        self._config.retry_503_wait_sec,
+                    )
+                    time.sleep(self._config.retry_503_wait_sec)
+                else:
+                    logger.debug("Failed to fetch content %s: %s", url, e)
+                    return b"", ""
+            except URLError as e:
+                logger.debug("Failed to fetch content %s: %s", url, e)
+                return b"", ""
+        if last_err:
+            logger.debug("Failed to fetch content %s after retries: %s", url, last_err)
+        return b"", ""
 
     def parse_response(self, raw: RawDocument) -> Parsed:
         """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
@@ -238,18 +264,13 @@ class EdgerBulkData:
         date_to: str | None = None,
         cik_list: list[str] | None = None,
         limit: int | None = None,
-    ) -> list[RawDocument]:
+    ) -> Iterator[RawDocument]:
         """
         Bulk 用 URL から company_tickers.json 等のインデックスを参照し、
-        指定範囲の submissions を取得して RawDocument のリストを返す。
-        現状は submissions API と同構造の JSON を想定し、Bulk の index から
-        CIK リストを取得して EdgerSecApi と同様に 1 件ずつ取得する簡易実装でも可。
-        本実装では、Bulk は「指定 CIK リストについて submissions を取得」する
-        形に寄せ、実際の ZIP 解凍は後続拡張とする。
+        指定範囲の submissions を 1 件ずつ yield する。
+        現状は未実装のため何も yield しない。
         """
-        # Bulk は ZIP 解凍・走査が重いため、ここでは空リストを返す。
-        # テストでは RawDocument を直接組み立ててパース・to_filing を検証する。
-        return []
+        yield from ()
 
     def parse_response(self, raw: RawDocument) -> Parsed:
         """EdgerSecApi と同様のマッピング。"""
@@ -294,14 +315,13 @@ class EdgerCollector(BaseCollector):
     def fetch_documents(
         self,
         limit_per_company: int | None = None,
-    ) -> list[RawDocument]:
-        """Sec と Bulk から取得した RawDocument をマージして返す。"""
-        sec_docs = self._edger_sec_api.fetch_documents(
+    ) -> Iterator[RawDocument]:
+        """Sec と Bulk から取得した RawDocument を 1 件ずつ yield する。"""
+        yield from self._edger_sec_api.fetch_documents(
             cik_list=self._cik_list,
             limit_per_company=limit_per_company,
         )
-        bulk_docs = self._edger_bulk.fetch_documents(limit=limit_per_company)
-        return sec_docs + bulk_docs
+        yield from self._edger_bulk.fetch_documents(limit=limit_per_company)
 
     def parse_response(self, raw: RawDocument) -> Parsed:
         """raw の出所に応じて EdgerSecApi または EdgerBulkData の parse_response に委譲する。"""
