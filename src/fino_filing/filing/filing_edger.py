@@ -8,6 +8,8 @@ from fino_filing.filing.filing import Filing
 class EDGARFiling(Filing):
     """EDGAR Filing Template"""
 
+    source = "EDGAR"
+
     # EDGAR固有フィールド（任意）
     cik: Annotated[str, Field(description="CIK")]
     accession_number: Annotated[str, Field(description="Accession Number")]
