@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from fino_filing import Field
+from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
 

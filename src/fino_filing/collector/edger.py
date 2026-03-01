@@ -71,7 +71,7 @@ def _build_edgar_filing(
     else:
         created_at = datetime.now()
     return EDGARFiling(
-        source=EDGARFiling.source,
+        source="EDGAR",
         name=primary_name,
         checksum=checksum,
         format=parsed.get("format", "htm"),
