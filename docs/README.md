@@ -1,13 +1,13 @@
-# fino-filing ドキュメント（Docusaurus）
+# fino-filing Documentation (Docusaurus)
 
-このサイトは [Docusaurus](https://docusaurus.io/) でビルドしています。
+This site is built with [Docusaurus](https://docusaurus.io/).
 
-## ドキュメント構成
+## Structure
 
-- **`docs/spec/`** … 仕様（利用者向け）: 概要・クイックスタート・API契約・シナリオ
-- **`docs/dev/`** … 開発（開発者向け）: 設計・テスト・アーカイブ
+- **`docs/spec/`** — Specification (users): overview, quick start, API contract, scenarios
+- **`docs/dev/`** — Development (contributors): design, testing, archive
 
-仕様と開発を分け、両方とも Web で閲覧できます。追加する場合はどちらに属するかで `spec/` か `dev/` のどちらかに配置してください。
+Spec and dev are separate; both are available on the site. Add new docs under `spec/` or `dev/` depending on the audience.
 
 ## Installation
 

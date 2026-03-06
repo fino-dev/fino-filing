@@ -1,9 +1,9 @@
-# 開発（Development）
+# Development
 
-このセクションは **fino-filing の開発者・コントリビュータ向け** のドキュメントです。
+This section is for **fino-filing contributors and developers**.
 
-- **設計**: アーキテクチャ・責務分離・設計方針（Collector、Field/DSL、デザインパターンなど）
-- **テスト**: テスト戦略・マトリクス・異常系仕様との対応
-- **アーカイブ**: 過去の図（PlantUML）や設計メモ
+- **Design**: Architecture, responsibilities, design decisions (Collector, Field/DSL, design patterns, etc.)
+- **Testing**: Test strategy, matrix, and alignment with the exception spec
+- **Archive**: Old diagrams (PlantUML) and design notes
 
-利用者向けの仕様・API は [仕様ドキュメント](/docs/spec/intro) を参照してください。
+For user-facing spec and API, see the [Specification](/docs/spec/intro) docs.

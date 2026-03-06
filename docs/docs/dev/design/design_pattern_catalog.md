@@ -1,66 +1,57 @@
-# fino-filing デザインパターン・カタログ
+# fino-filing Design Pattern Catalog
 
-GoF パターンのうち、fino-filing に**参考にして取り入れるべき**ものを整理する。  
-既存実装で使っているものは「既存」、これから取り入れるとよいものを「推奨」とする。
-
----
-
-## 生成関連
-
-| パターン             | 状態 | 説明                                                                                                                                                                                      |
-| -------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Factory Method**   | 推奨 | `Filing.from_dict` はその一種。Catalog/Storage/Collection の生成をファクトリーに集約すると、テスト用モック・拡張がしやすくなる（redesign 指摘の「オブジェクト生成ロジックの散在」解消）。 |
-| **Abstract Factory** | 任意 | ストレージ＋カタログの「ファミリ」をまとめて生成する需要が増えたら検討。現状は単品注入で足りる。                                                                                          |
-| **Builder**          | 推奨 | Collection の「default_dir + LocalStorage + Catalog」など複雑な初期化を段階的構築できるようにすると、利用者・テスト双方が楽になる（redesign 指摘）。                                      |
-| **Prototype**        | 不要 | Filing のクローン需要は現状ほぼない。                                                                                                                                                     |
-| **Singleton**        | 不要 | ライブラリであり、インスタンスは利用者が持つ設計のため不要。                                                                                                                              |
+GoF patterns that are **relevant for adoption** in fino-filing.  
+“In use” = already used; “Recommended” = good to adopt.
 
 ---
 
-## 構造関連
+## Creational
 
-| パターン      | 状態 | 説明                                                                                                                                          |
-| ------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Adapter**   | 既存 | `Storage`(Protocol) と `LocalStorage`。外部（ファイルシステム）を統一インターフェースで扱っている。S3 等追加時も Adapter として実装する想定。 |
-| **Bridge**    | 任意 | 「ストレージの実装」と「インデックス（Catalog）の実装」を独立に拡張する需要が強くなったら、Bridge で分離を検討。                              |
-| **Composite** | 不要 | Expr の AND/OR はツリーではなくフラットな結合で足りている。                                                                                   |
-| **Decorator** | 任意 | ストレージに「圧縮」「暗号化」などを被せたい場合に検討。                                                                                      |
-| **Facade**    | 既存 | `Collection` が Facade（component_collection.puml およびコメントで明示）。add / get / get_filing / get_content / search の統一 API。           |
-| **Flyweight** | 不要 | Field 等の共有によるメモリ最適化は現状優先度低。                                                                                              |
-| **Proxy**     | 任意 | 遅延読込・キャッシュ付き Storage などが必要になったら検討。                                                                                   |
+| Pattern | Status | Notes |
+|---------|--------|-------|
+| **Factory Method** | Recommended | `Filing.from_dict` is one. Centralizing Catalog/Storage/Collection creation in factories improves testability and extension (addresses “scattered object creation” from redesign). |
+| **Abstract Factory** | Optional | Consider if we need to create “families” of storage + catalog together. Current single-injection is enough. |
+| **Builder** | Recommended | Stepwise construction for Collection (“default_dir + LocalStorage + Catalog”) and client config improves usability and tests (redesign). |
+| **Prototype** | Not needed | No real need to clone Filing today. |
+| **Singleton** | Not needed | Library; callers own instances. |
 
 ---
 
-## 振る舞い関連
+## Structural
 
-| パターン                    | 状態       | 説明                                                                                                                                                                                                          |
-| --------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Chain of Responsibility** | 不要       | 検索・保存のパイプライン化は現状要求されていない。                                                                                                                                                            |
-| **Command**                 | 任意       | add/clear 等を Command にして undo/redo やログ再生が必要になったら検討。                                                                                                                                      |
-| **Iterator**                | 任意       | `search()` が list 一括返しのため、大量件数ではイテレータで返す API を検討の余地あり。                                                                                                                         |
-| **Mediator**                | 不要       | Collection が Facade で十分。                                                                                                                                                                                 |
-| **Memento**                 | 不要       | スナップショット復元の要求なし。                                                                                                                                                                              |
-| **Observer**                | 任意       | 同期進捗・イベント通知が必要になったら検討。                                                                                                                                                                  |
-| **State**                   | 不要       | コレクションの状態遷移は単純。                                                                                                                                                                                |
-| **Strategy**                | 既存＋推奨 | **既存**: `Locator` が「Filing → path」の Strategy。**推奨**: メタデータストア（Catalog 実装）の切り替えを Strategy 化すると拡張しやすい（redesign の「Strategy: ストレージ・メタデータストアの切り替え」）。 |
-| **Template Method**         | 既存       | `FilingMeta` によるクラス定義解析 → Field 注入の流れ。Filing サブクラスは「テンプレート」に沿って定義する。                                                                                                   |
-| **Visitor**                 | 不要       | Expr/Field の走査を多様に分岐する需要は現状ない。                                                                                                                                                             |
+| Pattern | Status | Notes |
+|---------|--------|-------|
+| **Adapter** | In use | `Storage` (Protocol) and `LocalStorage`. File system behind a single interface; S3 etc. would be added as Adapters. |
+| **Bridge** | Optional | Consider if we need to vary storage implementation and index (Catalog) implementation independently. |
+| **Composite** | Not needed | Expr AND/OR is flat, not a tree. |
+| **Decorator** | Optional | Consider for “compression”, “encryption” around storage. |
+| **Facade** | In use | `Collection` is the Facade; single API: add / get / get_filing / get_content / search. |
+| **Flyweight** | Not needed | Low priority for sharing Field etc. |
+| **Proxy** | Optional | Consider for lazy-load or cached Storage. |
 
 ---
 
-## 優先して取り入れるとよいもの（要約）
+## Behavioral
 
-1. **Factory Method / ファクトリー**  
-   オブジェクト生成（Catalog, Storage, デフォルト Collection）の一元化。テスト・拡張のしやすさ向上。
+| Pattern | Status | Notes |
+|---------|--------|-------|
+| **Chain of Responsibility** | Not needed | No requirement for search/save pipelines. |
+| **Command** | Optional | Consider if add/clear etc. need to be Commands for undo/redo or replay. |
+| **Iterator** | Optional | `search()` returns a list; consider an iterator API for large result sets. |
+| **Mediator** | Not needed | Collection as Facade is enough. |
+| **Memento** | Not needed | No snapshot/restore requirement. |
+| **Observer** | Optional | Consider for sync progress or events. |
+| **State** | Not needed | Collection state is simple. |
+| **Strategy** | In use + Recommended | **In use**: `Locator` is the “Filing → path” Strategy. **Recommended**: Strategy for metadata store (Catalog implementation) for pluggability. |
+| **Template Method** | In use | `FilingMeta` class analysis → Field injection; Filing subclasses follow the template. |
+| **Visitor** | Not needed | No need to traverse Expr/Field in multiple ways. |
 
-2. **Builder**  
-   Collection やクライアント設定の段階的構築。オプション増加に強い。
+---
 
-3. **Strategy**  
-   メタデータストア（DuckDB / 他 DB）の切り替えをインターフェース化。プラグイン化の土台。
+## Priority summary
 
-4. **Adapter**（継続）  
-   新規ストレージ（S3 等）追加時も Storage Protocol に沿った Adapter として実装する。
-
-5. **Facade**（継続）  
-   公開 API は Collection 経由に保ち、内部の再編時も利用者への影響を抑える。
+1. **Factory Method** — Centralize creation of Catalog, Storage, default Collection; easier tests and extension.
+2. **Builder** — Stepwise construction for Collection and client config; scales with more options.
+3. **Strategy** — Interface for metadata store (DuckDB / others) for pluggability.
+4. **Adapter** (continue) — New storage (e.g. S3) as Adapters implementing the Storage protocol.
+5. **Facade** (continue) — Keep public API on Collection so internal changes have limited impact.

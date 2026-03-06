@@ -1,76 +1,75 @@
-# テスト戦略（観点・ケース・ツール）
+# Test Strategy (focus, cases, tools)
 
-## 0. テスト docstring 規約
+## 0. Test docstring conventions
 
-- **テストクラス**: 被テスト対象を明示し、観点（正常系 / 異常系 / 境界）のうちどれを主に確認するかを1行で書く。
-- **テストメソッド（異常系）**: 「仕様: （仕様の一文）」を必須とする。検証内容（例外型・戻り値・属性のうち何を assert するか）を書くとよい。
-- **テストメソッド（正常系）**: 何を確認するかを1行で書く。
+- **Test class**: State the subject under test and which focus (happy path / failure / boundary) the class mainly covers, in one line.
+- **Test method (failure)**: Include “Spec: (one-line spec).” Optionally describe what is asserted (exception type, return value, attributes).
+- **Test method (happy path)**: One line on what is being verified.
 
-## 1. テストが確認すべき観点
+## 1. What tests should cover
 
-### 1.1 観点の分類
+### 1.1 Focus categories
 
-| 観点 | 内容 | 現状の例 |
-|------|------|----------|
-| **正常系** | 契約どおりの入力で期待どおりの出力・副作用 | add/get/get_content, to_dict/from_dict, get_indexed_fields |
-| **異常系** | 不正入力・欠損・型違いで適切な例外・戻り値 | FilingRequiredError, FieldValidationError, get_not_found |
-| **境界・エッジ** | 空・None・空文字・最小/最大・重複 | test_none (explicit None), 重複 id は TODO |
-| **契約・不変条件** | 永続化後の復元同一性、checksum 一致、immutable 違反 | add→get の roundtrip, checksum mismatch 例外 |
-| **公開API** | `__all__` で公開しているクラス・関数の振る舞い | 各 module テストで一部対応。Expr, Resolver, EDGAR は未 or 薄い |
+| Focus | Meaning | Current examples |
+|-------|---------|------------------|
+| **Happy path** | Contract-compliant input → expected output/side effect | add/get/get_content, to_dict/from_dict, get_indexed_fields |
+| **Failure** | Invalid input, missing data, wrong type → correct exception or return | FilingRequiredError, FieldValidationError, get_not_found |
+| **Boundary / edge** | Empty, None, empty string, min/max, duplicates | test_none (explicit None), duplicate id TODO |
+| **Contract / invariants** | Roundtrip after persist, checksum match, immutable violation | add→get roundtrip, checksum mismatch exception |
+| **Public API** | Behavior of classes/functions in `__all__` | Partially covered per module; Expr, Resolver, EDGAR thin or missing |
 
-### 1.2 レイヤ別の重点
+### 1.2 Per-layer emphasis
 
-- **Filing / Field / Meta**: 正常・異常・境界（必須/省略可能/immutable/default）を網羅。型・メッセージまで断言。
-- **Collection / Catalog**: 正常系に加え、not_found・checksum 不一致・重複 id（仕様確定後）。統合テスト寄りで可（AGENTS.md）。
-- **Locator / Storage**: 拡張子・partition・storage_key の組み合わせ。異常系（不正 path 等）は必要に応じて。
-- **FilingResolver**: register → resolve の対応、None/未登録、動的インポート成功・失敗。
-- **Expr**: AND/OR/NOT の結合と params の順序・内容。Catalog の search との結合は統合で確認。
+- **Filing / Field / Meta**: Happy, failure, boundary (required/optional/immutable/default). Assert type and message where relevant.
+- **Collection / Catalog**: Happy path plus not_found, checksum mismatch, duplicate id (once spec is fixed). Integration-style is fine (AGENTS.md).
+- **Locator / Storage**: Extension, partition, storage_key combinations. Failure (invalid path, etc.) as needed.
+- **FilingResolver**: register → resolve, None/unregistered, dynamic import success/failure.
+- **Expr**: AND/OR/NOT composition and param order/content. Integration with Catalog.search.
 
-### 1.3 Collection の位置づけ
+### 1.3 Role of Collection
 
-- **Collection はファサード**のため、単体ではテストしない。Collection の公開メソッド（add, get, get_filing, get_content, get_path, search）は、実の LocalStorage・Catalog・Locator を組み合わせた**結合テスト**で検証する。
-- 委譲先（Catalog, Locator, LocalStorage）はそれぞれ単体でテストする。Collection のテストでは「ファサードとしての振る舞い」に集中する。
+- **Collection is a Facade**; do not test it in isolation. Its public methods (add, get, get_filing, get_content, get_path, search) are validated in **integration tests** with real LocalStorage, Catalog, Locator.
+- Delegatees (Catalog, Locator, LocalStorage) are unit-tested. Collection tests focus on “facade behavior”.
 
-### 1.4 公開契約ベースのスコープ
+### 1.4 Scope by public contract
 
-- テストすべきは**実装の全パターン**ではなく、**公開API の契約として意味のあるパターン**に限定する。
-- 同値類は代表値1つで代表し、`@pytest.mark.parametrize` で「同じロジック・異なる入力」をまとめる。
-
----
-
-## 2. ケースの追加・再構成で心がけること
-
-### 2.1 追加すべきケース（抜け・TODO の解消）
-
-- **異常系の明確化**
-  - `Collection.add`: 同一 id の重複追加（仕様: 上書き or 例外）→ テストで仕様を固定。
-  - `get_content`: checksum 不一致時に `CollectionChecksumMismatchError` が発生する経路のテスト。
-- **未カバー・薄いモジュール**
-  - **Expr**: `__and__` / `__or__` / `__invert__` の結合結果（sql/params）のテスト。必要なら `Catalog.search(expr=...)` との統合。
-  - **FilingResolver**: `register` → `resolve` 一致、`resolve(None)` → None、未登録名 → 動的解決 or None。`register_filing_class` の後方互換。
-  - **EDGARFiling**: EDINETFiling と同様の init/roundtrip が 1 本あると安心。
-  - **Catalog**: index_batch, search の limit/offset/order、count, clear（既存 module で触っていないメソッドの最低 1 本）。
-- **コメントアウトされているシナリオ**
-  - `test/scenario/collection/test_collection.py`, `test/module/collection/collection/test_init.py` の search 系、`test_search.py` の search 復元型。
-  - 仕様が固まっていれば有効化し、未実装なら「未実装であること」をテストで明示するか、スキップで意図を残す。
-
-### 2.2 再構成で揃えたいこと
-
-- **クラス・メソッド単位の責務**: 1 テストクラス＝1 被テストクラス（または 1 メソッド群）。docstring で「正常系/異常系/境界」を一言書く。
-- **parametrize の活用**: 同じロジックで入出力だけ変えるケース（例: 複数 Exception の message/attributes、複数 format の拡張子）は `@pytest.mark.parametrize` でまとめ、ケースの追加がしやすくする。
-- **fixture の型**: `sample_filing` などは戻り値の型を `tuple[Filing, bytes]` と明示（conftest で既に利用しているので型ヒントを統一）。
+- Test **contractually meaningful cases** for the public API, not every implementation path.
+- Use one representative per equivalence class and `@pytest.mark.parametrize` for same logic, different inputs.
 
 ---
 
-## 3. カバレッジ
+## 2. Adding and reorganizing cases
 
-### 3.1 導入の是非
+### 2.1 Gaps to fill
 
-- **推奨する**: テストが「どのコードを通したか」を可視化できる。未テストのブランチ（特に異常系・エラーハンドリング）の洗い出しに有効。
-- **目標の置き方**: いきなり 100% は不要。まずは **行カバレッジ** を計測し、**公開API（`__all__` のモジュール）とエラー経路** を重点的に上げる。
-- **ツール**: `pytest-cov`。`pyproject.toml` の `[tool.pytest.ini_options]` と `[dependency-groups] test` に追加。
+- **Failure behavior**
+  - `Collection.add`: duplicate add with same id (spec: overwrite or error) → pin in tests.
+  - `get_content`: test path that raises `CollectionChecksumMismatchError` on checksum mismatch.
+- **Under-covered modules**
+  - **Expr**: Test combined result (sql/params) of `__and__` / `__or__` / `__invert__`. Integrate with `Catalog.search(expr=...)` if needed.
+  - **FilingResolver**: register → resolve match, resolve(None) → None, unregistered name → dynamic resolve or None. Backward compat of `register_filing_class`.
+  - **EDGARFiling**: At least one init/roundtrip similar to EDINETFiling.
+  - **Catalog**: index_batch, search limit/offset/order, count, clear (at least one test per method not yet hit).
+- **Commented-out scenarios**
+  - test_collection.py, test_init.py search-related, test_search roundtrip type. Re-enable if spec is fixed; otherwise test “not implemented” or skip with a note.
 
-例（pyproject.toml）:
+### 2.2 Reorganization
+
+- **One test class per subject** (class or method group). Docstring: one line on happy/failure/boundary.
+- **Use parametrize**: Same logic, different I/O (e.g. exception message/attrs, formats) → `@pytest.mark.parametrize`.
+- **Fixture types**: e.g. `sample_filing` return type `tuple[Filing, bytes]` (align with conftest).
+
+---
+
+## 3. Coverage
+
+### 3.1 Whether to use it
+
+- **Recommended**: Shows which code is exercised; helps find untested branches (especially failure and error handling).
+- **Goal**: Don’t aim for 100% immediately. Start with **line coverage**, prioritize **public API (`__all__`)** and **error paths**.
+- **Tool**: `pytest-cov`. Add to `pyproject.toml` `[tool.pytest.ini_options]` and test deps.
+
+Example (pyproject.toml):
 
 ```toml
 [tool.pytest.ini_options]
@@ -85,47 +84,46 @@ branch = true
 exclude_lines = ["pragma: no cover", "def __repr__", "raise NotImplementedError"]
 ```
 
-- **branch カバレッジ**: 条件分岐の true/false を両方見たい場合に有効。まずは line のみでも可。
+- **Branch coverage**: Useful to see both sides of conditionals; line-only is fine to start.
 
-### 3.2 運用
+### 3.2 Usage
 
-- CI で `pytest --cov` を回し、閾値は「下げない」程度の緩い値（例: 80%）から始め、抜けているファイルを優先してテスト追加。
+- Run `pytest --cov` in CI; start with a soft threshold (e.g. 80%) and improve untested files first.
 
 ---
 
-## 4. Mutation テスト
+## 4. Mutation testing
 
-### 4.1 導入の是非
+### 4.1 Whether to use it
 
-- **目的**: テストが「実装の変更」を検知できるかを見る。コードを意図的に壊して（mutate）テストが落ちるかで、テストの「有効性」を測る。
-- **推奨**: カバレッジで「通った行」を押さえたあと、**信頼性をさらに高めたいモジュール**（Filing の検証・永続化・復元、Expr の結合、Resolver）に限定して導入するのが現実的。全体に毎回かけると実行時間が伸びる。
-- **ツール**: `mutmut` が一般的。`pip` で追加し、対象パスを限定して実行する。
+- **Purpose**: Check if tests detect implementation changes (mutate code, see if tests fail).
+- **Recommendation**: After coverage is in place, use on **high-trust modules** (Filing validation/persist/restore, Expr composition, Resolver) to avoid long runs.
+- **Tool**: e.g. `mutmut`; limit paths.
 
-例:
+Example:
 
 ```bash
 mutmut run --paths-to-mutate=src/fino_filing/filing/ --runner "pytest test/module/filing -x"
 ```
 
-### 4.2 運用
+### 4.2 Usage
 
-- まずは手動で週次や PR 前などに実行。mutation が「生き残る」（テストが落ちない）場合は、その箇所に対するテストを 1 本追加するか、その mutation を無視するかを判断。
-- カバレッジと同様、CI に載せる場合は対象パスを絞り、タイムアウトを設けるとよい。
-
----
-
-## 5. 優先順位の目安
-
-1. **観点の埋め**: 異常系・境界（重複 id, checksum, None/未登録）の仕様を決め、テストで明示する。
-2. **未カバー API**: Expr, FilingResolver, EDGARFiling, Catalog の主要メソッドに最低 1 本ずつ。
-3. **parametrize と docstring**: 既存テストの重複を減らし、観点を docstring で揃える。
-4. **カバレッジ導入**: pytest-cov で計測を始め、公開APIとエラー経路を重点的に上げる。
-5. **Mutation**: コア（filing, expr, resolver）に限定して試し、生き残り mutation からテストを追加。
+- Run manually (e.g. weekly or before PR). If a mutation survives, add a test or ignore that mutation. In CI, limit scope and set a timeout.
 
 ---
 
-## 6. 参照
+## 5. Priority
 
-- [test-matrix.md](./test-matrix): 公開API×観点ごとのテスト対応表。
-- AGENTS.md: pytest 前提、新規ユースケースにテスト追加、adapters 層は統合テスト寄りで可。
-- [利用シナリオ](/docs/spec/scenarios): Collection の利用シナリオ。シナリオテストの意図の基準。
+1. **Fill focus gaps**: Pin failure/boundary (duplicate id, checksum, None/unregistered) in spec and tests.
+2. **Under-covered API**: At least one test each for Expr, FilingResolver, EDGARFiling, Catalog main methods.
+3. **Parametrize and docstrings**: Deduplicate tests, align docstrings with focus.
+4. **Coverage**: Start with pytest-cov, raise coverage on public API and error paths.
+5. **Mutation**: Try on core (filing, expr, resolver); add tests from surviving mutations.
+
+---
+
+## 6. See also
+
+- [test-matrix](./test-matrix): Public API × focus coverage table.
+- AGENTS.md: pytest default; add tests for new use cases; adapters can be integration-style.
+- [Usage scenarios](/docs/spec/scenarios): Collection usage; reference for scenario tests.

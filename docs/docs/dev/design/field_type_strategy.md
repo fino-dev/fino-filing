@@ -1,159 +1,142 @@
-# DuckDB前提における Field / DSL 設計方針まとめ
+# Field / DSL Design (DuckDB)
 
-## 🎯 設計ゴール
+## Design goals
 
-- DuckDBの**強い型システムを最大活用**
-- モデル定義ベースの**型安全DSL**
-- 同時にスキーマレス検索も許容
-- 「弱モード」などの概念をユーザーに露出しない
-
----
-
-# 1️⃣ 基本思想
-
-## Fieldは「列参照オブジェクト」
-
-Fieldは：
-
-- 列名を保持する
-- DSL演算子を提供する
-- 必要なら型情報も保持できる
-
-しかし：
-
-> 型は必須ではない
+- Make full use of DuckDB’s **strong type system**
+- **Type-safe DSL** driven by model definitions
+- Allow **schema-less search** at the same time
+- Do **not** expose concepts like “weak mode” to users
 
 ---
 
-# 2️⃣ 型の責務分離
+## 1. Core idea
 
-| 要素       | 責務               |
-| ---------- | ------------------ |
-| Annotated  | 型の宣言           |
-| Field      | メタ情報 + DSL     |
-| Collection | 型解決             |
-| SQL生成層  | DuckDB向けCAST戦略 |
+### Field as “column reference”
+
+Field:
+
+- Holds a column name
+- Exposes DSL operators
+- Can hold type information when needed
+
+But:
+
+> Type is **not** required
 
 ---
 
-# 3️⃣ 型解決戦略
+## 2. Responsibility split (types)
 
-## モデル定義時
+| Element | Responsibility |
+|---------|----------------|
+| Annotated | Type declaration |
+| Field | Metadata + DSL |
+| Collection | Type resolution |
+| SQL layer | DuckDB CAST strategy |
+
+---
+
+## 3. Type resolution strategy
+
+### At model definition
 
 ```python
 class Filing:
     revenue: Annotated[int, Field("revenue")]
 ```
 
-クラス解析時に：
-`field._field_type = int`
-を注入する。
+At class analysis:
+
+Inject `field._field_type = int`.
 
 ---
 
-単独Field検索時
+### Standalone Field in search
 
-Field("revenue") > 1_000_000
+`Field("revenue") > 1_000_000`
 
-• 型はNone
-• Collectionコンテキストで解決を試みる
-• 解決不能ならCASTなし
-• **型の不一致による期待する検索ができない懸念がある**
-
----
-
-明示型付き単独検索（任意）
-
-Field("revenue", \_field_type=int) > 1_000_000
-
-• DuckDB用CASTが可能
-• モデルに依存しない検索も可能
+- Type is None
+- Collection context is used to resolve
+- If unresolved, no CAST
+- **Risk: type mismatch can yield unexpected query behavior**
 
 ---
 
-4️⃣ F()関数について
+### Standalone search with explicit type (optional)
 
-`def F(name: str) -> Field:` は設計上不要とする。
+`Field("revenue", _field_type=int) > 1_000_000`
 
-理由：
-• Field自体が列参照DSL
-• 特別な弱モード概念は不要
-• APIを単純化できる
-
-（実装には `F` が field モジュールに残っているが、公開API `__all__` には含めていない。）
+- Enables DuckDB CAST
+- Search without depending on the model
 
 ---
 
-5️⃣ 「弱モード」という概念は不要
+## 4. F() function
 
-内部的には：
+`def F(name: str) -> Field:` is considered unnecessary.
 
-`field._field_type is None`
-という状態があるだけ。
+Reasons:
 
-ユーザーに：
-• 弱モード
-• 強モード
-といった概念を見せる必要はない。
+- Field itself is the column-reference DSL
+- No need for a special “weak mode” concept
+- Keeps the API simple
+
+(Implementation may still have `F` in the field module; it is not in public `__all__`.)
 
 ---
 
-6️⃣ DuckDB最適化戦略
+## 5. No “weak mode” concept
 
-DuckDBではJSON抽出はVARCHAR扱いになる。
+Internally there is only the state:
 
-よって：
+`field._field_type is None`.
+
+Users do **not** need to see:
+
+- “weak mode”
+- “strong mode”
+
+---
+
+## 6. DuckDB optimization
+
+In DuckDB, JSON extraction is treated as VARCHAR.
+
+So:
+
 `json_extract(...) > 1000`
-は危険。
 
-型が分かる場合：
-`CAST(json_extract(...) AS BIGINT) > 1000`
-を生成する。
+is unsafe.
 
-例えば文字列の場合数値と比較すると文字数での検索になるが、Intの場合は数値としての比較演算になる。
-このような違いは、Userの意図と乖離する結果を引き起こす原因となるので、Field単独検索時にも型定義方法を提供する必要がある
+When the type is known, generate:
 
----
+`CAST(json_extract(...) AS BIGINT) > 1000`.
 
-7️⃣ 最終アーキテクチャ
-
-Model定義
-↓
-Annotated解析
-↓
-Fieldに型注入
-↓
-Collection登録
-↓
-Expr生成
-↓
-Collectionが型解決
-↓
-DuckDB用CAST付きSQL生成
+Comparing as string vs as integer changes semantics (e.g. string length vs numeric). To avoid mismatches with user intent, we need a way to specify type for standalone Field search.
 
 ---
 
-8️⃣ 設計原則まとめ
+## 7. Architecture (high level)
 
-✅ Fieldは単体で使用可能
-✅ 型は必須にしない
-✅ 型はコンテキスト解決
-✅ F()は不要
-✅ DuckDBの型を最大活用する
-✅ ユーザーに内部モード概念を露出しない
+Model definition → Annotated parsing → Inject type into Field → Register with Collection → Build Expr → Collection resolves type → Generate DuckDB SQL with CAST
 
 ---
 
-🔥 最終思想
+## 8. Principles
 
-Fieldは「名前付き列参照」
-型は「コンテキストで決まる」
-DuckDB最適化は「SQL生成層の責務」
+- Field is usable on its own
+- Type is optional
+- Type is resolved from context
+- F() is unnecessary
+- Use DuckDB types fully
+- Do not expose internal “mode” to users
 
-この設計により：
-• 型安全DSL
-• スキーマレス検索
-• DuckDB最適化
-• 将来的な拡張性
+---
 
-すべてを両立できる。
+## Summary
+
+Field = “named column reference”  
+Type = “determined by context”  
+DuckDB optimization = “responsibility of the SQL layer”
+
+This gives: type-safe DSL, schema-less search, DuckDB optimization, and room for future extension.

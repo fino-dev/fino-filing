@@ -1,6 +1,6 @@
-# fino-filing ドキュメント
+# fino-filing Documentation
 
-- **[仕様（Specification）](/docs/spec/intro)** … 利用者向け。概要・クイックスタート・API契約・利用シナリオ
-- **[開発（Development）](/docs/dev/intro)** … 開発者向け。設計・テスト・アーカイブ
+- **[Specification](/docs/spec/intro)** — For users: overview, quick start, API contract, scenarios
+- **[Development](/docs/dev/intro)** — For contributors: design, testing, archive
 
-仕様と開発で記載を分け、両方ともここから参照できます。
+Content is split between spec and dev; both are available from here.

@@ -6,8 +6,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'fino-filing',
-  tagline: '開示書類の収集・検索・ダウンロード用 Python ライブラリ',
-  favicon: 'img/favicon.ico',
+  tagline: 'Python library for collecting, searching, and downloading disclosure documents',
+  favicon: 'img/fino-icon.png',
 
   future: {
     v4: true,
@@ -64,7 +64,7 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/fino-icon.png',
     colorMode: {
       respectPrefersColorScheme: true,
     },
@@ -72,20 +72,20 @@ const config: Config = {
       title: 'fino-filing',
       logo: {
         alt: 'fino-filing Logo',
-        src: 'img/logo.svg',
+        src: 'img/fino-icon.png',
       },
       items: [
         {
           type: 'docSidebar',
           sidebarId: 'specSidebar',
           position: 'left',
-          label: '仕様',
+          label: 'Spec',
         },
         {
           type: 'docSidebar',
           sidebarId: 'devSidebar',
           position: 'left',
-          label: '開発',
+          label: 'Dev',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -99,10 +99,10 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'ドキュメント',
+          title: 'Docs',
           items: [
-            {label: '仕様', to: '/docs/spec/intro'},
-            {label: '開発', to: '/docs/dev/intro'},
+            {label: 'Spec', to: '/docs/spec/intro'},
+            {label: 'Dev', to: '/docs/dev/intro'},
           ],
         },
         {
@@ -136,7 +136,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} fino-filing. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

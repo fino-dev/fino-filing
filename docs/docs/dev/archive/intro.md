@@ -1,6 +1,6 @@
-# アーカイブ
+# Archive
 
-過去の設計図（PlantUML）やメモを格納する領域です。
+Place for older design diagrams (PlantUML) and notes.
 
-- 現在の設計ドキュメントは [設計](/docs/dev/design/collector_strategy) を参照してください。
-- 図はリポジトリ内 `docs/docs/archive/` に残している場合があります。必要に応じて `dev/archive` へ移します。
+- For current design docs, see [Design](/docs/dev/design/collector_strategy).
+- Some diagrams may still live under `docs/docs/archive/` in the repo; move them under `dev/archive` if needed.

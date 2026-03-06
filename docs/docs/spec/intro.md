@@ -1,10 +1,10 @@
-# 仕様（Specification）
+# Specification
 
-このセクションは **fino-filing の利用者向けの仕様** をまとめています。
+This section describes **fino-filing for users**.
 
-- **概要・目的**: ライブラリが何をするか、誰向けか
-- **Getting Started**: 公開APIの基本的な使い方
-- **シナリオ**: 典型的な利用フロー
-- **API 仕様**: 公開APIの契約（例外・戻り値など）
+- **Overview & goals**: What the library does and who it is for
+- **Getting Started**: Basic usage of the public API
+- **Scenarios**: Typical usage flows
+- **API spec**: Public API contract (exceptions, return values)
 
-実装の詳細や設計判断・テスト方針は [開発ドキュメント](/docs/dev/intro) を参照してください。
+For implementation details, design decisions, and testing policy, see the [Development docs](/docs/dev/intro).

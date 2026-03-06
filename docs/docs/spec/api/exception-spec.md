@@ -1,51 +1,51 @@
-# 異常系仕様（公開API ごとの例外・戻り値）
+# Exception spec (per–public API)
 
-公開API 単位で「どの条件でどの例外／戻り値になるか」を一覧化する。テストはこの一覧の各項目に対応する。
+Per–public API summary of conditions that lead to which exception or return value. Tests align with this list.
 
-## Filing / Field（メタクラス・初期化・set）
+## Filing / Field (metaclass, init, set)
 
-| 条件 | 結果 | 備考 |
-|------|------|------|
-| 必須フィールド（id, source, checksum 等）が欠けている | `FilingRequiredError`。`errors` / `fields` に不足内容を含む | |
-| 必須フィールドに明示的 `None` を渡す | `FilingRequiredError` | |
-| フィールドに型として不正な値を渡す | `FieldValidationError`。`field`, `expected_type`, `actual_type` を含む | |
-| immutable フィールドを初期化後に変更しようとする | `FieldImmutableError`。`field`, `current_value`, `attempt_value` を含む | |
-| 複数フィールドのバリデーションエラー | `FilingValidationError` または `FilingImmutableError`。`errors` / `fields` に複数含む | |
-| default 付きフィールドは省略可能 | 正常。省略時は default 値 | |
-| 拡張クラスで必須フィールドが欠けている | 上記と同様の例外 | |
+| Condition | Result | Notes |
+|-----------|--------|-------|
+| Required fields (id, source, checksum, etc.) missing | `FilingRequiredError`; `errors` / `fields` contain what is missing | |
+| Explicit `None` for a required field | `FilingRequiredError` | |
+| Value with wrong type for a field | `FieldValidationError`; includes `field`, `expected_type`, `actual_type` | |
+| Change an immutable field after init | `FieldImmutableError`; includes `field`, `current_value`, `attempt_value` | |
+| Multiple field validation errors | `FilingValidationError` or `FilingImmutableError`; `errors` / `fields` list them | |
+| Fields with default may be omitted | OK; default used when omitted | |
+| Extended class missing required fields | Same exceptions as above | |
 
-## Filing（to_dict / from_dict）
+## Filing (to_dict / from_dict)
 
-| 条件 | 結果 | 備考 |
-|------|------|------|
-| from_dict で必須キーが欠けている | `FilingRequiredError` 等（from_dict_with_missing_fields_failed） | |
-| from_dict で型が不正 | `FieldValidationError` 等（from_dict_with_invalid_type_failed） | |
+| Condition | Result | Notes |
+|-----------|--------|-------|
+| from_dict with missing required keys | `FilingRequiredError` etc. (from_dict_with_missing_fields_failed) | |
+| from_dict with wrong type | `FieldValidationError` etc. (from_dict_with_invalid_type_failed) | |
 
 ## Collection.add
 
-| 条件 | 結果 | 備考 |
-|------|------|------|
-| `content` の SHA256 が `filing.checksum` と不一致 | `CollectionChecksumMismatchError`。`filing_id`, `actual_checksum`, `expected_checksum` を含む | |
-| 同一 id で既に add 済みのときに再度 add | 仕様: **上書き許容**。catalog の index はスキップし、storage には上書き保存。戻り値は `(filing, path)` | 現状実装に合わせて仕様として明文化 |
+| Condition | Result | Notes |
+|-----------|--------|-------|
+| SHA256 of `content` does not match `filing.checksum` | `CollectionChecksumMismatchError`; includes `filing_id`, `actual_checksum`, `expected_checksum` | |
+| add again with same id already added | **Overwrite allowed**: catalog index is skipped, storage is overwritten; returns `(filing, path)` | Spec formalized to match current behavior |
 
 ## Collection.get_filing / get_content / get
 
-| 条件 | 結果 | 備考 |
-|------|------|------|
-| 存在しない id を指定 | `get_filing`: `None`。`get_content`: `None`。`get`: `(None, None, None)`（第3要素は path: str \| None） | |
+| Condition | Result | Notes |
+|-----------|--------|-------|
+| Non-existent id | `get_filing`: `None`; `get_content`: `None`; `get`: `(None, None, None)` (3rd element is path: str \| None) | |
 
 ## Locator.resolve
 
-| 条件 | 結果 | 備考 |
-|------|------|------|
-| 解決できない Filing（path が得られない） | `LocatorPathResolutionError`（Collection.add 内で raise） | |
+| Condition | Result | Notes |
+|-----------|--------|-------|
+| Filing cannot be resolved (no path) | `LocatorPathResolutionError` (raised inside Collection.add) | |
 
-## 例外のメッセージ形式
+## Exception message format
 
-- 基底: `FinoFilingException`。`message` は接頭辞 `"[Fino Filing] "` を含む。
-- `FilingValidationError` / `FilingImmutableError` / `FilingRequiredError`: `str(exception)` で `errors` を改行区切りで含む場合あり（仕様で保証するのは「含まれること」程度で可。完全一致は実装詳細にしない）。
+- Base: `FinoFilingException`. `message` includes the prefix `"[Fino Filing] "`.
+- `FilingValidationError` / `FilingImmutableError` / `FilingRequiredError`: `str(exception)` may include `errors` as newline-separated lines (spec only guarantees that they are present; exact format is not part of the spec).
 
-## 参照
+## See also
 
-- テストとの対応: [test-matrix](/docs/dev/testing/test-matrix)
-- 戦略: [testing-strategy](/docs/dev/testing/testing-strategy)
+- Test coverage: [test-matrix](/docs/dev/testing/test-matrix)
+- Strategy: [testing-strategy](/docs/dev/testing/testing-strategy)

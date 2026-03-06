@@ -1,31 +1,31 @@
-# 利用シナリオ
+# Usage Scenarios
 
-## 基本的な利用
+## Basic usage
 
 ```python
 from fino_filing import Collection, LocalStorage, Catalog
 
-# 初期化
+# Setup
 storage = LocalStorage("./data")
 catalog = Catalog("./index.db")
 collection = Collection(storage=storage, catalog=catalog)
 
-# Filing 追加（現状は手動。EDINET API 連携の Collector は今後実装予定）
+# Add a Filing (currently manual; EDINET API integration via Collector is planned)
 from fino_filing import EDINETFiling
 
 filing = EDINETFiling(source="edinet", name="doc.xbrl", checksum="...", format="xbrl", is_zip=False)
 collection.add(filing, b"...")
 
-# 検索
+# Search
 from fino_filing import Expr, Field
 filings = collection.search(expr=Field("source") == "edinet", limit=100, offset=0)
 
-# 取得（メタデータ）
+# Get metadata
 filing = collection.get_filing("filing_id")
-# 取得（ファイル本体・arelle 等で解析する場合）
+# Get file content (e.g. for arelle)
 content = collection.get_content("filing_id")
-# または一括
+# Or both
 filing, content, path = collection.get("filing_id")
 ```
 
-> Note: rebuild_index, verify_integrity, migrate は現在未実装。収集（EdinetCollector 等）は今後実装予定。
+> Note: rebuild_index, verify_integrity, and migrate are not implemented yet. Collection (e.g. EdinetCollector) is planned.
