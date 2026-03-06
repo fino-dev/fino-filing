@@ -1,8 +1,6 @@
-# Packageのインターフェース
+# クイックスタート
 
-## ユースケース
-
-### 1. Getting Started Usecase（現状実装）
+## ユースケース（現状実装）
 
 ```python
 import fino_filing as fec

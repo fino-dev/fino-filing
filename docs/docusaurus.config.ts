@@ -5,25 +5,19 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'fino-filing',
+  tagline: '開示書類の収集・検索・ダウンロード用 Python ライブラリ',
   favicon: 'img/favicon.ico',
 
-  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    v4: true,
   },
 
-  // Set the production url of your site here
   url: 'https://your-docusaurus-site.example.com',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'facebook',
+  projectName: 'fino-filing',
 
   onBrokenLinks: 'throw',
 
@@ -75,17 +69,23 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'My Site',
+      title: 'fino-filing',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'fino-filing Logo',
         src: 'img/logo.svg',
       },
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          sidebarId: 'specSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: '仕様',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'devSidebar',
+          position: 'left',
+          label: '開発',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -99,12 +99,10 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'ドキュメント',
           items: [
-            {
-              label: 'Tutorial',
-              to: '/docs/intro',
-            },
+            {label: '仕様', to: '/docs/spec/intro'},
+            {label: '開発', to: '/docs/dev/intro'},
           ],
         },
         {

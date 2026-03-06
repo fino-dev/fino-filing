@@ -1,6 +1,13 @@
-# Website
+# fino-filing ドキュメント（Docusaurus）
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+このサイトは [Docusaurus](https://docusaurus.io/) でビルドしています。
+
+## ドキュメント構成
+
+- **`docs/spec/`** … 仕様（利用者向け）: 概要・クイックスタート・API契約・シナリオ
+- **`docs/dev/`** … 開発（開発者向け）: 設計・テスト・アーカイブ
+
+仕様と開発を分け、両方とも Web で閲覧できます。追加する場合はどちらに属するかで `spec/` か `dev/` のどちらかに配置してください。
 
 ## Installation
 

@@ -35,5 +35,5 @@
 
 ## 参照
 
-- 観点の定義: [testing-strategy.md](testing-strategy.md)
-- 異常系の仕様: [exception-spec.md](exception-spec.md)
+- 観点の定義: [testing-strategy.md](./testing-strategy)
+- 異常系の仕様: [仕様: 異常系](/docs/spec/api/exception-spec)

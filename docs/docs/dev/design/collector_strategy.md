@@ -95,4 +95,3 @@ BaseCollector.collect()
 
 - クラス関連図: [architecture.puml](./architecture.puml)（Collector Boundary）
 - Field/DSL 設計: [field_type_strategy.md](./field_type_strategy.md)
-

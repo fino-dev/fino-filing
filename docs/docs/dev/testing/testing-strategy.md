@@ -126,6 +126,6 @@ mutmut run --paths-to-mutate=src/fino_filing/filing/ --runner "pytest test/modul
 
 ## 6. 参照
 
-- [test-matrix.md](test-matrix.md): 公開API×観点ごとのテスト対応表。
+- [test-matrix.md](./test-matrix): 公開API×観点ごとのテスト対応表。
 - AGENTS.md: pytest 前提、新規ユースケースにテスト追加、adapters 層は統合テスト寄りで可。
-- docs/archive/collection/scenario.md: Collection の利用シナリオ。シナリオテストの意図の基準。
+- [利用シナリオ](/docs/spec/scenarios): Collection の利用シナリオ。シナリオテストの意図の基準。

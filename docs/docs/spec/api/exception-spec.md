@@ -47,5 +47,5 @@
 
 ## 参照
 
-- テストとの対応: [test-matrix.md](test-matrix.md)
-- 戦略: [testing-strategy.md](testing-strategy.md)
+- テストとの対応: [test-matrix](/docs/dev/testing/test-matrix)
+- 戦略: [testing-strategy](/docs/dev/testing/testing-strategy)
