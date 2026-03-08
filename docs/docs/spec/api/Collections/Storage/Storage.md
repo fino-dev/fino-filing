@@ -1,8 +1,3 @@
----
-sidebar_position: 3
-title: Storage
----
-
 # Storage
 
 Protocol for saving and loading filing content by path. Collection uses it for raw bytes; path resolution is done by Locator.
