@@ -53,4 +53,8 @@ All filings have these fields. Required unless noted.
 
 `id` is derived from identity fields (source, name, is_zip, format plus any user-defined fields); `created_at` defaults to `datetime.now()` when omitted.
 
-##
+## Custom Filing subclasses
+
+You can define your own Filing type by subclassing `Filing` and declaring additional fields with `Annotated[str, Field(...)]` (or other types). The metaclass handles schema registration, identity, and validation. Register your subclass on a `FilingResolver` (e.g. used by Catalog) so instances can be restored from storage.
+
+By default, the package provides two built-in subclasses that follow this pattern: **EDINETFiling** (source `"EDINET"`) and **EDGARFiling** (source `"EDGAR"`). They add source-specific fields (e.g. `doc_id`, `edinet_code` for EDINET; `cik`, `accession_number`, `form_type` for EDGAR) and are registered on the default resolver for Catalog restore.
