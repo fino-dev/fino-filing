@@ -23,3 +23,13 @@ slorber:
     linkedin: sebastienlorber
     github: slorber
     newsletter: https://thisweekinreact.com
+
+akidok:
+  name: Kudo AKiya
+  title: fino-filing author
+  url: https://github.com/Akiya-Kudo
+  image_url: https://github.com/Akiya-Kudo.png
+  page: true
+  socials:
+    x: akidoki
+    github: Akiya-Kudo

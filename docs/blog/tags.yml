@@ -17,3 +17,18 @@ hola:
   label: Hola
   permalink: /hola
   description: Hola tag description
+
+daily:
+  label: Daily
+  permalink: /daily
+  description: Daily tag description
+
+edinet:
+  label: EDINET
+  permalink: /edinet
+  description: EDINET
+
+edger:
+  label: EDGER
+  permalink: /edger
+  description: EDGER
