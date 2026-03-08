@@ -58,7 +58,7 @@ pytest test/module/collector/ -v
 
 - **`test/module/`** — By layer: collection, filing, collector, core. One test class per subject; docstrings for focus (happy path / failure / boundary).
 - **`test/scenario/`** — End-to-end flows.
-- Exception behavior should align with [Spec: Exception spec](/docs/spec/api/exception-spec).
+- Exception behavior should align with [Spec: Exception spec](/docs/spec/API/Exceptions/exception-spec).
 
 ## Development flow (agent-driven)
 
