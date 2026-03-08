@@ -1,6 +1,5 @@
 ---
-sidebar_position: 1
-title: BaseCollector
+sidebar_position: 0
 ---
 
 # BaseCollector
@@ -35,8 +34,8 @@ Delegates to `collection.add(filing, content)`. Same return and exceptions as [C
 
 ### Abstract methods (subclass must implement)
 
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `fetch_documents()` | `Iterator[RawDocument]` | Yield one RawDocument per fetched document |
-| `parse_response(raw: RawDocument)` | `Parsed` | Turn raw into a dict for build_filing |
-| `build_filing(parsed: Parsed, raw: RawDocument)` | `Filing` | Build Filing from parsed data and raw (e.g. for checksum) |
+| Method                                           | Returns                 | Description                                               |
+| ------------------------------------------------ | ----------------------- | --------------------------------------------------------- |
+| `fetch_documents()`                              | `Iterator[RawDocument]` | Yield one RawDocument per fetched document                |
+| `parse_response(raw: RawDocument)`               | `Parsed`                | Turn raw into a dict for build_filing                     |
+| `build_filing(parsed: Parsed, raw: RawDocument)` | `Filing`                | Build Filing from parsed data and raw (e.g. for checksum) |
