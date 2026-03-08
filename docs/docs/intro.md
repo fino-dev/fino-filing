@@ -1,3 +1,7 @@
+---
+displayed_sidebar: specSidebar
+---
+
 # fino-filing Documentation
 
 - **[Specification](/docs/spec/intro)** — For users: overview, quick start, API contract, scenarios

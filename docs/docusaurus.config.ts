@@ -76,14 +76,14 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'specSidebar',
+          type: 'doc',
+          docId: 'spec/intro',
           position: 'left',
           label: 'Spec',
         },
         {
-          type: 'docSidebar',
-          sidebarId: 'devSidebar',
+          type: 'doc',
+          docId: 'dev/intro',
           position: 'left',
           label: 'Dev',
         },
