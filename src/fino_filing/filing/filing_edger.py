@@ -1,12 +1,14 @@
 from datetime import datetime
 from typing import Annotated
 
-from fino_filing import Field
+from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
 
 class EDGARFiling(Filing):
     """EDGAR Filing Template"""
+
+    source = "EDGAR"
 
     # EDGAR固有フィールド（任意）
     cik: Annotated[str, Field(description="CIK")]

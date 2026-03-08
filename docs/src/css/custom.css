@@ -1,0 +1,26 @@
+/**
+ * Orange theme for fino-filing docs.
+ * Infima variables: https://docusaurus.io/docs/styling-layout#theme-colors
+ */
+:root {
+  --ifm-color-primary: #e85d04;
+  --ifm-color-primary-dark: #d15204;
+  --ifm-color-primary-darker: #c54d03;
+  --ifm-color-primary-darkest: #a33f03;
+  --ifm-color-primary-light: #ea6f1f;
+  --ifm-color-primary-lighter: #eb782c;
+  --ifm-color-primary-lightest: #ee9247;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(232, 93, 4, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #f97316;
+  --ifm-color-primary-dark: #ea6a0d;
+  --ifm-color-primary-darker: #dd640c;
+  --ifm-color-primary-darkest: #b5530a;
+  --ifm-color-primary-light: #fa8534;
+  --ifm-color-primary-lighter: #fa8f42;
+  --ifm-color-primary-lightest: #fba666;
+  --docusaurus-highlighted-code-line-bg: rgba(249, 115, 22, 0.2);
+}
