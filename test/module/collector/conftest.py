@@ -8,19 +8,19 @@ from typing import Iterator
 
 import pytest
 
-from fino_filing import Catalog, Collection, EDGARFiling, LocalStorage
+from fino_filing import Catalog, Collection, LocalStorage
 from fino_filing.collector.base import RawDocument
-from fino_filing.collector.edger import EdgerBulkData, EdgerConfig, EdgerSecApi
+from fino_filing.collector.edger import EdgerConfig
 
 
 @pytest.fixture
 def edger_config() -> EdgerConfig:
-    return EdgerConfig(timeout=5)
+    return EdgerConfig(user_agent_email="test@example.com", timeout=5)
 
 
 @pytest.fixture
 def sample_raw_document() -> RawDocument:
-    """EDGAR 用のサンプル RawDocument（ネットワーク不要でパース・to_filing 検証用）"""
+    """EDGAR 用のサンプル RawDocument（ネットワーク不要でパース・build_filing 検証用）"""
     content = b"<html><body>SEC filing index</body></html>"
     meta = {
         "cik": "0000320193",
@@ -34,7 +34,7 @@ def sample_raw_document() -> RawDocument:
         "fiscal_year_end": "09-30",
         "format": "htm",
         "primary_name": "0000320193-23-000106-index.htm",
-        "_origin": "sec",
+        "_origin": "documents",
     }
     return RawDocument(content=content, meta=meta)
 

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class RawDocument:
     """
-    1 件分の生データ。Strategy が fetch_documents() で返す単位。
+    1 件分の生データ。fetch_documents() で返す単位。
 
     content は必須。meta にソース固有のメタデータ（accession, cik, form 等）を格納する。
     """
@@ -39,36 +39,38 @@ class BaseCollector(ABC):
     """
     収集の共通フローを定義する Template Method の抽象基底クラス。
 
-    collect() が骨格を定義し、fetch_documents / parse_response / build_filing を
-    サブクラスで差し替える。
+    collect(**criteria) が骨格を定義し、fetch_documents / parse_response / build_filing を
+    サブクラスで差し替える。収集条件（cik_list 等）は collect() 呼び出し時に渡す。
     """
 
     def __init__(self, collection: Collection) -> None:
         self._collection = collection
 
-    def collect(self) -> list[tuple[Filing, str]]:
+    def collect(self, **criteria: Any) -> list[tuple[Filing, str]]:
         """
         収集を実行する。1 件ずつ fetch → parse → build_filing → add_to_collection の順で処理し、
         途中終了してもそれまでに処理した分は保存される。
+
+        Args:
+            **criteria: サブクラスの fetch_documents に渡す収集条件
+                        （例: cik_list, limit_per_company, date_from 等）
 
         Returns:
             add_to_collection の戻り値のリスト（各要素は (Filing, path)）
         """
         results: list[tuple[Filing, str]] = []
-        for raw in self.fetch_documents():
+        for raw in self.fetch_documents(**criteria):
             parsed = self.parse_response(raw)
             filing = self.build_filing(parsed, raw)
             results.append(self.add_to_collection(filing, raw.content))
         return results
 
     def add_to_collection(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
-        """
-        Collection に 1 件追加する。Facade である Collection.add に委譲する。
-        """
+        """Collection に 1 件追加する。Facade である Collection.add に委譲する。"""
         return self._collection.add(filing, content)
 
     @abstractmethod
-    def fetch_documents(self) -> Iterator[RawDocument]:
+    def fetch_documents(self, **kwargs: Any) -> Iterator[RawDocument]:
         """取得した生ドキュメントを 1 件ずつ yield する。サブクラスで実装する。"""
         ...
 
@@ -79,7 +81,5 @@ class BaseCollector(ABC):
 
     @abstractmethod
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> Filing:
-        """
-        Parsed と raw（checksum 等に必要）から Filing を生成する。サブクラスで実装する。
-        """
+        """Parsed と raw（checksum 等に必要）から Filing を生成する。サブクラスで実装する。"""
         ...

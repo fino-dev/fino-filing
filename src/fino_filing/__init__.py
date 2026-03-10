@@ -8,7 +8,13 @@ from .collection.filing_resolver import (
 from .collection.storage import Storage
 from .collection.storages import LocalStorage
 from .collector.base import BaseCollector, Parsed, RawDocument
-from .collector.edger import EdgerBulkData, EdgerCollector, EdgerConfig, EdgerSecApi
+from .collector.edger import (
+    EdgerBulkCollector,
+    EdgerClient,
+    EdgerConfig,
+    EdgerDocumentsCollector,
+    EdgerFactsCollector,
+)
 from .filing.expr import Expr
 from .filing.field import Field
 from .filing.filing import Filing
@@ -25,10 +31,11 @@ __all__ = [
     "Collection",
     "EDGARFiling",
     "EDINETFiling",
-    "EdgerBulkData",
-    "EdgerCollector",
+    "EdgerBulkCollector",
+    "EdgerClient",
     "EdgerConfig",
-    "EdgerSecApi",
+    "EdgerDocumentsCollector",
+    "EdgerFactsCollector",
     "Expr",
     "Field",
     "Filing",
