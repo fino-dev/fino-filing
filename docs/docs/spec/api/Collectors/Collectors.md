@@ -9,10 +9,12 @@ The **Collector** boundary fetches documents from external APIs, parses them, bu
 | [BaseCollector](./BaseCollector)    | Abstract base: `collect()`, `add_to_collection()`; subclasses implement `fetch_documents`, `parse_response`, `build_filing` |
 | [RawDocument](./RawDocument-Parsed) | One fetched document: `content: bytes`, `meta: dict[str, Any]`                                                              |
 | [Parsed](./RawDocument-Parsed)      | `dict[str, Any]`; intermediate structure before building a Filing                                                           |
-| [EdgerConfig](./EdgerConfig)        | EDGAR config: SEC/Bulk URLs, timeout, rate limit, User-Agent                                                                |
-| [EdgerSecApi](./EdgerSecApi)        | Strategy: SEC Company Submissions API → fetch, parse, EDGARFiling                                                           |
-| [EdgerBulkData](./EdgerBulkData)    | Strategy: Bulk daily-index (currently yields nothing; placeholder)                                                          |
-| [EdgerCollector](./EdgerCollector)  | Orchestrates EdgerSecApi and EdgerBulkData; `collect()` adds to Collection                                                  |
+| [EdgerConfig](./Edger/EdgerConfig)        | EDGAR config: timeout, User-Agent                                                                                           |
+| [EdgerSecApi](./Edger/EdgerSecApi)        | Strategy: SEC Company Submissions API → fetch, parse, EDGARFiling                                                          |
+| [EdgerBulkData](./Edger/EdgerBulkData)    | Strategy: Bulk daily-index (currently yields nothing; placeholder)                                                          |
+| [EdgerCollector](./Edger/EdgerCollector)  | Orchestrates EdgerSecApi and EdgerBulkData; `collect()` adds to Collection                                                   |
+| [EdinetConfig](./Edinet/EdinetConfig)      | EDINET API config: api_key, timeout（api_base は不要）                                                                      |
+| [EdinetCollector](./Edinet/EdinetCollector) | 書類一覧API・書類取得API で EDINET 書類を取得し EDINETFiling として Collection に追加                                |
 
 ## Flow
 
