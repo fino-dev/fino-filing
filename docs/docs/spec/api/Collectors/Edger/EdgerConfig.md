@@ -1,25 +1,34 @@
 ---
-sidebar_position: 3
+sidebar_position: 1
 title: EdgerConfig
 ---
 
 # EdgerConfig
 
-Configuration for EDGAR SEC API and Bulk Data. Used by `EdgerSecApi` and `EdgerBulkData`. SEC requires a valid User-Agent header.
+EDGAR 用のユーザー設定。各 Collector のコンストラクタで渡す。SEC は有効な User-Agent を要求するため、`user_agent_email` は必須。
 
-## Constructor / attributes
+## Constructor
 
-Dataclass with these attributes (all have defaults):
+```python
+EdgerConfig(
+    user_agent_email: str,
+    timeout: int = 30,
+) -> EdgerConfig
+```
 
-| Attribute | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `sec_api_base` | str | `"https://data.sec.gov"` | Base URL for SEC API (e.g. submissions) |
-| `archives_base` | str | `"https://www.sec.gov/Archives/edgar"` | Base URL for filing content |
-| `bulk_base` | str | `"https://www.sec.gov/Archives/edgar/daily-index"` | Base URL for bulk daily index |
-| `timeout` | int | 30 | Request timeout (seconds) |
-| `user_agent` | str | `"fino-filing/0.1.0 (compliance; contact: ...)"` | User-Agent header (required by SEC) |
-| `request_delay_sec` | float | 0.2 | Delay between requests (rate limiting) |
-| `retry_503_max` | int | 3 | Max retries on 503 |
-| `retry_503_wait_sec` | float | 2.0 | Wait between 503 retries (seconds) |
+| 引数 | 型 | 既定 | 説明 |
+|------|-----|------|------|
+| `user_agent_email` | str | （必須） | SEC 連絡用メール。User-Agent は package 側で `fino-filing/0.1.0 (contact: {email})` の形で組み立てる |
+| `timeout` | int | 30 | HTTP リクエストのタイムアウト（秒） |
 
-Override `user_agent` when using in production (e.g. with your app name and contact).
+## 使用例
+
+```python
+from fino_filing import EdgerConfig, EdgerDocumentsCollector
+from fino_filing.collection import Collection
+
+config = EdgerConfig(user_agent_email="your@email.com")
+coll = Collection("/path/to/root")
+collector = EdgerDocumentsCollector(coll, config)
+collector.collect(cik_list=["320193"], limit_per_company=2)
+```
