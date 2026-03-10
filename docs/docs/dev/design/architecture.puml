@@ -152,11 +152,12 @@ package "Fino Filing" {
     }
 
     class EdinetCollector {
-      - edinet : Edinet
+      - client : EdinetClient
       --
+      EdinetConfig のみ受け取り内部で Client を生成
       # fetch_documents() : list[RawDocument]
       # parse_response(raw) : Parsed
-      # build_filing(parsed) : EDINETFiling
+      # build_filing(parsed, raw) : EDINETFiling
     }
 
     class EdgerFactsCollector {
@@ -186,17 +187,17 @@ package "Fino Filing" {
       # build_filing(parsed) : EDGARFiling
     }
 
-    class Edinet <<Spec>> {
+    class EdinetClient <<Client>> {
       - config : EdinetConfig
       --
-      + fetch_documents() : list[RawDocument]
-      + parse_response(raw) : Parsed
-      + to_filing(parsed) : EDINETFiling
+      書類一覧API・書類取得APIのリクエスト実行と共通処理
+      + get_document_list(date: str, type: int) : dict
+      + get_document(doc_id: str) : bytes
     }
 
     class EdinetConfig {
-      + api_base : str
-      + timeout : int = 0.1s
+      + api_key : str
+      + timeout : int = 30
       --
     }
 
@@ -221,17 +222,17 @@ package "Fino Filing" {
     BaseCollector <|-- EdgerFactsCollector : extends
     BaseCollector <|-- EdgerDocumentsCollector : extends
     BaseCollector <|-- EdgerBulkCollector : extends
-    BaseCollector o-- "Collection Boundary".Collection : collection
-    EdinetCollector o-- Edinet : edinet
+    BaseCollector o-- Collection : collection
+    EdinetCollector o-- EdinetClient : client
     EdgerFactsCollector o-- EdgerClient : client
     EdgerDocumentsCollector o-- EdgerClient : client
     EdgerBulkCollector o-- EdgerClient : client
-    Edinet o-- EdinetConfig : config
+    EdinetClient o-- EdinetConfig : config
     EdgerClient o-- EdgerConfig : config
   }
 
-  BaseCollector --> "Collection Boundary".Collection : add_to_collection
-  Edinet ..> "Filing Boundary".EDINETFiling : to_filing
+  BaseCollector --> Collection : add_to_collection
+  EdinetClient ..> EDINETFiling : to_filing
 
   package "Error Boundary" {
     class FinoFilingException <<Exception>> {

@@ -15,6 +15,7 @@ from .collector.edger import (
     EdgerDocumentsCollector,
     EdgerFactsCollector,
 )
+from .collector.edinet import EdinetCollector, EdinetConfig
 from .filing.expr import Expr
 from .filing.field import Field
 from .filing.filing import Filing
@@ -36,6 +37,8 @@ __all__ = [
     "EdgerConfig",
     "EdgerDocumentsCollector",
     "EdgerFactsCollector",
+    "EdinetCollector",
+    "EdinetConfig",
     "Expr",
     "Field",
     "Filing",
