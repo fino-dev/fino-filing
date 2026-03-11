@@ -31,7 +31,7 @@ class TestCatalog_Index_IndexedColumns:
     Catalog.index() で indexed フィールドが物理カラムとして追加されることのテスト
     """
 
-    def test_index_adds_physical_columns_for_extended_indexed_fields(
+    def test_index_adds_indexed_columns_for_extended_indexed_fields(
         self, temp_catalog: Catalog
     ) -> None:
         """indexed=True のフィールドを持つ継承 Filing を index すると、そのカラムがテーブルに追加される"""
@@ -128,9 +128,7 @@ class TestCatalog_Index_IndexedColumns:
         assert len(tickers) >= 3
         assert tickers == sorted(tickers)
 
-    def test_index_batch_mixed_filing_types(
-        self, temp_catalog: Catalog
-    ) -> None:
+    def test_index_batch_mixed_filing_types(self, temp_catalog: Catalog) -> None:
         """index_batch で基本 Filing と拡張 Filing を混在させても正しく保存・復元される"""
         catalog = temp_catalog
 

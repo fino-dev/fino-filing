@@ -69,9 +69,9 @@ class TestCatalog_Helper_data_only_dict:
             "additional_field": "test_additional_field",
             "additional_field2": 100,
         }
-        physical_columns = {"id", "source", "checksum", "name", "is_zip"}
+        indexed_columns = {"id", "source", "checksum", "name", "is_zip"}
 
-        data_only_dict = temp_catalog._data_only_dict(filing_dict, physical_columns)
+        data_only_dict = temp_catalog._data_only_dict(filing_dict, indexed_columns)
         assert data_only_dict == {
             "additional_field": "test_additional_field",
             "additional_field2": 100,
@@ -80,7 +80,7 @@ class TestCatalog_Helper_data_only_dict:
     def test_data_only_dict_with_data_column_raises_error(
         self, temp_catalog: Catalog
     ) -> None:
-        """data_only_dict の引数のphysical_columnsに data カラムを物理カラムとして含めた場合にはエラーを返す"""
+        """data_only_dict の引数のindexed_columnsに data カラムを物理カラムとして含めた場合にはエラーを返す"""
         with pytest.raises(ValueError) as e:
             filing_dict = {
                 "id": "test_id",
@@ -89,9 +89,9 @@ class TestCatalog_Helper_data_only_dict:
                 "name": "test_name",
                 "is_zip": False,
             }
-            physical_columns = {"id", "source", "checksum", "name", "is_zip", "data"}
+            indexed_columns = {"id", "source", "checksum", "name", "is_zip", "data"}
 
-            temp_catalog._data_only_dict(filing_dict, physical_columns)
+            temp_catalog._data_only_dict(filing_dict, indexed_columns)
 
         assert str(e.value) == "dataカラムは物理カラムに含めることはできません"
 

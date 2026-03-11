@@ -157,17 +157,17 @@ class Catalog:
     def _data_only_dict(
         self,
         filing_dict: dict[str, Any],
-        physical_columns: set[
+        indexed_columns: set[
             str
-        ],  # physical_columns は物理カラムの名前の集合。（dataカラムを除く）
+        ],  # indexed_columns は物理カラムの名前の集合。（dataカラムを除く）
     ) -> dict[str, Any]:
         """
         物理カラムを除いた辞書（dataカラムに保存するFieldのみ）を返す。
         """
-        if "data" in physical_columns:
+        if "data" in indexed_columns:
             raise ValueError("dataカラムは物理カラムに含めることはできません")
 
-        return {k: v for k, v in filing_dict.items() if k not in physical_columns}
+        return {k: v for k, v in filing_dict.items() if k not in indexed_columns}
 
     def _row_to_full_doc(
         self, columns: list[str], row: tuple[Any, ...]
@@ -209,18 +209,18 @@ class Catalog:
     @staticmethod
     def _expr_to_inline_sql(
         expr: Expr,
-        physical_columns: set[str] | None = None,
+        indexed_columns: set[str] | None = None,
     ) -> str:
         """
         Expr のプレースホルダをエスケープしたリテラルで置換した SQL を返す。
         パラメータを execute に渡すと DuckDB が結果セットの JSON 変換に誤用することがあるため、
         WHERE 句はリテラル埋め込みにし、execute には空リストを渡す。
-        physical_columns を渡すと json_extract(data, '$.col') を "col" に書き換え、
+        indexed_columns を渡すと json_extract(data, '$.col') を "col" に書き換え、
         WHERE で data を参照しないようにする（DuckDB の JSON 解釈誤用を防ぐ）。
         """
         sql = expr.sql
-        if physical_columns:
-            for col in physical_columns:
+        if indexed_columns:
+            for col in indexed_columns:
                 sql = sql.replace(f"json_extract(data, '$.{col}')", f'"{col}"')
         for value in expr.params:
             literal = Catalog._escape_sql_value(value)
@@ -269,8 +269,8 @@ class Catalog:
         self._ensure_indexed_columns(type(filing))
 
         columns = self._get_table_column_names()
-        physical_columns = set(columns) - {"data"}
-        data_only = self._data_only_dict(filing_dict, physical_columns)
+        indexed_columns = set(columns) - {"data"}
+        data_only = self._data_only_dict(filing_dict, indexed_columns)
         filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
         indexed_set = set(type(filing).get_indexed_fields())
 
@@ -304,7 +304,7 @@ class Catalog:
             self._ensure_indexed_columns(type(filing))
 
         columns = self._get_table_column_names()
-        physical_columns = set(columns) - {"data"}
+        indexed_columns = set(columns) - {"data"}
         core_set: set[str] = {c for c in _CORE_COLUMNS if c != "data"}
         rows: list[list[Any]] = []
 
@@ -313,7 +313,7 @@ class Catalog:
             filing_dict["_filing_class"] = (
                 f"{type(filing).__module__}.{type(filing).__qualname__}"
             )
-            data_only = self._data_only_dict(filing_dict, physical_columns)
+            data_only = self._data_only_dict(filing_dict, indexed_columns)
             filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
             indexed_set = set(type(filing).get_indexed_fields())
 
@@ -404,7 +404,7 @@ class Catalog:
         table_columns = set(columns)
         if expr:
             where_sql = Catalog._expr_to_inline_sql(
-                expr, physical_columns=table_columns - {"data"}
+                expr, indexed_columns=table_columns - {"data"}
             )
             sql += f" WHERE {where_sql}"
 
@@ -454,9 +454,9 @@ class Catalog:
 
         if expr:
             columns = self._get_table_column_names()
-            physical_columns = set(columns) - {"data"}
+            indexed_columns = set(columns) - {"data"}
             where_sql = Catalog._expr_to_inline_sql(
-                expr, physical_columns=physical_columns
+                expr, indexed_columns=indexed_columns
             )
             sql += f" WHERE {where_sql}"
 

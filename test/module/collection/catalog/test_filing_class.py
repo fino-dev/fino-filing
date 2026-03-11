@@ -10,8 +10,9 @@ Catalog の _filing_class 振る舞いのテスト。
 import hashlib
 import json
 from datetime import datetime
+from typing import Any
 
-from fino_filing import Catalog, EDINETFiling, Filing
+from fino_filing import Catalog, EDINETFiling, Expr, Field, Filing
 from fino_filing.collection.filing_resolver import FilingResolver
 
 
@@ -300,3 +301,186 @@ class TestCatalog_FilingClass_Behavior:
         assert full is not None
         assert full["id"] == "fc_data_edinet_001"
         assert full["_filing_class"] == "fino_filing.filing.filing_edinet.EDINETFiling"
+
+
+class TestCatalog_Helper_expr_to_inline_sql:
+    """
+    Catalog._expr_to_inline_sql のテスト
+    - Expr のプレースホルダをエスケープしたリテラルで置換した SQL を返す
+    - indexed_columns を渡すと json_extract(data, '$.col') を "col" に書き換える
+    """
+
+    def test_replaces_single_placeholder_with_escaped_literal(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """プレースホルダ1つがエスケープされたリテラルで置換される（str, int, None, bool）"""
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", ["a"])) == "x = 'a'"
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", [100])) == "x = 100"
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", [None])) == "x = NULL"
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", [True])) == "x = TRUE"
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", [False])) == "x = FALSE"
+
+    def test_replaces_placeholder_with_escaped_string_containing_quote(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """str にシングルクォートが含まれる場合は '' にエスケープされる"""
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", ["O'Brien"])) == (
+            "x = 'O''Brien'"
+        )
+
+    def test_replaces_placeholder_with_datetime_literal(
+        self, temp_catalog: Catalog, datetime_now: datetime
+    ) -> None:
+        """datetime は ISO 形式のクォート付きリテラルに置換される"""
+        expected = f"x = '{datetime_now.isoformat()}'"
+        assert Catalog._expr_to_inline_sql(Expr("x = ?", [datetime_now])) == expected
+
+    def test_replaces_json_extract_with_physical_column_when_indexed_columns_given(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """indexed_columns を渡すと json_extract(data, '$.col') が "col" に書き換えられる"""
+        expr = Expr("json_extract(data, '$.source') = ?", ["EDINET"])
+        got = Catalog._expr_to_inline_sql(expr, indexed_columns={"source"})
+        assert got == "\"source\" = 'EDINET'"
+
+    def test_replaces_multiple_placeholders_in_order(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """複数プレースホルダは expr.params の順で置換される"""
+        expr = Expr("a = ? AND b = ?", ["x", 1])
+        assert Catalog._expr_to_inline_sql(expr) == "a = 'x' AND b = 1"
+
+    def test_expr_from_field_eq_builds_sql_with_placeholder(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """Field から生成した Expr を _expr_to_inline_sql するとリテラル埋め込み SQL になる"""
+        expr = Field("source") == "EDGAR"
+        # Field は indexed でない場合 json_extract(data, '$.source') = ? を生成
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "?" not in got
+        assert "'EDGAR'" in got
+
+
+class TestCatalog_Helper_resolve_data_to_filing:
+    """
+    Catalog._resolve_data_to_filing のテスト
+    - data から _filing_class を解決し Filing インスタンスを返す
+    - 変換後には _filing_class を from_dict に渡す辞書から削除する
+    """
+
+    def test_returns_edinet_filing_when_filing_class_resolved(
+        self, temp_catalog: Catalog, datetime_now: datetime
+    ) -> None:
+        """_filing_class が resolver で解決できる場合、そのクラスで復元される"""
+        data: dict[str, Any] = {
+            "_filing_class": "fino_filing.filing.filing_edinet.EDINETFiling",
+            "id": "r_edinet_001",
+            "source": "EDINET",
+            "checksum": "a" * 64,
+            "name": "f.txt",
+            "is_zip": False,
+            "format": "xbrl",
+            "created_at": datetime_now.isoformat(),
+            "doc_id": "doc1",
+            "edinet_code": "E12345",
+            "sec_code": "12345",
+            "jcn": "1234567890123",
+            "filer_name": "Test Inc.",
+            "ordinance_code": "010",
+            "form_code": "030101",
+            "doc_type_code": "120",
+            "doc_description": "有価証券報告書",
+            "period_start": datetime_now.isoformat(),
+            "period_end": datetime_now.isoformat(),
+            "submit_datetime": datetime_now.isoformat(),
+        }
+        restored = temp_catalog._resolve_data_to_filing(data)
+        assert isinstance(restored, EDINETFiling)
+        assert restored.id == "r_edinet_001"
+        assert restored.doc_id == "doc1"
+        assert restored.filer_name == "Test Inc."
+
+    def test_returns_filing_fallback_when_no_filing_class(
+        self, temp_catalog: Catalog, datetime_now: datetime
+    ) -> None:
+        """_filing_class が無い場合、Filing で復元される"""
+        data: dict[str, Any] = {
+            "id": "r_base_001",
+            "source": "test",
+            "checksum": "b" * 64,
+            "name": "f.txt",
+            "is_zip": False,
+            "format": "xbrl",
+            "created_at": datetime_now.isoformat(),
+        }
+        restored = temp_catalog._resolve_data_to_filing(data)
+        assert type(restored).__name__ == "Filing"
+        assert restored.id == "r_base_001"
+        assert restored.source == "test"
+
+    def test_returns_filing_fallback_when_resolver_returns_none(
+        self, temp_catalog: Catalog, datetime_now: datetime
+    ) -> None:
+        """_filing_class が resolver で解決できない場合、Filing にフォールバックする"""
+        from fino_filing.collection.filing_resolver import FilingResolver
+
+        class NoResolveResolver(FilingResolver):
+            def resolve(self, name):  # type: ignore[no-untyped-def]
+                return None
+
+        # temp_catalogの一時ディレクトリだけ使うため
+        catalog_path = temp_catalog.db_path
+        temp_catalog.close()
+
+        catalog = Catalog(catalog_path, resolver=NoResolveResolver())
+
+        data: dict[str, Any] = {
+            "_filing_class": "unknown.module.UnknownFiling",
+            "id": "r_unknown_001",
+            "source": "test",
+            "checksum": "c" * 64,
+            "name": "f.txt",
+            "is_zip": False,
+            "format": "xbrl",
+            "created_at": datetime_now.isoformat(),
+        }
+        restored = catalog._resolve_data_to_filing(data)
+        assert type(restored).__name__ == "Filing"
+        assert restored.id == "r_unknown_001"
+        catalog.close()
+
+    def test_filing_class_removed_from_data_passed_to_from_dict(
+        self, temp_catalog: Catalog, datetime_now: datetime
+    ) -> None:
+        """from_dict に渡す辞書には _filing_class が含まれない（pop で削除される）"""
+        data: dict[str, Any] = {
+            "_filing_class": "fino_filing.filing.filing.Filing",
+            "id": "r_pop_001",
+            "source": "test",
+            "checksum": "d" * 64,
+            "name": "f.txt",
+            "is_zip": False,
+            "format": "xbrl",
+            "created_at": datetime_now.isoformat(),
+        }
+        restored = temp_catalog._resolve_data_to_filing(data)
+        assert restored.id == "r_pop_001"
+        assert not hasattr(restored, "_filing_class")
+
+    def test_original_data_unchanged(
+        self, temp_catalog: Catalog, datetime_now: datetime
+    ) -> None:
+        """呼び出し元の data 辞書は変更されない（内部でコピーしている）"""
+        data: dict[str, Any] = {
+            "_filing_class": "fino_filing.filing.filing.Filing",
+            "id": "r_orig_001",
+            "source": "test",
+            "checksum": "e" * 64,
+            "name": "f.txt",
+            "is_zip": False,
+            "format": "xbrl",
+            "created_at": datetime_now.isoformat(),
+        }
+        temp_catalog._resolve_data_to_filing(data)
+        assert "_filing_class" in data
+        assert data["_filing_class"] == "fino_filing.filing.filing.Filing"
