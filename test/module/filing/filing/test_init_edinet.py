@@ -1,8 +1,13 @@
 from datetime import datetime
 
+import pytest
+
 from fino_filing.filing.filing_edinet import EDINETFiling
 
 
+@pytest.mark.module
+@pytest.mark.filing
+@pytest.mark.edinet
 class TestFiling_Initialize_EDINET:
     def test_filing_initialize_edinet_success(self) -> None:
         datetime_now = datetime.now()

@@ -2,9 +2,13 @@
 
 from datetime import datetime
 
+import pytest
+
 from fino_filing import Catalog, Expr, Filing
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_IndexBatch:
     """Catalog.index_batch. 観点: 正常系"""
 
@@ -30,6 +34,8 @@ class TestCatalog_IndexBatch:
         assert temp_catalog.count() == 3
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Search:
     """Catalog.search. 観点: 正常系"""
 
@@ -59,6 +65,8 @@ class TestCatalog_Search:
         assert len(offset_results) == 2
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Count:
     """Catalog.count. 観点: 正常系"""
 
@@ -113,6 +121,8 @@ class TestCatalog_Count:
         assert temp_catalog.count(expr=expr) == 1
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Clear:
     """Catalog.clear. 観点: 正常系"""
 

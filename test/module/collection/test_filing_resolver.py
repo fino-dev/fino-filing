@@ -1,9 +1,13 @@
 """FilingResolver の単体テスト。観点: 正常系・異常系"""
 
+import pytest
+
 from fino_filing import EDINETFiling, Filing, FilingResolver, default_resolver
 from fino_filing.collection.filing_resolver import register_filing_class
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestFilingResolver_Register_Resolve:
     """FilingResolver.register / resolve. 観点: 正常系"""
 
@@ -34,6 +38,8 @@ class TestFilingResolver_Register_Resolve:
         assert cls is None or cls is EDINETFiling
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestDefaultResolver:
     """default_resolver. 観点: 正常系（EDINETFiling / EDGARFiling は __init__.py で登録済み）"""
 
@@ -43,11 +49,14 @@ class TestDefaultResolver:
         assert default_resolver.resolve(name) is EDINETFiling
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestRegisterFilingClass:
     """register_filing_class. 観点: 正常系（後方互換 API）"""
 
     def test_register_filing_class_registers_and_resolves(self) -> None:
         """register_filing_class で登録したクラスを resolve できる"""
+
         class CustomFiling(Filing):
             pass
 

@@ -1,7 +1,11 @@
+import pytest
+
 from fino_filing import Catalog, Collection, Filing
 from fino_filing.collection.storages import LocalStorage
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_GetContent:
     """
     Collection.get_content(). 観点: 正常系と異常系（not_found）

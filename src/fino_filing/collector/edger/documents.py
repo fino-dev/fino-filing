@@ -48,7 +48,9 @@ class EdgerDocumentsCollector(BaseCollector):
             fye = (submissions.get("fiscalYearEnd") or "").strip()
 
             filings_container = submissions.get("filings") or {}
-            recent: dict[str, Any] = filings_container.get("recent") or submissions.get("recent") or {}
+            recent: dict[str, Any] = (
+                filings_container.get("recent") or submissions.get("recent") or {}
+            )
             accession_list: list[str] = recent.get("accessionNumber") or []
             form_list: list[str] = recent.get("form") or []
             filing_date_list: list[str] = recent.get("filingDate") or []
@@ -99,5 +101,7 @@ class EdgerDocumentsCollector(BaseCollector):
 
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
         """Parsed と content から EDGARFiling を生成する。"""
-        primary_name = parsed.get("primary_name") or (parsed.get("accession_number", "") + "-index.htm")
+        primary_name = parsed.get("primary_name") or (
+            parsed.get("accession_number", "") + "-index.htm"
+        )
         return build_edgar_filing(parsed, raw.content, primary_name)

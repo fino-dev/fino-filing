@@ -1,0 +1,53 @@
+name: Scenario Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Scenario Test
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v6
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install the project dependencies
+        run: uv sync --locked --group test
+
+      - name: Run pytest with coverage
+        run: |
+          set -o pipefail
+          uv run pytest test/scenario/ --junitxml=pytest.xml --cov=src/fino_filing --cov-report=term-missing --cov-report=xml | tee pytest-coverage.txt
+
+      - name: Coverage in Job Summary
+        run: |
+          echo "## Pytest coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat pytest-coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Pytest coverage comment
+        if: github.event_name == 'pull_request'
+        uses: MishaKav/pytest-coverage-comment@v1.1.47
+        with:
+          unique-id-for-comment: "scenario-test"
+          title: "Scenario Test - Coverage Report"
+          junitxml-title: "Scenario Test"
+          pytest-coverage-path: ./pytest-coverage.txt
+          pytest-xml-coverage-path: ./coverage.xml
+          junitxml-path: ./pytest.xml

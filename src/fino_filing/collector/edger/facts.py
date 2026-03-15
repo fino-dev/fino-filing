@@ -76,5 +76,7 @@ class EdgerFactsCollector(BaseCollector):
 
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
         """Parsed と content から EDGARFiling を生成する。"""
-        primary_name = parsed.get("primary_name") or f"{parsed.get('cik', '')}-companyfacts.json"
+        primary_name = (
+            parsed.get("primary_name") or f"{parsed.get('cik', '')}-companyfacts.json"
+        )
         return build_edgar_filing(parsed, raw.content, primary_name)

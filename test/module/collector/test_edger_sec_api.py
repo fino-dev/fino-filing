@@ -2,17 +2,25 @@
 
 import hashlib
 
+import pytest
+
 from fino_filing import EDGARFiling
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edger import EdgerConfig, EdgerDocumentsCollector
 from fino_filing.collection.collection import Collection
 
 
+@pytest.mark.module
+@pytest.mark.collector
+@pytest.mark.edger
 class TestEdgerDocumentsCollectorParsing:
     """EdgerDocumentsCollector: パースと EDGARFiling 生成"""
 
     def test_parse_response_normalizes_meta(
-        self, sample_raw_document: RawDocument, edger_config: EdgerConfig, temp_collection: tuple
+        self,
+        sample_raw_document: RawDocument,
+        edger_config: EdgerConfig,
+        temp_collection: tuple,
     ) -> None:
         """parse_response が meta を EDGARFiling 用の Parsed に正規化する"""
         collection: Collection = temp_collection[0]
@@ -28,7 +36,10 @@ class TestEdgerDocumentsCollectorParsing:
         assert parsed["primary_name"] == "0000320193-23-000106-index.htm"
 
     def test_build_filing_produces_edgar_filing(
-        self, sample_raw_document: RawDocument, edger_config: EdgerConfig, temp_collection: tuple
+        self,
+        sample_raw_document: RawDocument,
+        edger_config: EdgerConfig,
+        temp_collection: tuple,
     ) -> None:
         """build_filing が Parsed と content から EDGARFiling を生成する"""
         collection: Collection = temp_collection[0]
@@ -41,4 +52,6 @@ class TestEdgerDocumentsCollectorParsing:
         assert filing.accession_number == "0000320193-23-000106"
         assert filing.company_name == "Apple Inc."
         assert filing.form_type == "10-K"
-        assert filing.checksum == hashlib.sha256(sample_raw_document.content).hexdigest()
+        assert (
+            filing.checksum == hashlib.sha256(sample_raw_document.content).hexdigest()
+        )

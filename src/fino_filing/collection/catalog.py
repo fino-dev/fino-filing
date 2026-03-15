@@ -115,7 +115,10 @@ class Catalog:
         self.conn.commit()
 
     def _get_table_column_names(self) -> list[str]:
-        """filings テーブルのカラム名一覧を取得（data 除く物理カラム＋data）。"""
+        """
+        filings テーブルのカラム名一覧を取得
+        （物理カラム＋data）。
+        """
         result = self.conn.execute(
             """
             SELECT column_name FROM information_schema.columns
@@ -125,16 +128,21 @@ class Catalog:
         ).fetchall()
         return [row[0] for row in result] if result else []
 
-    def _ensure_indexed_columns(self, filing_cls: Type[Filing]) -> None:
+    def _ensure_indexed_columns(
+        self,
+        filing_cls: Type[
+            Filing
+        ],  # filing_clsはFilingのインスタンスではなく、Filingのクラス
+    ) -> None:
         """
-        Filing クラスの indexed フィールドがテーブルに存在しない場合、ADD COLUMN とインデックスを作成する。
+        Filing クラスの indexed が有効なフィールドがテーブルに物理カラムとして存在しない場合、物理カラムとインデックスを作成する
         """
-        existing = set(self._get_table_column_names())
-        indexed = filing_cls.get_indexed_fields()
+        existing = set[str](self._get_table_column_names())
+        indexed_fields = filing_cls.get_indexed_fields()
         fields = getattr(filing_cls, "_fields", {})
 
-        for name in indexed:
-            if name in existing or name == "data":
+        for name in indexed_fields:
+            if name in existing:
                 continue
             field = fields.get(name)
             py_type = getattr(field, "_field_type", None) if field else None
@@ -147,21 +155,89 @@ class Catalog:
         self.conn.commit()
 
     def _data_only_dict(
-        self, filing_dict: dict[str, Any], physical_columns: set[str]
+        self,
+        filing_dict: dict[str, Any],
+        indexed_columns: set[
+            str
+        ],  # indexed_columns は物理カラムの名前の集合。（dataカラムを除く）
     ) -> dict[str, Any]:
         """
-        物理カラムに存在するキーを除いた辞書を返す。
-        data カラムには追加フィールド（core/indexed 以外）のみ保存する。
+        物理カラムを除いた辞書（dataカラムに保存するFieldのみ）を返す。
         """
-        return {k: v for k, v in filing_dict.items() if k not in physical_columns}
+        if "data" in indexed_columns:
+            raise ValueError("dataカラムは物理カラムに含めることはできません")
 
-    def _row_to_full_doc(self, columns: list[str], row: tuple[Any, ...]) -> dict[str, Any]:
-        """1行（物理カラム）と data の JSON をマージして完全な辞書を返す。"""
-        row_dict = dict(zip(columns, row))
-        data_str = row_dict.pop("data", None)
-        extra: dict[str, Any] = json.loads(data_str) if data_str else {}
-        row_dict.update(extra)
+        return {k: v for k, v in filing_dict.items() if k not in indexed_columns}
+
+    def _row_to_full_doc(
+        self, columns: list[str], row: tuple[Any, ...]
+    ) -> dict[str, Any]:
+        """
+        1行（物理カラム）と data の JSON をマージして辞書を返す。（Filingの生成用）
+        """
+
+        # カラムの名前と値の辞書をzipしてdictを生成
+        row_dict = dict[str, Any](zip(columns, row))
+
+        # dataカラム内のJSONをロードして別dictに切り分ける
+        data_str: Any = row_dict.pop("data", None)
+        # data_str がJSON型かつprimitive型やnullでない場合にはdictに切り分ける。それ以外は空dictで定義する
+        try:
+            parsed_data: Any = json.loads(data_str) if data_str else {}
+        except json.JSONDecodeError:
+            parsed_data = {}
+
+        # フラットなdictにマージする
+        row_dict.update(parsed_data)
+
         return row_dict
+
+    @staticmethod
+    def _escape_sql_value(value: Any) -> str:
+        """SQL のリテラルとして埋め込むために値をエスケープする。"""
+        if value is None:
+            return "NULL"
+        if isinstance(value, bool):
+            return "TRUE" if value else "FALSE"
+        if isinstance(value, (int, float)):
+            return str(value)
+        if isinstance(value, dt):
+            return "'" + value.isoformat().replace("'", "''") + "'"
+        s = str(value).replace("'", "''")
+        return f"'{s}'"
+
+    @staticmethod
+    def _expr_to_inline_sql(
+        expr: Expr,
+        indexed_columns: set[str] | None = None,
+    ) -> str:
+        """
+        Expr のプレースホルダをエスケープしたリテラルで置換した SQL を返す。
+        パラメータを execute に渡すと DuckDB が結果セットの JSON 変換に誤用することがあるため、
+        WHERE 句はリテラル埋め込みにし、execute には空リストを渡す。
+        indexed_columns を渡すと json_extract(data, '$.col') を "col" に書き換え、
+        WHERE で data を参照しないようにする（DuckDB の JSON 解釈誤用を防ぐ）。
+        """
+        sql = expr.sql
+        if indexed_columns:
+            for col in indexed_columns:
+                sql = sql.replace(f"json_extract(data, '$.{col}')", f'"{col}"')
+        for value in expr.params:
+            literal = Catalog._escape_sql_value(value)
+            sql = sql.replace("?", literal, 1)
+        return sql
+
+    def _resolve_data_to_filing(self, data: dict[str, Any]) -> Filing:
+        """
+        data から _filing_class を解決し Filing インスタンスを返す
+        変換後には_filing_class を属性から削除する
+        """
+
+        dict_data = dict(data)
+        filing_cls_name = dict_data.pop("_filing_class", None)
+        cls = self._resolver.resolve(filing_cls_name) or Filing
+
+        return cls.from_dict(data=dict_data)
 
     def index(self, filing: Filing) -> None:
         """
@@ -193,8 +269,8 @@ class Catalog:
         self._ensure_indexed_columns(type(filing))
 
         columns = self._get_table_column_names()
-        physical_columns = set(columns) - {"data"}
-        data_only = self._data_only_dict(filing_dict, physical_columns)
+        indexed_columns = set(columns) - {"data"}
+        data_only = self._data_only_dict(filing_dict, indexed_columns)
         filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
         indexed_set = set(type(filing).get_indexed_fields())
 
@@ -228,7 +304,7 @@ class Catalog:
             self._ensure_indexed_columns(type(filing))
 
         columns = self._get_table_column_names()
-        physical_columns = set(columns) - {"data"}
+        indexed_columns = set(columns) - {"data"}
         core_set: set[str] = {c for c in _CORE_COLUMNS if c != "data"}
         rows: list[list[Any]] = []
 
@@ -237,7 +313,7 @@ class Catalog:
             filing_dict["_filing_class"] = (
                 f"{type(filing).__module__}.{type(filing).__qualname__}"
             )
-            data_only = self._data_only_dict(filing_dict, physical_columns)
+            data_only = self._data_only_dict(filing_dict, indexed_columns)
             filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
             indexed_set = set(type(filing).get_indexed_fields())
 
@@ -258,16 +334,6 @@ class Catalog:
             rows,
         )
         self.conn.commit()
-
-    def _resolve_data_to_filing(self, data: dict[str, Any]) -> Filing:
-        """
-        data から _filing_class を解決し Filing インスタンスを返す
-        """
-
-        data = dict(data)
-        filing_cls_name = data.pop("_filing_class", None)
-        cls = self._resolver.resolve(filing_cls_name) or Filing
-        return cls.from_dict(data)
 
     def get(self, id: str) -> Filing | None:
         """
@@ -332,16 +398,18 @@ class Catalog:
         columns = self._get_table_column_names()
         cols_str = ", ".join(f'"{c}"' for c in columns)
         sql = f"SELECT {cols_str} FROM filings"
-        params: list[Any] = []
+        bind_params: list[Any] = []
 
-        # WHERE句
+        # WHERE句（パラメータを渡すと DuckDB が結果の JSON 変換に誤用するため、リテラル埋め込み）
+        table_columns = set(columns)
         if expr:
-            sql += f" WHERE {expr.sql}"
-            params = expr.params
+            where_sql = Catalog._expr_to_inline_sql(
+                expr, indexed_columns=table_columns - {"data"}
+            )
+            sql += f" WHERE {where_sql}"
 
         # ORDER BY（物理カラムならそのまま、それ以外は json_extract）
         order_direction = "DESC" if desc else "ASC"
-        table_columns = set(columns)
         if order_by in table_columns and order_by != "data":
             sql += f' ORDER BY "{order_by}" {order_direction}'
         else:
@@ -351,7 +419,7 @@ class Catalog:
         sql += f" LIMIT {limit} OFFSET {offset}"
 
         # 実行（物理カラム + data の追加フィールドをマージして復元）
-        rows = self.conn.execute(sql, params).fetchall()
+        rows = self.conn.execute(sql, bind_params).fetchall()
         raw_list = [self._row_to_full_doc(columns, row) for row in rows]
         return [self._resolve_data_to_filing(d) for d in raw_list]
 
@@ -382,13 +450,17 @@ class Catalog:
             件数
         """
         sql = "SELECT COUNT(*) FROM filings"
-        params = []
+        bind_params: list[Any] = []
 
         if expr:
-            sql += f" WHERE {expr.sql}"
-            params = expr.params
+            columns = self._get_table_column_names()
+            indexed_columns = set(columns) - {"data"}
+            where_sql = Catalog._expr_to_inline_sql(
+                expr, indexed_columns=indexed_columns
+            )
+            sql += f" WHERE {where_sql}"
 
-        result = self.conn.execute(sql, params).fetchone()
+        result = self.conn.execute(sql, bind_params).fetchone()
         return result[0] if result else 0
 
     def stats(self) -> dict[str, Any]:

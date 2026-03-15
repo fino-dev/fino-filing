@@ -11,6 +11,8 @@ from fino_filing.filing.error import (
 )
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Initialize:
     """
     Filingのインスタンス化をテストする。
@@ -67,6 +69,7 @@ class TestFiling_Initialize:
 
     def test_filing_id_includes_extended_indexed_metadata(self) -> None:
         """拡張 Filing ではユーザー追加フィールドが id のハッシュに含まれる"""
+
         class ExtendedFiling(Filing):
             doc_id: Annotated[str, Field(indexed=True, description="Doc ID")]
 
@@ -157,6 +160,8 @@ class TestFiling_Initialize:
         assert fve.value.fields == ["id", "source", "checksum", "name", "format"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Initialize_ImmutableField:
     """
     Filingのインスタンス化のimmutableフィールドの振る舞いをテストする。

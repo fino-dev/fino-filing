@@ -3,11 +3,15 @@
 import os
 from pathlib import Path
 
+import pytest
+
 from fino_filing.collection.catalog import Catalog
 from fino_filing.collection.collection import Collection
 from fino_filing.collection.storages import LocalStorage
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_Initialize:
     """
     Collectionの初期化をテストする。

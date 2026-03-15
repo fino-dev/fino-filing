@@ -2,9 +2,14 @@
 
 from datetime import datetime
 
+import pytest
+
 from fino_filing import EDGARFiling
 
 
+@pytest.mark.module
+@pytest.mark.filing
+@pytest.mark.edger
 class TestFiling_Initialize_EDGAR:
     """EDGARFiling. 観点: 正常系（初期化）"""
 

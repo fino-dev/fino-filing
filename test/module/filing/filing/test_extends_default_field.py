@@ -34,6 +34,8 @@ class ImmutableDefaultFieldMutableOverrideFiling(ImmutableDefaultFieldFiling):
     checksum = "override_checksum"
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_Initialize_ImmutableDefaultFieldOverride:
     """
     ImmutableなDefault値を設定したFilingをさらに継承して上書きをした場合の振る舞いをテストする。

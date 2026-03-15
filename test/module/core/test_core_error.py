@@ -3,6 +3,8 @@ import pytest
 from fino_filing.core.error import FinoFilingException
 
 
+@pytest.mark.module
+@pytest.mark.core
 class TestFinoFilingException:
     """FinoFilingException. 観点: 異常系（基底例外の message 形式）"""
 

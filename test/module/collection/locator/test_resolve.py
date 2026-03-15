@@ -1,9 +1,13 @@
 from datetime import datetime
 
+import pytest
+
 from fino_filing import Filing
 from fino_filing.collection.locator import Locator
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestLocator_Resolve:
     """
     Locatorのresolveメソッドをテストする。

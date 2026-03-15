@@ -1,6 +1,5 @@
 """Collector テスト用 fixtures"""
 
-import hashlib
 import tempfile
 from datetime import datetime
 from pathlib import Path

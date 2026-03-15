@@ -1,9 +1,13 @@
 from datetime import datetime
 
+import pytest
+
 from fino_filing import Filing
 from fino_filing.filing.field import Field
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Field:
     """
     FilingのフィールドのDescriptorの振る舞いをテストする。

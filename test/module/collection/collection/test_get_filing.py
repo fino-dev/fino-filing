@@ -1,7 +1,11 @@
+import pytest
+
 from fino_filing import Catalog, Collection, Filing
 from fino_filing.collection.storages import LocalStorage
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_GetFiling:
     """
     Collectionのget_filing()メソッドをテストする。

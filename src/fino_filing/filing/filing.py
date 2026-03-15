@@ -155,10 +155,6 @@ class Filing(metaclass=FilingMeta):
     def __setattr__(self, name: str, value: Any) -> None:
         """
         Filingの属性代入時にimmutableチェックを行う
-
-        Args:
-            name: 属性名
-            value: 設定する値
         """
 
         cls = self.__class__
@@ -244,10 +240,8 @@ class Filing(metaclass=FilingMeta):
 
     def to_dict(self) -> dict[str, Any]:
         """
-        辞書化（完全フラット）
-
-        Returns:
-            フィールド辞書
+        辞書化
+        （完全フラット）
         """
         result: dict[str, Any] = {}
 
@@ -264,12 +258,6 @@ class Filing(metaclass=FilingMeta):
     def from_dict(cls, data: dict[str, Any]) -> Self:
         """
         辞書から復元
-
-        Args:
-            data: フィールド辞書
-
-        Returns:
-            呼び出し元クラスのインスタンス（Filing 継承時はそのサブクラス）
         """
         # datetime復元: すべてのdatetime型フィールドを自動変換
         data_copy = data.copy()
@@ -302,9 +290,6 @@ class Filing(metaclass=FilingMeta):
     def get_identity_fields(cls) -> list[str]:
         """
         ID ハッシュに含めるフィールド一覧（コアの source/name/is_zip/format ＋ ユーザー追加フィールド全て）。
-
-        Returns:
-            フィールド名リスト（ソート済み）
         """
         core_id = {"format", "is_zip", "name", "source"}
         extra = [k for k in cls._fields if k not in cls._core_fields]
@@ -313,15 +298,14 @@ class Filing(metaclass=FilingMeta):
     @classmethod
     def get_indexed_fields(cls) -> list[str]:
         """
-        物理カラム化されるフィールド一覧（Catalog の保存・検索用。ID 生成には使わない）。
-
-        Returns:
-            フィールド名リスト
+        物理カラム化されるフィールド一覧
         """
         return [field.name for field in cls._fields.values() if field.indexed]
 
     def __eq__(self, other: object) -> bool:
-        """同一クラスかつ全フィールドが一致する場合に True"""
+        """
+        同一クラスかつ全フィールドが一致する場合に True
+        """
         if type(self) is not type(other):
             return False
         return self._data == getattr(other, "_data", None)

@@ -92,7 +92,14 @@ def main() -> None:
             source = getattr(filing, "source", "?")
             name = getattr(filing, "name", "?")
             created = getattr(filing, "created_at", "?")
-            logger.info("%d. id=%s source=%s name=%s created_at=%s", i, fid, source, name, created)
+            logger.info(
+                "%d. id=%s source=%s name=%s created_at=%s",
+                i,
+                fid,
+                source,
+                name,
+                created,
+            )
 
         logger.info("--- End of list ---")
     finally:

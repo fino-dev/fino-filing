@@ -212,11 +212,19 @@ class Field:
 
     def __get__(self, obj: Any, objtype: type | None = None) -> Any:
         """Descriptor protocol（モデルからのアクセス用）"""
+
         if obj is None:
-            # クラスからのアクセス: EDINETFiling.filer_name
+            # クラスからのアクセスの場合
+            if objtype is not None:
+                if not hasattr(objtype, "_defaults"):
+                    return self
+
+                defaults = getattr(objtype, "_defaults", {})
+                if self.name in defaults:
+                    return defaults[self.name]
             return self
         else:
-            # インスタンスからのアクセス: filing.filer_name
+            # インスタンスからのアクセスの場合
             # 1. instance._data に値があればそれを返す
             if self.name in obj._data:
                 return obj._data[self.name]

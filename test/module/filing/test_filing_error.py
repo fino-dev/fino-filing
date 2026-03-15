@@ -11,6 +11,9 @@ from fino_filing.filing.error import (
 )
 
 
+@pytest.mark.module
+@pytest.mark.filing
+@pytest.mark.field
 class TestFieldValidationError:
     """
     FieldValidationError. 観点: 異常系（例外の属性が仕様どおりであること）
@@ -28,6 +31,9 @@ class TestFieldValidationError:
         assert e.value.actual_type == str  # noqa: E721
 
 
+@pytest.mark.module
+@pytest.mark.filing
+@pytest.mark.field
 class TestFieldImmutableError:
     """
     FieldImmutableError. 観点: 異常系（例外の属性が仕様どおりであること）
@@ -45,6 +51,8 @@ class TestFieldImmutableError:
         assert e.value.attempt_value == 2
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFilingValidationError:
     """
     FilingValidationError. 観点: 異常系（複数フィールドのバリデーションエラー）
@@ -63,6 +71,8 @@ class TestFilingValidationError:
         assert e.value.fields == ["test_field_1", "test_field_2"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFilingImmutableError:
     """
     FilingImmutableError. 観点: 異常系（複数フィールドの immutable 違反）
@@ -81,6 +91,8 @@ class TestFilingImmutableError:
         assert e.value.fields == ["test_field_1", "test_field_2"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFilingRequiredError:
     """
     FilingRequiredError. 観点: 異常系（必須フィールド欠損）
@@ -99,6 +111,8 @@ class TestFilingRequiredError:
         assert e.value.fields == ["field_1", "field_2"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFilingError_Str_Parametrized:
     """FilingValidationError / FilingImmutableError / FilingRequiredError の str(). 観点: 異常系（parametrize）"""
 

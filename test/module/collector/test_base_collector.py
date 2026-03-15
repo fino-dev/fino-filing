@@ -3,6 +3,8 @@
 import hashlib
 from typing import Iterator
 
+import pytest
+
 from fino_filing import Collection, Filing
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 
@@ -38,6 +40,8 @@ class StubCollector(BaseCollector):
         )
 
 
+@pytest.mark.module
+@pytest.mark.collector
 class TestBaseCollector:
     """BaseCollector.collect() の呼び出し順と add の回数を検証する"""
 
@@ -58,7 +62,7 @@ class TestBaseCollector:
         assert stub.parse_called == 2
         assert stub.build_called == 2
         assert len(results) == 2
-        for (filing, path) in results:
+        for filing, path in results:
             assert filing.source == "stub"
             assert path
 

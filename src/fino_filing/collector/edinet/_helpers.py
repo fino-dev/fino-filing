@@ -33,7 +33,9 @@ def list_item_to_parsed(item: dict[str, Any]) -> Parsed:
         "ordinance_code": item.get("ordinanceCode") or item.get("ordinance_code") or "",
         "form_code": item.get("formCode") or item.get("form_code") or "",
         "doc_type_code": item.get("docTypeCode") or item.get("doc_type_code") or "",
-        "doc_description": item.get("docDescription") or item.get("doc_description") or "",
+        "doc_description": item.get("docDescription")
+        or item.get("doc_description")
+        or "",
         "period_start": parse_edinet_datetime(
             item.get("periodStart") or item.get("period_start")
         ),

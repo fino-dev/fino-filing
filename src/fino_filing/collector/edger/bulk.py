@@ -44,5 +44,7 @@ class EdgerBulkCollector(BaseCollector):
 
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
         """Parsed と content から EDGARFiling を生成する。"""
-        primary_name = parsed.get("primary_name") or (parsed.get("accession_number", "") + "-index.htm")
+        primary_name = parsed.get("primary_name") or (
+            parsed.get("accession_number", "") + "-index.htm"
+        )
         return build_edgar_filing(parsed, raw.content, primary_name)

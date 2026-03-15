@@ -3,9 +3,13 @@
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from fino_filing import Catalog, Collection, LocalStorage
 
 
+@pytest.mark.scenario
+@pytest.mark.collection
 class TestCollection_Scenario_Init:
     """Collection 初期化のシナリオ。観点: 正常系"""
 

@@ -8,6 +8,9 @@ import pytest
 from fino_filing.collector.edinet import EdinetClient, EdinetConfig
 
 
+@pytest.mark.module
+@pytest.mark.collector
+@pytest.mark.edinet
 class TestEdinetClient:
     """EdinetClient: 書類一覧・書類取得のリクエスト実行"""
 
@@ -16,7 +19,10 @@ class TestEdinetClient:
     ) -> None:
         """get_document_list は JSON レスポンスをそのまま返す"""
         client = EdinetClient(edinet_config)
-        body = {"metadata": {"totalCount": 1}, "results": [{"docID": "S100XXX", "filerName": "Test"}]}
+        body = {
+            "metadata": {"totalCount": 1},
+            "results": [{"docID": "S100XXX", "filerName": "Test"}],
+        }
         with (
             patch("fino_filing.collector.edinet.client.time.sleep"),
             patch("fino_filing.collector.edinet.client.urlopen") as m_urlopen,
@@ -39,13 +45,13 @@ class TestEdinetClient:
             patch("fino_filing.collector.edinet.client.time.sleep"),
             patch("fino_filing.collector.edinet.client.urlopen") as m_urlopen,
         ):
-            m_urlopen.side_effect = HTTPError("https://example.com", 500, "Error", {}, None)
+            m_urlopen.side_effect = HTTPError(
+                "https://example.com", 500, "Error", {}, None
+            )
             result = client.get_document_list("2024-01-01")
         assert result == {}
 
-    def test_get_document_returns_bytes(
-        self, edinet_config: EdinetConfig
-    ) -> None:
+    def test_get_document_returns_bytes(self, edinet_config: EdinetConfig) -> None:
         """get_document は書類実体を bytes で返す"""
         client = EdinetClient(edinet_config)
         content = b"%PDF-1.4 sample"
@@ -68,6 +74,8 @@ class TestEdinetClient:
             patch("fino_filing.collector.edinet.client.time.sleep"),
             patch("fino_filing.collector.edinet.client.urlopen") as m_urlopen,
         ):
-            m_urlopen.side_effect = HTTPError("https://example.com", 404, "Not Found", {}, None)
+            m_urlopen.side_effect = HTTPError(
+                "https://example.com", 404, "Not Found", {}, None
+            )
             result = client.get_document("S100NONEXISTENT")
         assert result == b""

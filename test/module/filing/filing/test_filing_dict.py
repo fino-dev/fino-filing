@@ -8,6 +8,8 @@ from fino_filing.filing.error import FilingRequiredError, FilingValidationError
 from fino_filing.filing.field import Field
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_ToDict:
     """
     Filing.to_dict() のテスト
@@ -106,6 +108,8 @@ class TestFiling_ToDict:
         assert result["id"] == "test_id"
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_FromDict:
     """
     Filing.from_dict() のテスト
@@ -212,6 +216,8 @@ class TestFiling_FromDict:
         assert filing.id == "test_id"
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_ToDict_FromDict_RoundTrip:
     """
     to_dict() と from_dict() のラウンドトリップテスト
