@@ -7,6 +7,36 @@ title: Contributing
 
 Rules and workflows for contributing to fino-filing. See also **AGENTS.md** in the repository root (authority order: AGENTS.md → docs → user input).
 
+## Development environment
+
+### Lint / format on push
+
+Auto lint and formatter will executed when you push to github repository and it will block your pushes.
+If you blocked pushes, you need to fix the problem and commit them and retry it.
+
+**Initial Development environment setup**
+
+```bash
+uv sync --group dev
+uv run pre-commit install --hook-type pre-push
+```
+
+- `.pre-commit-config.yaml` execute `ruff check` and `ruff format --check`
+- Hooks not executed in commit but push
+
+**Check the executed process in manually**
+
+```bash
+uv run pre-commit run --hook-type pre-push --all-files
+```
+
+**Linter & Formatter**
+
+```bash
+uv run ruff check --fix
+uv run ruff format
+```
+
 ## Coding rules
 
 ### Type hints
