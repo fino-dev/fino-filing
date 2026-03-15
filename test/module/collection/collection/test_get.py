@@ -1,10 +1,14 @@
 import hashlib
 from datetime import datetime
 
+import pytest
+
 from fino_filing import Catalog, Collection, EDINETFiling, Filing
 from fino_filing.collection.storages import LocalStorage
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_Get:
     """
     Collectionのget()メソッドをテストする。

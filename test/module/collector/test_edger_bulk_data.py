@@ -2,12 +2,17 @@
 
 import hashlib
 
+import pytest
+
 from fino_filing import EDGARFiling
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edger import EdgerBulkCollector, EdgerConfig
 from fino_filing.collection.collection import Collection
 
 
+@pytest.mark.module
+@pytest.mark.collector
+@pytest.mark.edger
 class TestEdgerBulkCollector:
     """EdgerBulkCollector: パースと EDGARFiling 生成"""
 

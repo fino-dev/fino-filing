@@ -1,8 +1,12 @@
 """Expr の単体テスト。観点: 正常系（AND/OR/NOT の結合と params）"""
 
+import pytest
+
 from fino_filing import Expr
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExpr_Init:
     """Expr. 観点: 正常系（初期化）"""
 
@@ -13,6 +17,8 @@ class TestExpr_Init:
         assert e.params == ["x"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExpr_And:
     """Expr.__and__. 観点: 正常系"""
 
@@ -25,6 +31,8 @@ class TestExpr_And:
         assert c.params == ["a", "b"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExpr_Or:
     """Expr.__or__. 観点: 正常系"""
 
@@ -37,6 +45,8 @@ class TestExpr_Or:
         assert c.params == ["a", "b"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExpr_Invert:
     """Expr.__invert__. 観点: 正常系"""
 

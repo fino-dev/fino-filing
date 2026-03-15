@@ -6,6 +6,8 @@ import pytest
 from fino_filing import Catalog, Field, Filing
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_get_table_column_names:
     """
     Catalog._get_table_column_names のテスト
@@ -29,6 +31,8 @@ class TestCatalog_Helper_get_table_column_names:
         ]
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_ensure_indexed_columns:
     """
     Catalog._ensure_indexed_columns のテスト
@@ -52,6 +56,8 @@ class TestCatalog_Helper_ensure_indexed_columns:
         assert "ticker" in final_columns
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_data_only_dict:
     """
     Catalog._data_only_dict のテスト
@@ -96,6 +102,8 @@ class TestCatalog_Helper_data_only_dict:
         assert str(e.value) == "dataカラムは物理カラムに含めることはできません"
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_row_to_full_doc:
     """
     Catalog._row_to_full_doc のテスト
@@ -191,6 +199,8 @@ class TestCatalog_Helper_row_to_full_doc:
         }
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_escape_sql_value:
     """
     Catalog._escape_sql_value のテスト

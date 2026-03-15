@@ -2,11 +2,16 @@
 
 from typing import Any, Iterator
 
+import pytest
+
 from fino_filing import EDINETFiling
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edinet import EdinetConfig, EdinetCollector
 
 
+@pytest.mark.module
+@pytest.mark.collector
+@pytest.mark.edinet
 class TestEdinetCollector:
     """EdinetCollector: collect フローと add_to_collection"""
 

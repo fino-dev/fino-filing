@@ -11,6 +11,8 @@ import hashlib
 from datetime import datetime
 from typing import Annotated
 
+import pytest
+
 from fino_filing import Catalog, Field, Filing
 
 
@@ -26,6 +28,8 @@ def _table_columns(catalog: Catalog) -> set[str]:
     return {row[0] for row in rows}
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Index_IndexedColumns:
     """
     Catalog.index() で indexed フィールドが物理カラムとして追加されることのテスト

@@ -18,6 +18,8 @@ class ExtendFiling(Filing):
     pass
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_Initialize:
     """
     Filingを継承したFilingのインスタンス化をテストする。
@@ -86,6 +88,8 @@ class ExtendedIndexedAndNonIndexedFiling(Filing):
     memo: Annotated[str, Field(description="Memo (not indexed)")]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_IdGeneration:
     """
     継承後の Filing の追加 Field の違いに応じて id が適切に一致/非一致することを検証する。
@@ -206,6 +210,8 @@ class AdditionalFieldsFiling(Filing):
     additional_field_2: Annotated[int, Field(description="Additional Field 2")]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_Initialize_AdditionalFields:
     """
     Filingにフィールドを追加した継承Filingのインスタンス化をテストする。
@@ -338,6 +344,8 @@ class AdditionalImmutableFieldFiling(Filing):
     ]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_Initialize_AdditionalImmutableFields:
     """
     FilingにFieldを追加した継承Filingのimmutableの振る舞いをテストする。
@@ -421,6 +429,8 @@ class AdditionalDefaultImmutableFieldFiling(Filing):
     ] = "default_immutable_token"
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Initialize_AdditionalDefaultImmutableFiling:
     """
     FilingにFieldを追加した継承Filingのdefault値の振る舞いをテストする。
@@ -555,6 +565,8 @@ class ExistingFieldDefaultFiling(Filing):
     # is_zip = 123  # type: ignore
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_Initialize_ExistingFieldDefault:
     """
     既存FieldにDefault値を設定した継承FIlingのインスタンス化の振る舞いをテストする。
@@ -628,6 +640,8 @@ class ExistingImmutableFieldDefaultFiling(Filing):
     source = "default_source"
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
     """
     既存のImmutableなFieldにDefault値を設定した継承Filingのインスタンス化の振る舞いをテストする。
@@ -682,6 +696,8 @@ class TestExtendFiling_Initialize_ExistingImmutableFieldDefault:
 # ================ Required Field Default None Forbidden ================
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestExtendFiling_RequiredFieldDefaultNoneForbidden:
     """
     Field(required=True) のフィールドに default None を設定することを禁止する仕様のテスト。

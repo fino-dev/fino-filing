@@ -9,6 +9,8 @@ from fino_filing.collection.error import CollectionChecksumMismatchError
 from fino_filing.collection.storages import LocalStorage
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_Add:
     """
     Collection.add(). 観点: 正常系、異常系（checksum 不一致）、契約（同一 id は上書き許容）

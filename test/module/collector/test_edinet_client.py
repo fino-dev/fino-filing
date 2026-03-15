@@ -8,6 +8,9 @@ import pytest
 from fino_filing.collector.edinet import EdinetClient, EdinetConfig
 
 
+@pytest.mark.module
+@pytest.mark.collector
+@pytest.mark.edinet
 class TestEdinetClient:
     """EdinetClient: 書類一覧・書類取得のリクエスト実行"""
 

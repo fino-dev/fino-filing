@@ -11,6 +11,8 @@ from fino_filing.filing.error import (
 )
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Initialize:
     """
     Filingのインスタンス化をテストする。
@@ -157,6 +159,8 @@ class TestFiling_Initialize:
         assert fve.value.fields == ["id", "source", "checksum", "name", "format"]
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Initialize_ImmutableField:
     """
     Filingのインスタンス化のimmutableフィールドの振る舞いをテストする。

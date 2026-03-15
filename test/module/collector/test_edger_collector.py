@@ -2,11 +2,16 @@
 
 from typing import Any, Iterator
 
+import pytest
+
 from fino_filing import EDGARFiling
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edger import EdgerConfig, EdgerDocumentsCollector
 
 
+@pytest.mark.module
+@pytest.mark.collector
+@pytest.mark.edger
 class TestEdgerDocumentsCollector:
     """EdgerDocumentsCollector: collect フローと add_to_collection"""
 

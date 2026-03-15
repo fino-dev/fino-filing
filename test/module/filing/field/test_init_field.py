@@ -1,6 +1,11 @@
+import pytest
+
 from fino_filing import Field
 
 
+@pytest.mark.module
+@pytest.mark.filing
+@pytest.mark.field
 class TestField_Initialize:
     """
     Fieldのインスタンス化をテストする。

@@ -6,6 +6,8 @@ from fino_filing.filing.error import FilingRequiredError
 from fino_filing.filing.filing import Filing
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Initialize_ExplicitNone:
     """
     明示的にNoneを渡した場合の振る舞いをテストする。

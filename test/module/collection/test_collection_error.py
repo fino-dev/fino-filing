@@ -3,6 +3,8 @@ import pytest
 from fino_filing.collection.error import CollectionChecksumMismatchError
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollectionChecksumMismatchError:
     """
     CollectionChecksumMismatchError. 観点: 異常系（例外の属性が仕様どおりであること）

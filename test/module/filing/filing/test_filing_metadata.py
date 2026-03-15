@@ -1,10 +1,14 @@
 from datetime import datetime
 from typing import Annotated
 
+import pytest
+
 from fino_filing import Filing
 from fino_filing.filing.field import Field
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_GetIndexedFields:
     """
     Filing.get_indexed_fields() のテスト
@@ -120,6 +124,8 @@ class TestFiling_GetIndexedFields:
         assert len(indexed_fields) == 7
 
 
+@pytest.mark.module
+@pytest.mark.filing
 class TestFiling_Repr:
     """
     Filing.__repr__() のテスト

@@ -3,10 +3,14 @@
 import hashlib
 from datetime import datetime
 
+import pytest
+
 from fino_filing import Catalog, Collection, EDGARFiling, EDINETFiling, Field
 from fino_filing.collection.storages import LocalStorage
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_Search_ReturnType:
     """Collection.search. 観点: 正常系（保存時の具象クラスで返る）"""
 
@@ -50,6 +54,8 @@ class TestCollection_Search_ReturnType:
         assert filing.filer_name == edinet_filing.filer_name
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCollection_Search_WithExpr:
     """
     Collection.search(expr=...) で Expr に文字列パラメータを渡した場合の検証。

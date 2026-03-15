@@ -12,6 +12,8 @@ import json
 from datetime import datetime
 from typing import Any
 
+import pytest
+
 from fino_filing import Catalog, EDINETFiling, Expr, Field, Filing
 from fino_filing.collection.filing_resolver import FilingResolver
 
@@ -24,6 +26,8 @@ def _index_filing(catalog: Catalog, filing: Filing) -> None:
     catalog.index(filing)
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_FilingClass_Behavior:
     """
     _filing_class の付与・取得・復元の振る舞いテスト
@@ -303,6 +307,8 @@ class TestCatalog_FilingClass_Behavior:
         assert full["_filing_class"] == "fino_filing.filing.filing_edinet.EDINETFiling"
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_expr_to_inline_sql:
     """
     Catalog._expr_to_inline_sql のテスト
@@ -361,6 +367,8 @@ class TestCatalog_Helper_expr_to_inline_sql:
         assert "'EDGAR'" in got
 
 
+@pytest.mark.module
+@pytest.mark.collection
 class TestCatalog_Helper_resolve_data_to_filing:
     """
     Catalog._resolve_data_to_filing のテスト
