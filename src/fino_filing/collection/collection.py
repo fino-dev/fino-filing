@@ -102,11 +102,15 @@ class Collection:
     # ========== 検索系 ==========
 
     def get(self, id: str) -> tuple[Filing | None, bytes | None, str | None]:
-        """ID specified retrieval (Filing and content)"""
+        """ID specified retrieval (Filing and content). 返す path は絶対パス。"""
         filing = self.get_filing(id)
         content = self.get_content(id)
-        # pathをlocatorで取得 (get_pathは内部でget_filingを呼び出しているため、重複実行を避けるためここでは使用しない)
-        path = self._locator.resolve(filing)
+        path_rel = self._locator.resolve(filing)
+        path = (
+            str((self._storage.base_dir / path_rel).resolve())
+            if path_rel
+            else None
+        )
         return filing, content, path
 
     def get_filing(self, id: str) -> Filing | None:
@@ -127,9 +131,14 @@ class Collection:
             return None
 
     def get_path(self, id: str) -> str | None:
-        """ID specified retrieval (Path only)"""
+        """ID specified retrieval (Path only). 返す path は絶対パス。"""
         filing = self.get_filing(id)
-        return self._locator.resolve(filing)
+        path_rel = self._locator.resolve(filing)
+        return (
+            str((self._storage.base_dir / path_rel).resolve())
+            if path_rel
+            else None
+        )
 
     def search(
         self,

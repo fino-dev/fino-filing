@@ -19,8 +19,7 @@ class TestScenario_CollectEdgerFacts:
         """CIK が 1つ指定して収集できる"""
 
         collector = EdgerFactsCollector(
-            # collection=temp_collection, config=EdgerConfig("test@example.com")
-            collection=Collection(),
+            collection=temp_collection,
             config=EdgerConfig("test@example.com"),
         )
 
@@ -52,4 +51,5 @@ class TestScenario_CollectEdgerFacts:
         assert content is not None
 
         assert path is not None
-        assert path == collected[0][1]
+        # get() が返す path は絶対パス。add の戻り値も絶対パスのため一致する。
+        assert Path(path).resolve() == Path(collected[0][1]).resolve()

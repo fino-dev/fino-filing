@@ -50,8 +50,8 @@ class TestCollection_Get:
         assert content == b"test content"
         assert path is not None
         assert isinstance(path, str)
-        # path は Locator の相対パス、actual_path は Storage の絶対パス（path を含む）
-        assert path in actual_path.replace("\\", "/")
+        # get() が返す path は絶対パス。add の戻り値 actual_path も絶対パスのため一致する。
+        assert path.replace("\\", "/") == actual_path.replace("\\", "/")
 
     def test_get_filing_returns_edinet_filing_when_saved_as_edinet(
         self,
