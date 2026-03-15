@@ -11,6 +11,8 @@ from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.filing.filing_edinet import EDINETFiling
 
+import hashlib
+
 from ._helpers import build_edinet_filing, list_item_to_parsed, meta_to_parsed
 from .client import EdinetClient
 from .config import EdinetConfig
