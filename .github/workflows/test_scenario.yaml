@@ -1,4 +1,4 @@
-name: Module Test
+name: Scenario Test
 
 on:
   pull_request:
@@ -45,8 +45,9 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@v1.1.47
         with:
-          title: "Coverage Report"
-          junitxml-title: "🎴Scenario Test"
+          unique-id-for-comment: "scenario-test"
+          title: "Scenario Test - Coverage Report"
+          junitxml-title: "Scenario Test"
           pytest-coverage-path: ./pytest-coverage.txt
           pytest-xml-coverage-path: ./coverage.xml
           junitxml-path: ./pytest.xml
