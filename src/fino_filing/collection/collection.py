@@ -106,11 +106,7 @@ class Collection:
         filing = self.get_filing(id)
         content = self.get_content(id)
         path_rel = self._locator.resolve(filing)
-        path = (
-            str((self._storage.base_dir / path_rel).resolve())
-            if path_rel
-            else None
-        )
+        path = str((self._storage.base_dir / path_rel).resolve()) if path_rel else None
         return filing, content, path
 
     def get_filing(self, id: str) -> Filing | None:
@@ -134,11 +130,7 @@ class Collection:
         """ID specified retrieval (Path only). 返す path は絶対パス。"""
         filing = self.get_filing(id)
         path_rel = self._locator.resolve(filing)
-        return (
-            str((self._storage.base_dir / path_rel).resolve())
-            if path_rel
-            else None
-        )
+        return str((self._storage.base_dir / path_rel).resolve()) if path_rel else None
 
     def search(
         self,
