@@ -47,4 +47,5 @@ jobs:
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           pytest-xml-coverage-path: ./coverage.xml
+          coverage-path-prefix: src/fino_filing/
           junitxml-path: ./pytest.xml
