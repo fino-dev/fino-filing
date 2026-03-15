@@ -45,7 +45,8 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@v1.1.47
         with:
+          title: "Module Test - Coverage Report"
+          junitxml-title: "Module Test"
           pytest-coverage-path: ./pytest-coverage.txt
           pytest-xml-coverage-path: ./coverage.xml
-          coverage-path-prefix: src/fino_filing/
           junitxml-path: ./pytest.xml
