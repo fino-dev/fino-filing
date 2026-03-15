@@ -32,6 +32,8 @@ uv run pre-commit run --hook-type pre-push --all-files
 
 **Linter & Formatter**
 
+If you got simple fomat or lint error, you can fix with under commands
+
 ```bash
 uv run ruff check --fix
 uv run ruff format
