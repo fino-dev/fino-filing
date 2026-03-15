@@ -62,7 +62,7 @@ class TestBaseCollector:
         assert stub.parse_called == 2
         assert stub.build_called == 2
         assert len(results) == 2
-        for (filing, path) in results:
+        for filing, path in results:
             assert filing.source == "stub"
             assert path
 

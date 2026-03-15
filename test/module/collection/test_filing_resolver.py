@@ -56,6 +56,7 @@ class TestRegisterFilingClass:
 
     def test_register_filing_class_registers_and_resolves(self) -> None:
         """register_filing_class で登録したクラスを resolve できる"""
+
         class CustomFiling(Filing):
             pass
 

@@ -25,7 +25,9 @@ def accession_to_dir(accession: str) -> str:
     return accession.replace("-", "")
 
 
-def build_edgar_filing(parsed: Parsed, content: bytes, primary_name: str) -> EDGARFiling:
+def build_edgar_filing(
+    parsed: Parsed, content: bytes, primary_name: str
+) -> EDGARFiling:
     """Parsed と content から EDGARFiling を組み立てる。3 Collector で共有する。"""
     checksum = hashlib.sha256(content).hexdigest()
     filing_date = parsed.get("filing_date")

@@ -69,6 +69,7 @@ class TestFiling_Initialize:
 
     def test_filing_id_includes_extended_indexed_metadata(self) -> None:
         """拡張 Filing ではユーザー追加フィールドが id のハッシュに含まれる"""
+
         class ExtendedFiling(Filing):
             doc_id: Annotated[str, Field(indexed=True, description="Doc ID")]
 
