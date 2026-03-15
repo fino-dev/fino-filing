@@ -56,7 +56,9 @@ class EdinetCollector(BaseCollector):
         while current <= end:
             date_str = current.strftime("%Y-%m-%d")
             resp = self._client.get_document_list(date_str, type=list_type)
-            results = resp.get("results") if isinstance(resp.get("results"), list) else []
+            results = (
+                resp.get("results") if isinstance(resp.get("results"), list) else []
+            )
             for item in results:
                 if limit is not None and total_yielded >= limit:
                     return
@@ -67,7 +69,6 @@ class EdinetCollector(BaseCollector):
                 if not content:
                     continue
                 parsed = list_item_to_parsed(item)
-                name = f"{doc_id}.pdf"
                 meta: dict[str, Any] = {
                     **parsed,
                     "doc_id": doc_id,
