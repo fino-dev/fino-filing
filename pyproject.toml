@@ -24,6 +24,7 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typing" },
+    "pre-commit>=4.5.1",
 ]
 
 [tool.coverage.run]
