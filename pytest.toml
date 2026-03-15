@@ -3,7 +3,17 @@ minversion = "9.0"
 addopts = ["-ra", "-q"]
 testpaths = ["test"]
 
-markers = ["collection: Collection tests"]
+markers = [
+    "module: module tests",
+    "scenario: scenario tests",
+    "collection: collection tests",
+    "collector: collector tests",
+    "filing: filing tests",
+    "field: field tests",
+    "core: core tests",
+    "edger: EDGAR related tests",
+    "edinet: EDINET related tests",
+]
 
 [tool.coverage.run]
 source = ["src"]
@@ -19,3 +29,4 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
 ]
+
