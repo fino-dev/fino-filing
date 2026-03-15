@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-lint:
+  test:
     runs-on: ubuntu-latest
     name: Run Module Test
     steps:
@@ -22,9 +22,25 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-      
+
       - name: Install the project dependencies
         run: uv sync --locked --group test
 
-      - name: Run Tests
-        run: uv run pytest test/module/
+      - name: Run pytest with coverage
+        run: |
+          set -o pipefail
+          uv run pytest test/module/ --junitxml=pytest.xml --cov=src/fino_filing --cov-report=term-missing --cov-report=xml -q | tee pytest-coverage.txt
+
+      - name: Coverage in Job Summary
+        run: |
+          echo "## Pytest coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat pytest-coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Pytest coverage comment
+        if: github.event_name == 'pull_request'
+        uses: MishaKav/pytest-coverage-comment@v1.1.47
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
