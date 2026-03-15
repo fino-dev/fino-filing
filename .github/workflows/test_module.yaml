@@ -10,6 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run Module Test
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Check out source repository
         uses: actions/checkout@v6
@@ -29,7 +32,7 @@ jobs:
       - name: Run pytest with coverage
         run: |
           set -o pipefail
-          uv run pytest test/module/ --junitxml=pytest.xml --cov=src/fino_filing --cov-report=term-missing --cov-report=xml -q | tee pytest-coverage.txt
+          uv run pytest test/module/ --junitxml=pytest.xml --cov=src/fino_filing --cov-report=term-missing --cov-report=xml | tee pytest-coverage.txt
 
       - name: Coverage in Job Summary
         run: |
