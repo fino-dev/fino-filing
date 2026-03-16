@@ -2,8 +2,10 @@
 
 from fino_filing.filing.field import Field
 
+
 class EDGARFilingQuery:
     """Generated query type for .q autocomplete."""
+
     cik: Field
     accession_number: Field
     company_name: Field

@@ -2,8 +2,10 @@
 
 from fino_filing.filing.field import Field
 
+
 class EDINETFilingQuery:
     """Generated query type for .q autocomplete."""
+
     doc_id: Field
     edinet_code: Field
     sec_code: Field

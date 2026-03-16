@@ -35,7 +35,11 @@ def _has_field_in_annotation(node: ast.expr) -> bool:
     elif isinstance(slice_val, (ast.Index, ast.expr)):  # Python 3.9+ slice は直接
         elts = [slice_val] if not isinstance(slice_val, ast.Tuple) else slice_val.elts
     else:
-        elts = getattr(slice_val, "elts", [slice_val]) if hasattr(slice_val, "elts") else [slice_val]
+        elts = (
+            getattr(slice_val, "elts", [slice_val])
+            if hasattr(slice_val, "elts")
+            else [slice_val]
+        )
     if len(elts) < 2:
         return False
     for meta in elts[1:]:
