@@ -246,6 +246,30 @@ class Field:
         return f"Field(name={self.name!r}, type={self._field_type}, indexed={self.indexed}, immutable={self.immutable}, required={self.required})"
 
 
+# ========== Query DSL（.q で instance と分離） ==========
+
+
+class _QueryProxy:
+    """
+    クラスアクセス時のみ有効な descriptor。EDGARFiling.q.cik -> Field となり、
+    EDGARFiling.q.cik == "..." で Expr が型安全に得られる。instance は filing.cik -> str のまま。
+    """
+
+    def __get__(self, obj: Any, objtype: type | None = None) -> Any:
+        if obj is not None:
+            raise AttributeError("q is for class-level query only")
+        if objtype is None:
+            raise AttributeError("q requires a class")
+        cls = objtype
+        fields = getattr(cls, "_fields", {})
+
+        class _Bound:
+            def __getattr__(_self, name: str) -> Field:
+                return fields.get(name, Field(name))
+
+        return _Bound()
+
+
 # ========== ショートカット関数 ==========
 
 

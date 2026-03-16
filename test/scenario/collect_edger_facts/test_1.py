@@ -70,7 +70,7 @@ class TestScenario_CollectEdgerFacts:
         assert filing.form_type == "companyfacts"
         assert filing.company_name == "Alphabet Inc."
 
-        filings = temp_collection.search(expr=(EDGARFiling.cik == "0001652044"))
+        filings = temp_collection.search(expr=(EDGARFiling.q.cik == "0001652044"))
         filing = filings[0]
         assert filing is not None
         assert isinstance(filing, EDGARFiling)
@@ -80,6 +80,3 @@ class TestScenario_CollectEdgerFacts:
         assert filing.created_at == collected[0][0].created_at
         assert filing.created_at.tzinfo is None
         assert filing.created_at.tzinfo is None
-
-TODO: expreがどのようなケースに対応するか整理する必要あり
-TODO: ID genrateの挙動も整理必要

@@ -11,7 +11,7 @@ from fino_filing.filing.error import (
 )
 from fino_filing.filing.meta import FilingMeta
 
-from .field import Field
+from .field import Field, _QueryProxy
 
 if TYPE_CHECKING:
     pass
@@ -62,12 +62,20 @@ class Filing(metaclass=FilingMeta):
         filing = Filing(source="custom", name="f.xbrl", checksum="...", format="xbrl", is_zip=False)
         filing.id   # 内部生成
         filing.revenue  # 未設定時は 0.0
+
+        # クエリは .q で分離（instance は filing.cik -> str、クエリは EDGARFiling.q.cik == "..." -> Expr）
+        collection.search(expr=(EDGARFiling.q.cik == "0001652044"))
+
+        拡張時に .q で補完を効かせるには、サブクラスで _Query を定義し
+        フィールド名を Field 型で並べる。メタクラスが q に実体を入れる。
     """
 
     # メタクラスで設定されるクラス変数の型アノテーション
     _fields: dict[str, Field]
     _defaults: dict[str, Any]
     _data: dict[str, Any]
+
+    q = _QueryProxy()
 
     # ========== Core Fields (Descriptor) ==========
     # required=True: Collection が前提とする必須項目。拡張時も Field(required=True) で同様の挙動を指定可能。
