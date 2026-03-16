@@ -292,7 +292,8 @@ class Filing(metaclass=FilingMeta):
         ID ハッシュに含めるフィールド一覧（コアの source/name/is_zip/format ＋ ユーザー追加フィールド全て）。
         """
         core_id = {"format", "is_zip", "name", "source"}
-        extra = [k for k in cls._fields if k not in cls._core_fields]
+        # Filingの_fieldからFilingの元から存在するField( core ) を除外したFieldのリストを取得
+        extra = [field for field in cls._fields if field not in cls._core_fields]
         return sorted(core_id | set(extra))
 
     @classmethod
