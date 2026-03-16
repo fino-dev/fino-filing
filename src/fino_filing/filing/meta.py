@@ -161,8 +161,16 @@ class FilingMeta(type):
         setattr(cls, "_fields", fields)
         setattr(cls, "_defaults", defaults)
 
-        # 8. サブクラスが _Query を定義している場合は q をそのインスタンスで上書き（.q.cik 等の補完用）
+        # 8. q を補完用インスタンスで上書き。_Query（手動）または {Name}Query（生成）を利用
         query_cls = attrs.get("_Query")
+        if not isinstance(query_cls, type):
+            import sys
+
+            query_cls = getattr(
+                sys.modules.get(cls.__module__, None),
+                cls.__name__ + "Query",
+                None,
+            )
         if isinstance(query_cls, type):
             q_inst = object.__new__(query_cls)
             for k, v in fields.items():

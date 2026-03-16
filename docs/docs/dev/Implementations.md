@@ -33,6 +33,7 @@ Summary of the current implementation by boundary. See [Codebase](./codebase) fo
 - **`Field`** (`filing/field.py`) — Descriptor and query DSL (e.g. `Field("x") == 1`, `in_()`, `between()`). Used in model definitions and in Expr.
 - **`Expr`** (`filing/expr.py`) — WHERE abstraction: `sql` + `params`. Supports `&`, `|`, `~`. Catalog compiles to DuckDB.
 - **`EDINETFiling`** / **`EDGARFiling`** — Built-in subclasses with source-specific fields; registered on `default_resolver`.
+- **Query types (`.q`)** — `Model.q.attr` で補完を効かせるため、`*_queries.py` をコード生成する。ソースは既存のクラス定義（`Annotated[T, Field(...)]`）。実行: `python scripts/generate_filing_queries.py`。Filing サブクラスを追加・変更したあとに再実行する。
 
 ## Collector boundary
 

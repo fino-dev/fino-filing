@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from fino_filing.filing.field import Field
 
 from .filing import Filing
+from .filing_edinet_queries import EDINETFilingQuery
 
 
 class EDINETFiling(Filing):
@@ -53,3 +54,5 @@ class EDINETFiling(Filing):
     parent_doc_id: Annotated[
         str | None, Field(description="Parent Doc ID(親書類管理番号)")
     ] = None
+
+    q: ClassVar[EDINETFilingQuery]
