@@ -68,7 +68,7 @@ def sample_raw_document() -> RawDocument:
 
 @pytest.fixture
 def temp_collection() -> Iterator[tuple[Collection, Path]]:
-    """テスト用の一時 Collection（storage + catalog）"""
+    """テスト用の一時 Collection（storage + catalog）。collector 用は (collection, base_path) を返す。"""
     with tempfile.TemporaryDirectory(prefix="collector_test_") as tmpdir:
         base = Path(tmpdir)
         storage = LocalStorage(base / "storage")
