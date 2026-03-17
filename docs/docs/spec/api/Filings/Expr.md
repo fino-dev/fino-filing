@@ -18,17 +18,19 @@ Expr(sql: str, params: list[Any]) -> Expr
 
 ## Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `sql` | str | WHERE fragment |
-| `params` | list[Any] | Parameters |
+| Attribute | Type      | Description    |
+| --------- | --------- | -------------- |
+| `sql`     | str       | WHERE fragment |
+| `params`  | list[Any] | Parameters     |
 
 ## Operators
 
-| Operator | Result | Example |
-|----------|--------|---------|
-| `&` | AND | `expr1 & expr2` |
-| `\|` | OR | `expr1 \| expr2` |
-| `~` | NOT | `~expr` |
+| Operator | Result | Example          |
+| -------- | ------ | ---------------- |
+| `&`      | AND    | `expr1 & expr2`  |
+| `\|`     | OR     | `expr1 \| expr2` |
+| `~`      | NOT    | `~expr`          |
 
 Users typically build `Expr` via `Field` (e.g. `Field("source") == "EDGAR"`), not by constructing `Expr` directly.
+
+検索式の全体仕様・SQL 変換は [Collection Search](../../Collection-Search.md) を参照。

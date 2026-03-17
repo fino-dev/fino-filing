@@ -80,6 +80,3 @@ class TestScenario_CollectEdgerFacts:
         assert filing.created_at == collected[0][0].created_at
         assert filing.created_at.tzinfo is None
         assert filing.created_at.tzinfo is None
-
-TODO: expreがどのようなケースに対応するか整理する必要あり
-TODO: ID genrateの挙動も整理必要

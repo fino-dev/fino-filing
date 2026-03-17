@@ -56,3 +56,26 @@ class TestExpr_Invert:
         c = ~a
         assert c.sql == "NOT (id = ?)"
         assert c.params == ["x"]
+
+
+@pytest.mark.module
+@pytest.mark.filing
+class TestExpr_NestedCompound:
+    """複合条件のネストと params 順の維持。"""
+
+    def test_nested_and_or_combines_sql_and_params_in_order(self) -> None:
+        """(a & b) | c で sql が a_sql AND b_sql OR c_sql、params が a+b+c の順になる"""
+        a = Expr("a = ?", [1])
+        b = Expr("b = ?", [2])
+        c = Expr("c = ?", [3])
+        combined = (a & b) | c
+        assert combined.sql == "a = ? AND b = ? OR c = ?"
+        assert combined.params == [1, 2, 3]
+
+    def test_invert_and_combines_sql(self) -> None:
+        """~(a & b) で sql が NOT (a_sql AND b_sql) になる"""
+        a = Expr("a = ?", ["x"])
+        b = Expr("b = ?", ["y"])
+        combined = ~(a & b)
+        assert combined.sql == "NOT (a = ? AND b = ?)"
+        assert combined.params == ["x", "y"]

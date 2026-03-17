@@ -202,3 +202,267 @@ class TestCollection_Search_WithExpr:
 
         n = temp_catalog.count(expr=(Field("source") == "EDGAR"))
         assert n == 2
+
+
+@pytest.mark.module
+@pytest.mark.collection
+class TestCollection_Search_Expr_DSL:
+    """Collection.search で Field の contains / in_ / between / 複合 AND・OR が動作すること。"""
+
+    def test_search_with_expr_contains_returns_matching_filings_only(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """expr=Field('name').contains('10-K') で name に '10-K' を含むものだけ返る"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+
+        with_10k = EDGARFiling(
+            id="with_10k",
+            checksum=checksum,
+            name="annual_10-K_report.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="1",
+            accession_number="1-1",
+            company_name="A",
+            form_type="10-K",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        without_10k = EDGARFiling(
+            id="without_10k",
+            checksum=checksum,
+            name="other_report.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="1",
+            accession_number="1-2",
+            company_name="A",
+            form_type="10-Q",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        collection.add(with_10k, content)
+        collection.add(without_10k, content)
+
+        results = collection.search(expr=Field("name").contains("10-K"), limit=10)
+        assert len(results) == 1
+        assert results[0].id == "with_10k"
+        assert "10-K" in results[0].name
+
+    def test_search_with_expr_in_returns_matching_filings_only(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """expr=Field('source').in_(['EDGAR']) で source が EDGAR の 1 件だけ返る"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+
+        edgar_filing = EDGARFiling(
+            id="edgar_in",
+            checksum=checksum,
+            name="e.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="1",
+            accession_number="1-1",
+            company_name="A",
+            form_type="10-K",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        edinet_filing = EDINETFiling(
+            id="edinet_in",
+            checksum=checksum,
+            name="i.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+            doc_id="S1",
+            edinet_code="E1",
+            sec_code="1",
+            jcn="1",
+            filer_name="F",
+            ordinance_code="010",
+            form_code="030000",
+            doc_type_code="120",
+            doc_description="d",
+            period_start=datetime_now,
+            period_end=datetime_now,
+            submit_datetime=datetime_now,
+        )
+        collection.add(edgar_filing, content)
+        collection.add(edinet_filing, content)
+
+        results = collection.search(expr=Field("source").in_(["EDGAR"]), limit=10)
+        assert len(results) == 1
+        assert results[0].source == "EDGAR"
+        assert results[0].id == "edgar_in"
+
+    def test_search_with_expr_between_returns_filings_in_range(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """expr=Field('created_at').between(lo, hi) で範囲内の件だけ返る（物理カラムを使用）"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+
+        base = datetime_now
+        inside_ts = base.replace(year=base.year - 1, month=6, day=1)
+        outside_ts = base.replace(year=base.year - 2, month=1, day=1)
+
+        filing_inside = EDGARFiling(
+            id="inside",
+            checksum=checksum,
+            name="inside.htm",
+            is_zip=False,
+            format="htm",
+            created_at=inside_ts,
+            cik="1",
+            accession_number="1-1",
+            company_name="A",
+            form_type="10-K",
+            filing_date=inside_ts,
+            period_of_report=inside_ts,
+        )
+        filing_outside = EDGARFiling(
+            id="outside",
+            checksum=checksum,
+            name="outside.htm",
+            is_zip=False,
+            format="htm",
+            created_at=outside_ts,
+            cik="1",
+            accession_number="1-2",
+            company_name="A",
+            form_type="10-K",
+            filing_date=outside_ts,
+            period_of_report=outside_ts,
+        )
+        collection.add(filing_inside, content)
+        collection.add(filing_outside, content)
+
+        lo = datetime(base.year - 1, 5, 1)
+        hi = datetime(base.year - 1, 7, 1)
+        results = collection.search(expr=Field("created_at").between(lo, hi), limit=10)
+        assert len(results) == 1
+        assert results[0].id == "inside"
+
+    def test_search_with_expr_and_returns_both_conditions_match(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """(Field('source') == 'EDGAR') & (Field('name').contains('10-K')) で両方一致するものだけ返る"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+
+        k = EDGARFiling(
+            id="edgar_10k",
+            checksum=checksum,
+            name="annual_10-K_report.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="1",
+            accession_number="1-1",
+            company_name="A",
+            form_type="10-K",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        q = EDGARFiling(
+            id="edgar_10q",
+            checksum=checksum,
+            name="quarterly_10-Q_report.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="1",
+            accession_number="1-2",
+            company_name="A",
+            form_type="10-Q",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        collection.add(k, content)
+        collection.add(q, content)
+
+        results = collection.search(
+            expr=(Field("source") == "EDGAR") & (Field("name").contains("10-K")),
+            limit=10,
+        )
+        assert len(results) == 1
+        assert "10-K" in results[0].name
+        assert results[0].id == "edgar_10k"
+
+    def test_search_with_expr_or_returns_either_condition_match(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """(Field('source') == 'EDGAR') | (Field('source') == 'EDINET') で両方の source が返る"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+
+        edgar_filing = EDGARFiling(
+            id="edgar_or",
+            checksum=checksum,
+            name="e.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="1",
+            accession_number="1-1",
+            company_name="A",
+            form_type="10-K",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        edinet_filing = EDINETFiling(
+            id="edinet_or",
+            checksum=checksum,
+            name="i.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+            doc_id="S1",
+            edinet_code="E1",
+            sec_code="1",
+            jcn="1",
+            filer_name="F",
+            ordinance_code="010",
+            form_code="030000",
+            doc_type_code="120",
+            doc_description="d",
+            period_start=datetime_now,
+            period_end=datetime_now,
+            submit_datetime=datetime_now,
+        )
+        collection.add(edgar_filing, content)
+        collection.add(edinet_filing, content)
+
+        results = collection.search(
+            expr=(Field("source") == "EDGAR") | (Field("source") == "EDINET"),
+            limit=10,
+        )
+        assert len(results) == 2
+        sources = {f.source for f in results}
+        assert sources == {"EDGAR", "EDINET"}
