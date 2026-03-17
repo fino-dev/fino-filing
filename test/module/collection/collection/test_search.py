@@ -251,9 +251,7 @@ class TestCollection_Search_Expr_DSL:
         collection.add(with_10k, content)
         collection.add(without_10k, content)
 
-        results = collection.search(
-            expr=Field("name").contains("10-K"), limit=10
-        )
+        results = collection.search(expr=Field("name").contains("10-K"), limit=10)
         assert len(results) == 1
         assert results[0].id == "with_10k"
         assert "10-K" in results[0].name
@@ -306,9 +304,7 @@ class TestCollection_Search_Expr_DSL:
         collection.add(edgar_filing, content)
         collection.add(edinet_filing, content)
 
-        results = collection.search(
-            expr=Field("source").in_(["EDGAR"]), limit=10
-        )
+        results = collection.search(expr=Field("source").in_(["EDGAR"]), limit=10)
         assert len(results) == 1
         assert results[0].source == "EDGAR"
         assert results[0].id == "edgar_in"
@@ -361,9 +357,7 @@ class TestCollection_Search_Expr_DSL:
 
         lo = datetime(base.year - 1, 5, 1)
         hi = datetime(base.year - 1, 7, 1)
-        results = collection.search(
-            expr=Field("created_at").between(lo, hi), limit=10
-        )
+        results = collection.search(expr=Field("created_at").between(lo, hi), limit=10)
         assert len(results) == 1
         assert results[0].id == "inside"
 
