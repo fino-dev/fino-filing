@@ -134,7 +134,7 @@ class Collection:
 
     def search(
         self,
-        expr: "Expr | None" = None,
+        expr: Expr | None | bool = None,
         limit: int = 100,
         offset: int = 0,
         order_by: str = "created_at",

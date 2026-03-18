@@ -376,7 +376,7 @@ class Catalog:
 
     def search(
         self,
-        expr: Expr | None = None,
+        expr: Expr | None | bool = None,
         limit: int = 100,
         offset: int = 0,
         order_by: str = "created_at",
@@ -439,7 +439,7 @@ class Catalog:
 
         return self.conn.execute(sql, params).fetchall()
 
-    def count(self, expr: Expr | None = None) -> int:
+    def count(self, expr: Expr | None | bool = None) -> int:
         """
         件数カウント
 
