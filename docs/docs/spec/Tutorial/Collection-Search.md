@@ -99,5 +99,5 @@ n = collection.count(expr=(Field("source") == "EDGAR"))
 
 ## See also
 
-- How expressions are compiled (Expr → SQL, indexed fields): [Search Expression](../Search-Expression.md).
+- How expressions are compiled (Expr → SQL, indexed fields): [Expr](/docs/spec/api/Filings/Expr) and [Field](/docs/spec/api/Filings/Field).
 - API reference: [Field](../api/Filings/Field.md), [Expr](../api/Filings/Expr.md), [Collection](../api/Collections/Collection.md).
