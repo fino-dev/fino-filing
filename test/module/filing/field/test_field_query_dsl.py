@@ -2,7 +2,7 @@
 
 import pytest
 
-from fino_filing import Expr, Field
+from fino_filing import EDINETFiling, Expr, Field
 
 
 @pytest.mark.module
@@ -100,3 +100,16 @@ class TestField_QueryDSL_Range:
         assert isinstance(e, Expr)
         assert "BETWEEN ? AND ?" in e.sql
         assert e.params == [1, 10]
+
+
+@pytest.mark.module
+@pytest.mark.filing
+class TestField_QueryDSL_ClassAccessWithDefault:
+    """デフォルトありフィールドのクラスアクセスで左辺として Expr を組み立てられること。"""
+
+    def test_edinet_source_eq_returns_expr(self) -> None:
+        """EDINETFiling.source == 'EDINET' は Expr を返す（bool の True ではない）"""
+        e = EDINETFiling.source == "EDINET"
+        assert isinstance(e, Expr)
+        assert "source" in e.sql
+        assert e.params == ["EDINET"]

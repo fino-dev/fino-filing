@@ -5,6 +5,73 @@ from fino_filing.filing.error import FieldValidationError
 from .expr import Expr
 
 
+def _resolve_expr_value(value: Any) -> Any:
+    """Expr に埋め込むリテラルに変換する。__filing_expr_value__ プロトコル対応。"""
+    if callable(getattr(value, "__filing_expr_value__", None)):
+        return value.__filing_expr_value__()
+    return value
+
+
+class FieldWithDefault:
+    """
+    デフォルト値付き Field 参照（クラスアクセスで Expr 左辺・右辺の両方で使えるようにする）
+
+    責務:
+        - 左辺: 比較/文字列/集合演算を内部 Field に委譲して Expr を返す
+        - 右辺: __filing_expr_value__() でリテラルを返す
+    """
+
+    def __init__(self, field: "Field", value: Any) -> None:
+        self.field = field
+        self.value = value
+
+    def __filing_expr_value__(self) -> Any:
+        """右辺で Expr のパラメータとして使うときのリテラルを返す。"""
+        return self.value
+
+    def __eq__(self, value: Any) -> Expr:
+        return self.field.__eq__(value)
+
+    def __ne__(self, value: Any) -> Expr:
+        return self.field.__ne__(value)
+
+    def __gt__(self, value: Any) -> Expr:
+        return self.field.__gt__(value)
+
+    def __ge__(self, value: Any) -> Expr:
+        return self.field.__ge__(value)
+
+    def __lt__(self, value: Any) -> Expr:
+        return self.field.__lt__(value)
+
+    def __le__(self, value: Any) -> Expr:
+        return self.field.__le__(value)
+
+    def contains(self, value: str) -> Expr:
+        return self.field.contains(value)
+
+    def startswith(self, value: str) -> Expr:
+        return self.field.startswith(value)
+
+    def endswith(self, value: str) -> Expr:
+        return self.field.endswith(value)
+
+    def in_(self, values: list[Any]) -> Expr:
+        return self.field.in_(values)
+
+    def not_in(self, values: list[Any]) -> Expr:
+        return self.field.not_in(values)
+
+    def is_null(self) -> Expr:
+        return self.field.is_null()
+
+    def is_not_null(self) -> Expr:
+        return self.field.is_not_null()
+
+    def between(self, lower: Any, upper: Any) -> Expr:
+        return self.field.between(lower, upper)
+
+
 class Field:
     """
     フィールドDescriptor（Typed Query DSL）
@@ -70,12 +137,12 @@ class Field:
 
         Args:
             op: 演算子
-            value: 比較値
+            value: 比較値（__filing_expr_value__ があればリテラルに解決）
 
         Returns:
             Expr
         """
-
+        value = _resolve_expr_value(value)
         if self.indexed:
             sql = f"{self.name} {op} ?"
         else:
@@ -114,6 +181,7 @@ class Field:
         """部分一致: field LIKE '%value%'"""
         from .expr import Expr
 
+        value = _resolve_expr_value(value)
         if self.indexed:
             sql = f"{self.name} LIKE ?"
         else:
@@ -125,6 +193,7 @@ class Field:
         """前方一致: field LIKE 'value%'"""
         from .expr import Expr
 
+        value = _resolve_expr_value(value)
         if self.indexed:
             sql = f"{self.name} LIKE ?"
         else:
@@ -136,6 +205,7 @@ class Field:
         """後方一致: field LIKE '%value'"""
         from .expr import Expr
 
+        value = _resolve_expr_value(value)
         if self.indexed:
             sql = f"{self.name} LIKE ?"
         else:
@@ -149,6 +219,7 @@ class Field:
         """IN句: field IN (v1, v2, ...)"""
         from .expr import Expr
 
+        values = [_resolve_expr_value(v) for v in values]
         placeholders = ", ".join(["?"] * len(values))
 
         if self.indexed:
@@ -162,6 +233,7 @@ class Field:
         """NOT IN句: field NOT IN (v1, v2, ...)"""
         from .expr import Expr
 
+        values = [_resolve_expr_value(v) for v in values]
         placeholders = ", ".join(["?"] * len(values))
 
         if self.indexed:
@@ -201,6 +273,8 @@ class Field:
         """範囲検索: field BETWEEN lower AND upper"""
         from .expr import Expr
 
+        lower = _resolve_expr_value(lower)
+        upper = _resolve_expr_value(upper)
         if self.indexed:
             sql = f"{self.name} BETWEEN ? AND ?"
         else:
@@ -214,14 +288,14 @@ class Field:
         """Descriptor protocol（モデルからのアクセス用）"""
 
         if obj is None:
-            # クラスからのアクセスの場合
+            # クラスからのアクセスの場合（左辺で Expr、右辺でリテラルとして両方使えるよう参照オブジェクトを返す）
             if objtype is not None:
                 if not hasattr(objtype, "_defaults"):
                     return self
 
                 defaults = getattr(objtype, "_defaults", {})
                 if self.name in defaults:
-                    return defaults[self.name]
+                    return FieldWithDefault(self, defaults[self.name])
             return self
         else:
             # インスタンスからのアクセスの場合

@@ -53,7 +53,7 @@ class TestScenario_CollectEdgerFacts:
         assert path is not None
         assert Path(path).resolve() == Path(collected[0][1]).resolve()
 
-        # Collectionからsearchできる
+        # Collectionからsearchできる（右辺でクラス参照）
         filings = temp_collection.search(expr=(Field("source") == EDGARFiling.source))
         filing = filings[0]
         assert filing is not None
@@ -69,6 +69,10 @@ class TestScenario_CollectEdgerFacts:
         assert filing.accession_number == "facts-0001652044"
         assert filing.form_type == "companyfacts"
         assert filing.company_name == "Alphabet Inc."
+
+        # 左辺でモデルフィールド（デフォルトあり）でも search 可能
+        filings = temp_collection.search(expr=(EDGARFiling.source == "EDGAR"))
+        assert len(filings) == 1 and filings[0].id == collected[0][0].id
 
         filings = temp_collection.search(expr=(EDGARFiling.cik == "0001652044"))
         filing = filings[0]

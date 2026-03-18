@@ -54,7 +54,10 @@ search/count での利用と・SQL 変換は [Collection Search](../../Collectio
 
 ## Descriptor protocol
 
-Used on Filing subclasses: `Field` is used inside `Annotated[str, Field(...)]`. On the class, `FilingClass.field_name` returns the `Field` (for building Expr); on the instance, `filing.field_name` returns the value.
+Used on Filing subclasses: `Field` is used inside `Annotated[str, Field(...)]`.
+
+- **Class access** `FilingClass.field_name`: Returns the `Field` when the field has no class default; when it has a default (e.g. `EDINETFiling.source = "EDINET"`), returns a reference object that can be used both as **left-hand side** (e.g. `EDINETFiling.source == "EDINET"` → Expr) and **right-hand side** (e.g. `Field("source") == EDINETFiling.source` → same as `== "EDINET"`).
+- **Instance access** `filing.field_name`: Returns the field value.
 
 ## Method
 
