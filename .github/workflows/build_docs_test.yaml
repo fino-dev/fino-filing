@@ -9,8 +9,8 @@ on:
       - '.github/workflows/build_docs_test.yaml'
 
 jobs:
-  test-deploy:
-    name: Test deployment
+  test-docs-build:
+    name: Test Docs Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
