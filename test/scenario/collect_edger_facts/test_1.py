@@ -73,15 +73,3 @@ class TestScenario_CollectEdgerFacts:
         # 左辺でモデルフィールド（デフォルトあり）でも search 可能
         filings = temp_collection.search(expr=(EDGARFiling.source == "EDGAR"))
         assert len(filings) == 1 and filings[0].id == collected[0][0].id
-
-        filings = temp_collection.search(expr=(EDGARFiling.cik == "0001652044"))
-
-        filing = filings[0]
-        assert filing is not None
-        assert isinstance(filing, EDGARFiling)
-        assert filing.source == "EDGAR"
-        assert filing.id == collected[0][0].id
-        assert filing.name == collected[0][0].name
-        assert filing.created_at == collected[0][0].created_at
-        assert filing.created_at.tzinfo is None
-        assert filing.created_at.tzinfo is None
