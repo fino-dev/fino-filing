@@ -66,9 +66,8 @@ class FilingMeta(type):
                     current_value = getattr(cls, attr_name)
                     if isinstance(current_value, Field):
                         pass
-                    elif (
-                        getattr(current_value, "field", None) is not None
-                        and hasattr(current_value, "value")
+                    elif getattr(current_value, "field", None) is not None and hasattr(
+                        current_value, "value"
                     ):
                         defaults[attr_name] = getattr(current_value, "value")
                     else:
