@@ -61,9 +61,16 @@ class FilingMeta(type):
                     continue
 
                 # （型アノテーションによるデフォルト値）のクラス属性に、デフォルト値が設定されている場合は、それをdefaultsに保存
+                # 子クラスでは getattr が親の descriptor 経由で FieldWithDefault を返すため、実値 (.value) のみ保存する
                 if hasattr(cls, attr_name):
                     current_value = getattr(cls, attr_name)
-                    if not isinstance(current_value, Field):
+                    if isinstance(current_value, Field):
+                        pass
+                    elif getattr(current_value, "field", None) is not None and hasattr(
+                        current_value, "value"
+                    ):
+                        defaults[attr_name] = getattr(current_value, "value")
+                    else:
                         defaults[attr_name] = current_value
 
                 # すでにFieldが定義されている場合は、再設定しない

@@ -3,6 +3,10 @@ from typing import Any
 from fino_filing.core.error import FinoFilingException
 from fino_filing.filing.filing import Filing
 
+"""
+Collection Errors
+"""
+
 
 class CollectionChecksumMismatchError(FinoFilingException, ValueError):
     """Checksum mismatch error"""
@@ -21,12 +25,22 @@ class CollectionChecksumMismatchError(FinoFilingException, ValueError):
         self.expected_checksum = expected_checksum
 
 
+"""
+Locator Errors
+"""
+
+
 class LocatorPathResolutionError(FinoFilingException, ValueError):
     """Locator path resolution error"""
 
     def __init__(self, filing: Filing | None):
         super().__init__(f"Locator did not resolve path for filing: {filing}")
         self.filing = filing
+
+
+"""
+Catalog Errors
+"""
 
 
 class CatalogRequiredValueError(FinoFilingException, ValueError):
@@ -53,3 +67,11 @@ class CatalogAlreadyExistsError(FinoFilingException, ValueError):
     ):
         super().__init__(f"Filing id: {filing_id} already exists in catalog")
         self.filing_id = filing_id
+
+
+class CatalogExprTypeError(FinoFilingException, TypeError):
+    """Expr type error"""
+
+    def __init__(self, expr: Any):
+        super().__init__(f"Expr must be Expr or None, not {type(expr).__name__}")
+        self.expr = expr

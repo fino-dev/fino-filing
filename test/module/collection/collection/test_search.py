@@ -6,6 +6,7 @@ from datetime import datetime
 import pytest
 
 from fino_filing import Catalog, Collection, EDGARFiling, EDINETFiling, Field
+from fino_filing.collection.error import CatalogExprTypeError
 from fino_filing.collection.storages import LocalStorage
 
 
@@ -62,6 +63,18 @@ class TestCollection_Search_WithExpr:
     DuckDB が位置パラメータを結果セットの JSON 変換に誤用すると Conversion Error になるため、
     名前付きパラメータに変換する修正が効いていることを確認する。
     """
+
+    def test_search_rejects_bool_expr(
+        self, temp_storage: LocalStorage, temp_catalog: Catalog
+    ) -> None:
+        """expr に bool を渡すと CatalogExprTypeError を送出する"""
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        with pytest.raises(CatalogExprTypeError) as e:
+            collection.search(expr=True)
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
+        with pytest.raises(CatalogExprTypeError) as e:
+            collection.search(expr=False)
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
 
     def test_search_with_expr_source_returns_matching_filings_only(
         self,
@@ -149,6 +162,98 @@ class TestCollection_Search_WithExpr:
         )
         assert len(by_string) == 1 and len(by_class_default) == 1
         assert by_string[0].id == by_class_default[0].id
+
+    def test_search_with_expr_model_field_lhs_edinet_source(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """EDINETFiling.source == 'EDINET' で検索すると EDINET のみ返る（デフォルトありフィールドを左辺にした Expr）"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        edgar_filing = EDGARFiling(
+            id="edgar_1",
+            checksum=checksum,
+            name="edgar.htm",
+            is_zip=False,
+            format="htm",
+            created_at=datetime_now,
+            cik="0000320193",
+            accession_number="0000320193-23-000106",
+            company_name="Apple Inc.",
+            form_type="10-K",
+            filing_date=datetime_now,
+            period_of_report=datetime_now,
+        )
+        edinet_filing = EDINETFiling(
+            id="edinet_1",
+            checksum=checksum,
+            name="edinet.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+            doc_id="S100XXX",
+            edinet_code="E12345",
+            sec_code="12345",
+            jcn="1234567890123",
+            filer_name="Test Inc.",
+            ordinance_code="010",
+            form_code="030000",
+            doc_type_code="120",
+            doc_description="有価証券報告書",
+            period_start=datetime_now,
+            period_end=datetime_now,
+            submit_datetime=datetime_now,
+        )
+        collection.add(edgar_filing, content)
+        collection.add(edinet_filing, content)
+
+        results = collection.search(expr=(EDINETFiling.source == "EDINET"), limit=10)
+        assert len(results) == 1
+        assert results[0].id == edinet_filing.id
+        assert results[0].source == "EDINET"
+        assert isinstance(results[0], EDINETFiling)
+
+    def test_search_with_expr_rhs_edinet_source_same_as_string(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """Field('source') == EDINETFiling.source は Field('source') == 'EDINET' と同一挙動（右辺で参照オブジェクト）"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        edinet_filing = EDINETFiling(
+            id="edinet_1",
+            checksum=checksum,
+            name="edinet.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+            doc_id="S100XXX",
+            edinet_code="E12345",
+            sec_code="12345",
+            jcn="1234567890123",
+            filer_name="Test Inc.",
+            ordinance_code="010",
+            form_code="030000",
+            doc_type_code="120",
+            doc_description="有価証券報告書",
+            period_start=datetime_now,
+            period_end=datetime_now,
+            submit_datetime=datetime_now,
+        )
+        collection.add(edinet_filing, content)
+
+        by_string = collection.search(expr=(Field("source") == "EDINET"), limit=10)
+        by_class_ref = collection.search(
+            expr=(Field("source") == EDINETFiling.source), limit=10
+        )
+        assert len(by_string) == 1 and len(by_class_ref) == 1
+        assert by_string[0].id == by_class_ref[0].id
 
     def test_count_with_expr_source(
         self,

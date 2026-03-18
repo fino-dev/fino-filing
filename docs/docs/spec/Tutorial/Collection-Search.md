@@ -37,6 +37,10 @@ Use the same field names as in your Filing class (e.g. for `EDGARFiling`: `sourc
 ```python
 Field("source") == "EDGAR"
 Field("created_at") >= start_date
+
+# Model-based (when the Filing subclass has a default for that field)
+EDINETFiling.source == "EDINET"
+EDGARFiling.cik == "0001652044"
 ```
 
 **String** (contains / startswith / endswith):
