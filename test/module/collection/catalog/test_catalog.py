@@ -5,6 +5,7 @@ from datetime import datetime
 import pytest
 
 from fino_filing import Catalog, Expr, Filing
+from fino_filing.collection.error import CatalogExprTypeError
 
 
 @pytest.mark.module
@@ -40,11 +41,13 @@ class TestCatalog_Search:
     """Catalog.search. 観点: 正常系"""
 
     def test_search_rejects_bool_expr(self, temp_catalog: Catalog) -> None:
-        """expr に bool を渡すと TypeError を送出する"""
-        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+        """expr に bool を渡すと CatalogExprTypeError を送出する"""
+        with pytest.raises(CatalogExprTypeError) as e:
             temp_catalog.search(expr=True)
-        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
+        with pytest.raises(CatalogExprTypeError) as e:
             temp_catalog.search(expr=False)
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
 
     def test_search_limit_offset(
         self,
@@ -97,11 +100,13 @@ class TestCatalog_Count:
         assert temp_catalog.count() == 1
 
     def test_count_rejects_bool_expr(self, temp_catalog: Catalog) -> None:
-        """expr に bool を渡すと TypeError を送出する"""
-        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+        """expr に bool を渡すと CatalogExprTypeError を送出する"""
+        with pytest.raises(CatalogExprTypeError) as e:
             temp_catalog.count(expr=True)
-        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
+        with pytest.raises(CatalogExprTypeError) as e:
             temp_catalog.count(expr=False)
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
 
     def test_count_with_expr(
         self,

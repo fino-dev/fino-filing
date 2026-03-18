@@ -6,6 +6,7 @@ from datetime import datetime
 import pytest
 
 from fino_filing import Catalog, Collection, EDGARFiling, EDINETFiling, Field
+from fino_filing.collection.error import CatalogExprTypeError
 from fino_filing.collection.storages import LocalStorage
 
 
@@ -66,12 +67,14 @@ class TestCollection_Search_WithExpr:
     def test_search_rejects_bool_expr(
         self, temp_storage: LocalStorage, temp_catalog: Catalog
     ) -> None:
-        """expr に bool を渡すと TypeError を送出する"""
+        """expr に bool を渡すと CatalogExprTypeError を送出する"""
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
-        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+        with pytest.raises(CatalogExprTypeError) as e:
             collection.search(expr=True)
-        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
+        with pytest.raises(CatalogExprTypeError) as e:
             collection.search(expr=False)
+        assert e.value.message == "[Fino Filing] Expr must be Expr or None, not bool"
 
     def test_search_with_expr_source_returns_matching_filings_only(
         self,
