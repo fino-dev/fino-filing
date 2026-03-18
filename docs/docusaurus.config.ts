@@ -16,8 +16,10 @@ const config: Config = {
   url: 'https://your-docusaurus-site.example.com',
   baseUrl: '/',
 
-  organizationName: 'facebook',
+  organizationName: 'fino-dev',
   projectName: 'fino-filing',
+  deploymentBranch: 'main',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
 
