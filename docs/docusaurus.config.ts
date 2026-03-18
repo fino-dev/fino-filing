@@ -13,8 +13,8 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://your-docusaurus-site.example.com',
-  baseUrl: '/',
+  url: 'https://fino-dev.github.io',
+  baseUrl: '/fino-filing/',
 
   organizationName: 'fino-dev',
   projectName: 'fino-filing',
