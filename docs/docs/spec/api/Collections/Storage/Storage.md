@@ -1,3 +1,6 @@
+---
+slug: Storage
+---
 # Storage
 
 Protocol for saving and loading filing content by path. Collection uses it for raw bytes; path resolution is done by Locator.
@@ -23,4 +26,4 @@ class Storage(Protocol):
 - **save**: Persists `content` at the path derived from `storage_key` (relative). Caller (Collection + Locator) is responsible for providing a valid `storage_key`. Returns the absolute path of the saved file.
 - **load_by_path**: Loads bytes for the given relative path. Resolution from filing id to path is the caller’s responsibility.
 
-Built-in implementation: [LocalStorage](./LocalStorage).
+Built-in implementation: [LocalStorage](/docs/spec/api/Collections/Storage/LocalStorage).

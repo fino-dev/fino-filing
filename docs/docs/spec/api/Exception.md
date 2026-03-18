@@ -52,5 +52,4 @@ Summary of conditions that lead to which exception or return value. Tests align 
 ## See also
 
 - [API Reference Overview](../intro)
-- Test coverage: [test-matrix](/docs/dev/testing/test-matrix) (if present)
-- Strategy: [testing-strategy](/docs/dev/testing/testing-strategy) (if present)
+- Test coverage and strategy: [Test](/docs/dev/Test)

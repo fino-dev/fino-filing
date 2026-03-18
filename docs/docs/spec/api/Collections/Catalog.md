@@ -62,7 +62,7 @@ search(
 ) -> list[Filing]
 ```
 
-WHERE from `expr`, ORDER BY `order_by` (column or `json_extract(data, '$....')`), LIMIT/OFFSET. Returns list of Filing instances. expr のコンパイル仕様は [Collection Search](../../Collection-Search.md) を参照。
+WHERE from `expr`, ORDER BY `order_by` (column or `json_extract(data, '$....')`), LIMIT/OFFSET. Returns list of Filing instances. expr のコンパイル仕様は [Collection Search](/docs/spec/Tutorial/Collection-Search) を参照。
 
 ### search_raw
 
@@ -78,7 +78,7 @@ Executes raw SQL and returns fetched rows. Advanced use.
 count(expr: Expr | None = None) -> int
 ```
 
-Returns number of rows matching `expr` (or total if `expr` is None). expr のコンパイル仕様は [Collection Search](../../Collection-Search.md) を参照。
+Returns number of rows matching `expr` (or total if `expr` is None). expr のコンパイル仕様は [Collection Search](/docs/spec/Tutorial/Collection-Search) を参照。
 
 ### stats
 

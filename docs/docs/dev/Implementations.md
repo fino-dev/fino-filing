@@ -5,7 +5,7 @@ title: Implementations
 
 # Implementation overview
 
-Summary of the current implementation by boundary. See [Codebase](./codebase) for file locations.
+Summary of the current implementation by boundary. See [Codebase](/docs/dev/Codebase) for file locations.
 
 ## Collection boundary (Facade)
 
@@ -47,4 +47,4 @@ Summary of the current implementation by boundary. See [Codebase](./codebase) fo
 - **Filing**: `FilingRequiredError`, `FieldValidationError`, `FieldImmutableError`, `FilingValidationError`, `FilingImmutableError` (`filing/error.py`).
 - **Collection**: `CollectionChecksumMismatchError`, `LocatorPathResolutionError`, `CatalogRequiredValueError`, `CatalogAlreadyExistsError` (`collection/error.py`).
 
-Public API and exception behavior are specified in [Spec: Exception spec](/docs/spec/API/Exceptions/exception-spec).
+Public API and exception behavior are specified in [Spec: Exception](/docs/spec/api/Exception).

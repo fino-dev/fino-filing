@@ -33,4 +33,4 @@ Expr(sql: str, params: list[Any]) -> Expr
 
 Users typically build `Expr` via `Field` (e.g. `Field("source") == "EDGAR"`), not by constructing `Expr` directly.
 
-検索式の全体仕様・SQL 変換は [Collection Search](../../Collection-Search.md) を参照。
+検索式の全体仕様・SQL 変換は [Collection Search](/docs/spec/Tutorial/Collection-Search) を参照。

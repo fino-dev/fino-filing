@@ -50,7 +50,7 @@ Field("filing_date").between(d1, d2)
 (Field("source") == "EDGAR") & (Field("form_type") == "10-K")
 ```
 
-search/count での利用と・SQL 変換は [Collection Search](../../Collection-Search.md) を参照。
+search/count での利用と・SQL 変換は [Collection Search](/docs/spec/Tutorial/Collection-Search) を参照。
 
 ## Descriptor protocol
 

@@ -6,15 +6,13 @@ The **Collector** boundary fetches documents from external APIs, parses them, bu
 
 | Type                                | Description                                                                                                                 |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| [BaseCollector](./BaseCollector)    | Abstract base: `collect()`, `add_to_collection()`; subclasses implement `fetch_documents`, `parse_response`, `build_filing` |
-| [RawDocument](./RawDocument-Parsed) | One fetched document: `content: bytes`, `meta: dict[str, Any]`                                                              |
-| [Parsed](./RawDocument-Parsed)      | `dict[str, Any]`; intermediate structure before building a Filing                                                           |
-| [EdgerConfig](./Edger/EdgerConfig)        | EDGAR config: timeout, User-Agent                                                                                           |
-| [EdgerSecApi](./Edger/EdgerSecApi)        | Strategy: SEC Company Submissions API → fetch, parse, EDGARFiling                                                          |
-| [EdgerBulkData](./Edger/EdgerBulkData)    | Strategy: Bulk daily-index (currently yields nothing; placeholder)                                                          |
-| [EdgerCollector](./Edger/EdgerCollector)  | Orchestrates EdgerSecApi and EdgerBulkData; `collect()` adds to Collection                                                   |
-| [EdinetConfig](./Edinet/EdinetConfig)      | EDINET API config: api_key, timeout（api_base は不要）                                                                      |
-| [EdinetCollector](./Edinet/EdinetCollector) | 書類一覧API・書類取得API で EDINET 書類を取得し EDINETFiling として Collection に追加                                |
+| [BaseCollector](/docs/spec/api/Collectors/Custom/BaseCollector) | Abstract base: `collect()`, `add_to_collection()`; subclasses implement `fetch_documents`, `parse_response`, `build_filing` |
+| RawDocument / Parsed | One fetched document: `content: bytes`, `meta: dict`; Parsed = `dict[str, Any]` before building a Filing (see BaseCollector) |
+| [EdgerConfig](/docs/spec/api/Collectors/Edger/EdgerConfig)     | EDGAR config: timeout, User-Agent                                                                                           |
+| [Edger](/docs/spec/api/Collectors/Edger/Edger)                   | EDGAR boundary: client, strategies (Facts, Documents, Bulk)                                                                |
+| [EdgerBulkCollector](/docs/spec/api/Collectors/Edger/EdgerBulkCollector) | Bulk daily-index strategy                                                                                          |
+| [EdinetConfig](/docs/spec/api/Collectors/Edinet/EdinetConfig)  | EDINET API config: api_key, timeout（api_base は不要）                                                                      |
+| [EdinetCollector](/docs/spec/api/Collectors/Edinet/EdinetCollector) | 書類一覧API・書類取得API で EDINET 書類を取得し EDINETFiling として Collection に追加                                |
 
 ## Flow
 

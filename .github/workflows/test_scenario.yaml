@@ -4,11 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - 'debug/**'
-      - 'docs/**'
-      - '.*/**'
-      - '**/*.md'
   workflow_dispatch:
 
 jobs:
