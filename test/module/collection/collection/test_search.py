@@ -63,6 +63,16 @@ class TestCollection_Search_WithExpr:
     名前付きパラメータに変換する修正が効いていることを確認する。
     """
 
+    def test_search_rejects_bool_expr(
+        self, temp_storage: LocalStorage, temp_catalog: Catalog
+    ) -> None:
+        """expr に bool を渡すと TypeError を送出する"""
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+            collection.search(expr=True)
+        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+            collection.search(expr=False)
+
     def test_search_with_expr_source_returns_matching_filings_only(
         self,
         temp_storage: LocalStorage,

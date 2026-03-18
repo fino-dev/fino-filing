@@ -6,7 +6,7 @@ from typing import Any, Optional, Type
 
 import duckdb
 
-from fino_filing.collection.error import CatalogRequiredValueError
+from fino_filing.collection.error import CatalogExprTypeError, CatalogRequiredValueError
 from fino_filing.collection.filing_resolver import FilingResolver
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
@@ -395,6 +395,9 @@ class Catalog:
         Returns:
             Filing リスト
         """
+        if isinstance(expr, bool):
+            raise CatalogExprTypeError(expr)
+
         columns = self._get_table_column_names()
         cols_str = ", ".join(f'"{c}"' for c in columns)
         sql = f"SELECT {cols_str} FROM filings"
@@ -449,6 +452,9 @@ class Catalog:
         Returns:
             件数
         """
+        if isinstance(expr, bool):
+            raise CatalogExprTypeError(expr)
+
         sql = "SELECT COUNT(*) FROM filings"
         bind_params: list[Any] = []
 

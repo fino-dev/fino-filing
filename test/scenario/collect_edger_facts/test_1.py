@@ -75,6 +75,7 @@ class TestScenario_CollectEdgerFacts:
         assert len(filings) == 1 and filings[0].id == collected[0][0].id
 
         filings = temp_collection.search(expr=(EDGARFiling.cik == "0001652044"))
+
         filing = filings[0]
         assert filing is not None
         assert isinstance(filing, EDGARFiling)

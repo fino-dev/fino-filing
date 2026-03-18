@@ -39,6 +39,13 @@ class TestCatalog_IndexBatch:
 class TestCatalog_Search:
     """Catalog.search. 観点: 正常系"""
 
+    def test_search_rejects_bool_expr(self, temp_catalog: Catalog) -> None:
+        """expr に bool を渡すと TypeError を送出する"""
+        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+            temp_catalog.search(expr=True)
+        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+            temp_catalog.search(expr=False)
+
     def test_search_limit_offset(
         self,
         temp_catalog: Catalog,
@@ -88,6 +95,13 @@ class TestCatalog_Count:
             )
         )
         assert temp_catalog.count() == 1
+
+    def test_count_rejects_bool_expr(self, temp_catalog: Catalog) -> None:
+        """expr に bool を渡すと TypeError を送出する"""
+        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+            temp_catalog.count(expr=True)
+        with pytest.raises(TypeError, match="expr must be Expr or None, not bool"):
+            temp_catalog.count(expr=False)
 
     def test_count_with_expr(
         self,
