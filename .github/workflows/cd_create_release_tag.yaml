@@ -1,6 +1,4 @@
-# base_tag（既存の安定版タグ）+ bump → 次の vX.Y.Z を計算し、apply でタグ作成・push
-
-name: CD - Create Release Tag
+name: CD - Create Release Tag And Publish Package
 
 on:
   workflow_dispatch:
@@ -66,7 +64,7 @@ jobs:
     name: Push release tag
     needs: plan
     runs-on: ubuntu-latest
-    environment: create-release-tag
+    environment: tag-release
     permissions:
       contents: write
     steps:
