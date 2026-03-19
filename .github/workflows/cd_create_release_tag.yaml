@@ -59,8 +59,8 @@ jobs:
 
           NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
 
-          echo "next_tag=$NEXT_TAG" >> $GITHUB_OUTPUT
-          echo "🚀 new tag generated: $NEXT_TAG" >> $GITHUB_OUTPUT
+          echo "tag=$NEXT_TAG" >> "$GITHUB_OUTPUT"
+          echo "🚀 new tag generated: $NEXT_TAG" >> "$GITHUB_STEP_SUMMARY"
 
   apply:
     name: Push release tag
