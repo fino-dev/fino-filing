@@ -64,7 +64,7 @@ jobs:
     name: Push Tag
     needs: plan
     runs-on: ubuntu-latest
-    environment: tag-release
+    environment: publish-package
     permissions:
       contents: write
     steps:
@@ -92,6 +92,7 @@ jobs:
   publish:
     name: Publish PyPI
     runs-on: ubuntu-latest
+    environment: publish-package
     # plan の tag 出力を参照するため両方を needs に含める（apply のみだと needs.plan が使えない）
     needs: [plan, apply]
     permissions:
