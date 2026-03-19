@@ -1,10 +1,12 @@
+# base_tag（既存の安定版タグ）+ bump → 次の vX.Y.Z を計算し、apply でタグ作成・push
+
 name: CD - Create Release Tag
 
 on:
   workflow_dispatch:
     inputs:
       bump:
-        description: "セマンティックバージョンのどの桁を上げるか（次のタグ名は既存タグから自動計算）"
+        description: "Bump Version Level"
         required: true
         type: choice
         options:
@@ -14,107 +16,76 @@ on:
 
 jobs:
   plan:
+    name: Preview next tag
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.next.outputs.tag }}
+      tag: ${{ steps.preview.outputs.tag }}
     steps:
-      - name: Check out source repository
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Compute next release tag
-        id: next
+      - name: Resolve base and compute next tag
+        id: preview
         env:
           BUMP: ${{ inputs.bump }}
         run: |
-          python3 <<'PY'
-          import os
-          import re
-          import subprocess
-          import sys
+          PREV_TAG=$(git describe --tags --abbrev=0)
 
-          bump = os.environ["BUMP"]
-          if bump not in {"major", "minor", "patch"}:
-              print(f"無効な bump: {bump}", file=sys.stderr)
-              sys.exit(1)
+          # v1.2.3 → 1.2.3 にする
+          VERSION=${PREV_TAG#v}
 
-          tags_out = subprocess.check_output(["git", "tag", "-l"], text=True)
-          tags = [t.strip() for t in tags_out.splitlines() if t.strip()]
-          stable = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)$")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-          tuples: list[tuple[int, int, int]] = []
-          for t in tags:
-              m = stable.fullmatch(t)
-              if m:
-                  tuples.append(tuple(int(x) for x in m.groups()))
+          case "$BUMP" in
+            major)
+              ((MAJOR++))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              ((MINOR++))
+              PATCH=0
+              ;;
+            patch)
+              ((PATCH++))
+              ;;
+            *)
+              echo "Invalid bump type"
+              exit 1
+              ;;
+          esac
 
-          if tuples:
-              maj, mino, pat = max(tuples)
-          else:
-              maj, mino, pat = 0, 0, 0
+          NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
 
-          if bump == "major":
-              maj += 1
-              mino = 0
-              pat = 0
-          elif bump == "minor":
-              mino += 1
-              pat = 0
-          else:
-              pat += 1
-
-          new_tag = f"v{maj}.{mino}.{pat}"
-          gh_out = os.environ["GITHUB_OUTPUT"]
-          with open(gh_out, "a", encoding="utf-8") as f:
-              f.write(f"tag={new_tag}\n")
-          print(f"次のタグ: {new_tag} (bump={bump})")
-          PY
-
-      - name: Summarize tag plan for review
-        env:
-          TAG: ${{ steps.next.outputs.tag }}
-          BUMP: ${{ inputs.bump }}
-        run: |
-          {
-            echo "## リリースタグ案（確認）"
-            echo ""
-            echo "| 項目 | 値 |"
-            echo "|------|-----|"
-            echo "| 付与予定タグ | \`${TAG}\` |"
-            echo "| bump | \`${BUMP}\` |"
-            echo ""
-            echo "内容を確認し、問題なければ **この実行の続きのジョブ**（\`apply\`）を進行させてください。"
-            echo ""
-            echo "リポジトリの **Settings → Environments → \`create-release-tag\`** で *Required reviewers* を有効にすると、タグ作成前に承認フローで止められます（未設定の場合は \`plan\` 直後に \`apply\` が続行されます）。"
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "next_tag=$NEXT_TAG" >> $GITHUB_OUTPUT
 
   apply:
+    name: Push release tag
     needs: plan
     runs-on: ubuntu-latest
     environment: create-release-tag
     permissions:
       contents: write
     steps:
-      - name: Check out source repository
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Create and push tag
+      - name: Create annotated tag and push
         env:
           TAG: ${{ needs.plan.outputs.tag }}
         run: |
           set -euo pipefail
-          tag="${TAG#refs/tags/}"
-          tag="${tag#/}"
-          if [[ -z "$tag" ]]; then
-            echo "tag が空です"; exit 1
-          fi
-          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
-            echo "タグは既に存在します: ${tag}"; exit 1
+          t="${TAG#refs/tags/}"
+          t="${t#/}"
+          [[ -n "$t" ]] || { echo "tag が空です"; exit 1; }
+          if git rev-parse -q --verify "refs/tags/${t}" >/dev/null; then
+            echo "既に存在: ${t}"; exit 1
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$tag" -m "Release $tag"
-          git push origin "refs/tags/$tag"
+          git tag -a "$t" -m "Release $t"
+          git push origin "refs/tags/$t"
