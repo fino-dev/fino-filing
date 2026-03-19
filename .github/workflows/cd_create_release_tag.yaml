@@ -1,4 +1,4 @@
-name: CD - Create Release Tag And Publish Package
+name: CD - Publish Package
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   plan:
-    name: Preview next tag
+    name: Preview Tag
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.preview.outputs.tag }}
@@ -61,7 +61,7 @@ jobs:
           echo "🚀 new tag generated: $NEXT_TAG" >> "$GITHUB_STEP_SUMMARY"
 
   apply:
-    name: Push release tag
+    name: Push Tag
     needs: plan
     runs-on: ubuntu-latest
     environment: tag-release
@@ -90,6 +90,7 @@ jobs:
           git push origin "refs/tags/$t"
 
   publish:
+    name: Publish PyPI
     runs-on: ubuntu-latest
     # plan の tag 出力を参照するため両方を needs に含める（apply のみだと needs.plan が使えない）
     needs: [plan, apply]
