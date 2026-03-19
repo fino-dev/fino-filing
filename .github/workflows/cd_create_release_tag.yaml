@@ -90,3 +90,45 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$t" -m "Release $t"
           git push origin "refs/tags/$t"
+
+  publish:
+    runs-on: ubuntu-latest
+    # plan の tag 出力を参照するため両方を needs に含める（apply のみだと needs.plan が使えない）
+    needs: [plan, apply]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.plan.outputs.tag }}
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [plan, publish]
+    permissions:
+      contents: write
+    steps:
+      - name: Publish GitHub Release for tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.plan.outputs.tag }}
+          generate_release_notes: true
