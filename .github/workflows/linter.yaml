@@ -1,4 +1,4 @@
-name: Python Linter
+name: CI - LINT PYTHON
 
 on:
   pull_request:

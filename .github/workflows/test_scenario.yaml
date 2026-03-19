@@ -1,4 +1,4 @@
-name: Scenario Test
+name: CI - TEST SCENARIO
 
 on:
   pull_request:

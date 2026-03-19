@@ -1,4 +1,4 @@
-name: Module Test
+name: CI - TEST MODULE
 
 on:
   pull_request:
