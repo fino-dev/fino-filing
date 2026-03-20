@@ -67,6 +67,27 @@ class TestFiling_Initialize:
         assert f.id is not None
         assert len(f.id) == 32
 
+    def test_filing_id_uses_only_identifier_fields_when_marked(self) -> None:
+        """Field(identifier=True) があるときはそのフィールドのみが id ハッシュに使われる"""
+
+        class IdentifiedFiling(Filing):
+            doc_id: Annotated[
+                str,
+                Field(indexed=True, identifier=True, description="Doc ID"),
+            ]
+
+        base = dict(
+            source="s",
+            name="n",
+            is_zip=False,
+            format="xbrl",
+        )
+        a = IdentifiedFiling(**base, checksum="checksum_a", doc_id="same-doc")
+        b = IdentifiedFiling(**base, checksum="checksum_b", doc_id="same-doc")
+        assert a.id == b.id
+        c = IdentifiedFiling(**base, checksum="checksum_a", doc_id="other-doc")
+        assert a.id != c.id
+
     def test_filing_id_includes_extended_indexed_metadata(self) -> None:
         """拡張 Filing ではユーザー追加フィールドが id のハッシュに含まれる"""
 
