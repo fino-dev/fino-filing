@@ -366,6 +366,70 @@ class TestCatalog_Helper_expr_to_inline_sql:
         assert "?" not in got
         assert "'EDGAR'" in got
 
+    def test_expr_from_field_contains_inline_sql_has_like_and_literal(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """Field().contains から生成した Expr を変換すると LIKE と '%x%' が含まれる"""
+        expr = Field("col").contains("x")
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "LIKE" in got
+        assert "'%x%'" in got
+        assert "?" not in got
+
+    def test_expr_from_field_startswith_inline_sql_has_literal(self) -> None:
+        """Field().startswith を変換すると 'a%' が含まれる"""
+        expr = Field("col").startswith("a")
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "'a%'" in got
+        assert "?" not in got
+
+    def test_expr_from_field_endswith_inline_sql_has_literal(self) -> None:
+        """Field().endswith を変換すると '%z' が含まれる"""
+        expr = Field("col").endswith("z")
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "'%z'" in got
+        assert "?" not in got
+
+    def test_expr_from_field_in_inline_sql_has_in_literals(self) -> None:
+        """Field().in_ を変換すると IN ('A','B') 相当になる"""
+        expr = Field("col").in_(["A", "B"])
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "IN (" in got
+        assert "'A'" in got
+        assert "'B'" in got
+        assert "?" not in got
+
+    def test_expr_from_field_between_inline_sql_has_between_literals(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """Field().between を変換すると BETWEEN 1 AND 10 相当になる"""
+        expr = Field("col").between(1, 10)
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "BETWEEN" in got
+        assert "1" in got
+        assert "10" in got
+        assert "?" not in got
+
+    def test_expr_from_field_is_null_inline_sql_has_is_null_no_placeholder(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """Field().is_null を変換すると IS NULL が含まれプレースホルダは無い"""
+        expr = Field("col").is_null()
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "IS NULL" in got
+        assert "?" not in got
+
+    def test_expr_compound_field_eq_and_contains_inline_sql(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """(Field('a') == 1) & (Field('b').contains('y')) を変換すると 1 本の WHERE になる"""
+        expr = (Field("a") == 1) & (Field("b").contains("y"))
+        got = Catalog._expr_to_inline_sql(expr)
+        assert "?" not in got
+        assert "1" in got
+        assert "'%y%'" in got
+        assert "AND" in got
+
 
 @pytest.mark.module
 @pytest.mark.collection

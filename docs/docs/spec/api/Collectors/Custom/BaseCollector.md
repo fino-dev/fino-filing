@@ -30,7 +30,7 @@ For each item from `fetch_documents()`: calls `parse_response(raw)` → `build_f
 add_to_collection(filing: Filing, content: bytes) -> tuple[Filing, str]
 ```
 
-Delegates to `collection.add(filing, content)`. Same return and exceptions as [Collection.add](../Collection/Collection#add).
+Delegates to `collection.add(filing, content)`. Same return and exceptions as [Collection.add](/docs/spec/api/Collections/Collection#add).
 
 ### Abstract methods (subclass must implement)
 

@@ -6,11 +6,11 @@ The **Collection** boundary provides add, get, and search over filings. It is a 
 
 | Type                               | Description                                                                                                         |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [Collection](./Collection)         | Main entry: `add`, `get`, `get_filing`, `get_content`, `get_path`, `search`                                         |
-| [Catalog](./Catalog)               | DuckDB-backed index; `index`, `get`, `search`, etc.                                                                 |
-| [Storage](./Storage)               | Protocol: `save(content, storage_key?)`, `load_by_path(relative_path)`, `base_dir`                                  |
-| [LocalStorage](./LocalStorage)     | Storage implementation: saves under `base_dir`; `storage_key` is required                                           |
-| [FilingResolver](./FilingResolver) | Resolves `_filing_class` (FQCN) to Filing subclass for Catalog restore; `default_resolver`, `register_filing_class` |
+| [Collection](/docs/spec/api/Collections/Collection)         | Main entry: `add`, `get`, `get_filing`, `get_content`, `get_path`, `search`                                         |
+| [Catalog](/docs/spec/api/Collections/Catalog)               | DuckDB-backed index; `index`, `get`, `search`, etc.                                                                 |
+| [Storage](/docs/spec/api/Collections/Storage/Storage)       | Protocol: `save(content, storage_key?)`, `load_by_path(relative_path)`, `base_dir`                                  |
+| [LocalStorage](/docs/spec/api/Collections/Storage/LocalStorage) | Storage implementation: saves under `base_dir`; `storage_key` is required                                           |
+| [FilingResolver](/docs/spec/api/Collections/FilingResolver) | Resolves `_filing_class` (FQCN) to Filing subclass for Catalog restore; `default_resolver`, `register_filing_class` |
 
 ## Default setup
 

@@ -1,0 +1,134 @@
+name: CD - Publish Package to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Bump Version Level"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  plan:
+    name: Preview Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.preview.outputs.tag }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve base and compute next tag
+        id: preview
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0)
+
+          # v1.2.3 → 1.2.3 にする
+          VERSION=${PREV_TAG#v}
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          case "$BUMP" in
+            major)
+              ((MAJOR++))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              ((MINOR++))
+              PATCH=0
+              ;;
+            patch)
+              ((PATCH++))
+              ;;
+            *)
+              echo "Invalid bump type"
+              exit 1
+              ;;
+          esac
+
+          NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
+
+          echo "tag=$NEXT_TAG" >> "$GITHUB_OUTPUT"
+          echo "🚀 new tag generated: $NEXT_TAG" >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: Push Tag
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: publish-package
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Create annotated tag and push
+        env:
+          TAG: ${{ needs.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          t="${TAG#refs/tags/}"
+          t="${t#/}"
+          [[ -n "$t" ]] || { echo "tag が空です"; exit 1; }
+          if git rev-parse -q --verify "refs/tags/${t}" >/dev/null; then
+            echo "既に存在: ${t}"; exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$t" -m "Release $t"
+          git push origin "refs/tags/$t"
+
+  publish:
+    name: Publish PyPI
+    runs-on: ubuntu-latest
+    environment: publish-package
+    # plan の tag 出力を参照するため両方を needs に含める（apply のみだと needs.plan が使えない）
+    needs: [plan, apply]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.plan.outputs.tag }}
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [plan, publish]
+    permissions:
+      contents: write
+    steps:
+      - name: Publish GitHub Release for tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.plan.outputs.tag }}
+          generate_release_notes: true

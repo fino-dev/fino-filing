@@ -100,4 +100,4 @@ EdgerClient に必要な設定は最小限に抑える。
 ## 参照
 
 - クラス関連図: [architecture.puml](./architecture.puml)（Collector Boundary）
-- Design 概要: [../Design.md](../Design.md)
+- Design 概要: [Design](/docs/dev/design/design)

@@ -13,11 +13,13 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://your-docusaurus-site.example.com',
-  baseUrl: '/',
+  url: 'https://fino-dev.github.io',
+  baseUrl: '/fino-filing/',
 
-  organizationName: 'facebook',
+  organizationName: 'fino-dev',
   projectName: 'fino-filing',
+  deploymentBranch: 'main',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
 

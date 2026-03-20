@@ -1,3 +1,6 @@
+---
+slug: design
+---
 # Design overview
 
 High-level architecture of fino-filing. The implementation follows these boundaries.
@@ -31,5 +34,5 @@ It describes Collection, Catalog, Storage, Locator, Filing, Field, Expr, Collect
 
 ## Further design docs
 
-- **Collector boundary (用途別)**: [collector_strategy.md](design/collector_strategy.md). Edger は EdgerFactsCollector / EdgerDocumentsCollector / EdgerBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edger.py`。
+- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edger は EdgerFactsCollector / EdgerDocumentsCollector / EdgerBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edger.py`。
 - Field/DSL and DuckDB: see `filing/field.py` and `expr.py`; Catalog builds SQL from Expr.

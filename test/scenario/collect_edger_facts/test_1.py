@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from fino_filing import Collection, EdgerConfig, EdgerFactsCollector
+from fino_filing import Collection, EDGARFiling, EdgerConfig, EdgerFactsCollector, Field
 
 
 @pytest.mark.scenario
@@ -44,12 +44,32 @@ class TestScenario_CollectEdgerFacts:
         assert path is not None
         assert path.exists()
 
-        # Collectionから取得できる
+        # Collectionからgetできる
         filing, content, path = temp_collection.get(collected[0][0].id)
         assert filing is not None
         assert filing.source == "EDGAR"
         assert content is not None
 
         assert path is not None
-        # get() が返す path は絶対パス。add の戻り値も絶対パスのため一致する。
         assert Path(path).resolve() == Path(collected[0][1]).resolve()
+
+        # Collectionからsearchできる（右辺でクラス参照）
+        filings = temp_collection.search(expr=(Field("source") == EDGARFiling.source))
+        filing = filings[0]
+        assert filing is not None
+        assert isinstance(filing, EDGARFiling)
+        assert filing.source == "EDGAR"
+        assert filing.id == collected[0][0].id
+        assert filing.name == collected[0][0].name
+        assert filing.created_at == collected[0][0].created_at
+        assert filing.format == "json"
+        assert filing.is_zip is False
+
+        assert filing.cik == "0001652044"
+        assert filing.accession_number == "facts-0001652044"
+        assert filing.form_type == "companyfacts"
+        assert filing.company_name == "Alphabet Inc."
+
+        # 左辺でモデルフィールド（デフォルトあり）でも search 可能
+        filings = temp_collection.search(expr=(EDGARFiling.source == "EDGAR"))
+        assert len(filings) == 1 and filings[0].id == collected[0][0].id

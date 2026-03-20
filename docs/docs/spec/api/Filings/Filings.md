@@ -6,8 +6,8 @@ The **Filing** boundary provides the document model and the query DSL. It does n
 
 | Type                           | Description                                                                                                    |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| [Filing](./Filing)             | Document model with core fields (id, source, checksum, name, is_zip, format, created_at) and extensible schema |
-| [Field](./Field)               | Descriptor and query DSL (e.g. `Field("source") == "EDGAR"`)                                                   |
-| [Expr](./Expr)                 | WHERE abstraction (sql + params); supports `&`, `                                                              |
-| [EDINETFiling](./EDINETFiling) | Built-in subclass for EDINET documents                                                                         |
-| [EDGARFiling](./EDGARFiling)   | Built-in subclass for EDGAR documents                                                                          |
+| [Filing](/docs/spec/api/Filings/Filing)             | Document model with core fields (id, source, checksum, name, is_zip, format, created_at) and extensible schema |
+| [Field](/docs/spec/api/Filings/Field)               | Descriptor and query DSL (e.g. `Field("source") == "EDGAR"`)                                                   |
+| [Expr](/docs/spec/api/Filings/Expr)                 | WHERE abstraction (sql + params); supports `&`, `|`, `~`                                                     |
+| [EDINETFiling](/docs/spec/api/Filings/EDINETFiling) | Built-in subclass for EDINET documents                                                                         |
+| [EDGARFiling](/docs/spec/api/Filings/EDGARFiling)   | Built-in subclass for EDGAR documents                                                                          |
