@@ -10,7 +10,7 @@ from fino_filing.collector.base import Parsed
 from fino_filing.filing.filing_edinet import EDINETFiling
 
 
-def parse_edinet_datetime(s: str | None) -> datetime | None:
+def _parse_edinet_datetime(s: str | None) -> datetime | None:
     """ISO 形式の日時文字列または None を datetime に変換する。"""
     if not s:
         return None
@@ -21,7 +21,7 @@ def parse_edinet_datetime(s: str | None) -> datetime | None:
         return None
 
 
-def list_item_to_parsed(item: dict[str, Any]) -> Parsed:
+def _list_item_to_parsed(item: dict[str, Any]) -> Parsed:
     """書類一覧 API の 1 件（results 要素）を EDINETFiling 用 Parsed に変換する。"""
     doc_id = item.get("docID") or item.get("doc_id") or ""
     return {
@@ -36,20 +36,20 @@ def list_item_to_parsed(item: dict[str, Any]) -> Parsed:
         "doc_description": item.get("docDescription")
         or item.get("doc_description")
         or "",
-        "period_start": parse_edinet_datetime(
+        "period_start": _parse_edinet_datetime(
             item.get("periodStart") or item.get("period_start")
         ),
-        "period_end": parse_edinet_datetime(
+        "period_end": _parse_edinet_datetime(
             item.get("periodEnd") or item.get("period_end")
         ),
-        "submit_datetime": parse_edinet_datetime(
+        "submit_datetime": _parse_edinet_datetime(
             item.get("submitDateTime") or item.get("submit_datetime")
         ),
         "parent_doc_id": item.get("parentDocID") or item.get("parent_doc_id"),
     }
 
 
-def meta_to_parsed(meta: dict[str, Any]) -> Parsed:
+def _meta_to_parsed(meta: dict[str, Any]) -> Parsed:
     """RawDocument.meta から EDINETFiling 用 Parsed を組み立てる。"""
     return {
         "doc_id": meta.get("doc_id", ""),
@@ -68,7 +68,7 @@ def meta_to_parsed(meta: dict[str, Any]) -> Parsed:
     }
 
 
-def build_edinet_filing(parsed: Parsed, content: bytes, name: str) -> EDINETFiling:
+def _build_edinet_filing(parsed: Parsed, content: bytes, name: str) -> EDINETFiling:
     """Parsed と content から EDINETFiling を組み立てる。"""
     checksum = hashlib.sha256(content).hexdigest()
     submit_dt = parsed.get("submit_datetime")

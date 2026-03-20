@@ -13,7 +13,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from fino_filing.collector.edger._helpers import accession_to_dir
+from fino_filing.collector.edger._helpers import _accession_to_dir
 from fino_filing.collector.edger.config import EdgerConfig
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class EdgerClient:
     def get_filing_document(self, cik: str, accession: str) -> bytes:
         """提出物の index ページを取得して bytes で返す。"""
         cik_pad = cik.zfill(10)
-        acc_dir = accession_to_dir(accession)
+        acc_dir = _accession_to_dir(accession)
         primary_name = f"{accession}-index.htm"
         url = f"{_ARCHIVES_BASE}/data/{cik_pad}/{acc_dir}/{primary_name}"
         return self._request_bytes(url)
