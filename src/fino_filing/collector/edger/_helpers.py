@@ -10,7 +10,7 @@ from fino_filing.collector.base import Parsed
 from fino_filing.filing.filing_edger import EDGARFiling
 
 
-def parse_edgar_date(s: str | None) -> datetime | None:
+def _parse_edgar_date(s: str | None) -> datetime | None:
     """YYYY-MM-DD または None を datetime に変換する。"""
     if not s:
         return None
@@ -20,12 +20,12 @@ def parse_edgar_date(s: str | None) -> datetime | None:
         return None
 
 
-def accession_to_dir(accession: str) -> str:
+def _accession_to_dir(accession: str) -> str:
     """accession (0001104659-25-006631) を Archives ディレクトリ名 (000110465925006631) に変換する。"""
     return accession.replace("-", "")
 
 
-def build_edgar_filing(
+def _build_edgar_filing(
     parsed: Parsed, content: bytes, primary_name: str
 ) -> EDGARFiling:
     """Parsed と content から EDGARFiling を組み立てる。3 Collector で共有する。"""
@@ -51,7 +51,7 @@ def build_edgar_filing(
     )
 
 
-def parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
+def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
     """RawDocument.meta から EDGARFiling 用 Parsed を組み立てる。3 Collector で共有する。"""
     return {
         "cik": meta.get("cik", ""),

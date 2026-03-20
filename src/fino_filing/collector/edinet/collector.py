@@ -12,7 +12,7 @@ from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.filing.filing_edinet import EDINETFiling
 
 
-from ._helpers import build_edinet_filing, list_item_to_parsed, meta_to_parsed
+from ._helpers import _build_edinet_filing, _list_item_to_parsed, _meta_to_parsed
 from .client import EdinetClient
 from .config import EdinetConfig
 
@@ -69,7 +69,7 @@ class EdinetCollector(BaseCollector):
                 content = self._client.get_document(doc_id)
                 if not content:
                     continue
-                parsed = list_item_to_parsed(item)
+                parsed = _list_item_to_parsed(item)
                 meta: dict[str, Any] = {
                     **parsed,
                     "doc_id": doc_id,
@@ -82,14 +82,14 @@ class EdinetCollector(BaseCollector):
 
     def parse_response(self, raw: RawDocument) -> Parsed:
         """RawDocument の meta を EDINETFiling 用の Parsed に正規化する。"""
-        return meta_to_parsed(raw.meta)
+        return _meta_to_parsed(raw.meta)
 
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDINETFiling:
         """Parsed と content から EDINETFiling を生成する。"""
         name = parsed.get("doc_id") or "document"
         if not name.endswith(".pdf"):
             name = f"{name}.pdf"
-        return build_edinet_filing(parsed, raw.content, name)
+        return _build_edinet_filing(parsed, raw.content, name)
 
 
 def _parse_date(s: str | None) -> datetime | None:
