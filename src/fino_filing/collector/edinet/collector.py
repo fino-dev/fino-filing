@@ -5,12 +5,11 @@ EDINET 書類一覧API・書類取得API を用いて書類を収集し、Collec
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Iterator
+from typing import Any, Iterator, cast
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.filing.filing_edinet import EDINETFiling
-
 
 from ._helpers import _build_edinet_filing, _list_item_to_parsed, _meta_to_parsed
 from .client import EdinetClient
@@ -57,9 +56,11 @@ class EdinetCollector(BaseCollector):
         while current <= end:
             date_str = current.strftime("%Y-%m-%d")
             resp = self._client.get_document_list(date_str, type=list_type)
-            results = (
-                resp.get("results") if isinstance(resp.get("results"), list) else []
-            )
+            raw_results = resp.get("results")
+            if isinstance(raw_results, list):
+                results = cast(list[Any], raw_results)
+            else:
+                results = []
             for item in results:
                 if limit is not None and total_yielded >= limit:
                     return
@@ -87,8 +88,6 @@ class EdinetCollector(BaseCollector):
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDINETFiling:
         """Parsed と content から EDINETFiling を生成する。"""
         name = parsed.get("doc_id") or "document"
-        if not name.endswith(".pdf"):
-            name = f"{name}.pdf"
         return _build_edinet_filing(parsed, raw.content, name)
 
 

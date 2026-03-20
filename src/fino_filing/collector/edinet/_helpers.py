@@ -71,8 +71,6 @@ def _meta_to_parsed(meta: dict[str, Any]) -> Parsed:
 def _build_edinet_filing(parsed: Parsed, content: bytes, name: str) -> EDINETFiling:
     """Parsed と content から EDINETFiling を組み立てる。"""
     checksum = hashlib.sha256(content).hexdigest()
-    submit_dt = parsed.get("submit_datetime")
-    created_at = submit_dt if isinstance(submit_dt, datetime) else datetime.now()
     return EDINETFiling(
         source="EDINET",
         name=name,
@@ -88,9 +86,9 @@ def _build_edinet_filing(parsed: Parsed, content: bytes, name: str) -> EDINETFil
         form_code=parsed.get("form_code", ""),
         doc_type_code=parsed.get("doc_type_code", ""),
         doc_description=parsed.get("doc_description", ""),
-        period_start=parsed.get("period_start") or created_at,
-        period_end=parsed.get("period_end") or created_at,
-        submit_datetime=parsed.get("submit_datetime") or created_at,
+        period_start=parsed.get("period_start"),
+        period_end=parsed.get("period_end"),
+        submit_datetime=parsed.get("submit_datetime"),
         parent_doc_id=parsed.get("parent_doc_id"),
-        created_at=created_at,
+        created_at=datetime.now(),
     )
