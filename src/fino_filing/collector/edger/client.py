@@ -9,7 +9,6 @@ import json
 import logging
 import time
 from typing import Any
-
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -18,9 +17,6 @@ from fino_filing.collector.edger.config import EdgerConfig
 
 logger = logging.getLogger(__name__)
 
-# package 内定数（EDGAR 仕様に準拠した固定値）
-_SEC_API_BASE = "https://data.sec.gov"
-_ARCHIVES_BASE = "https://www.sec.gov/Archives/edgar"
 # SEC は 1 秒あたり 10 リクエスト以下を推奨
 _REQUEST_DELAY_SEC: float = 0.2
 _RETRY_503_MAX: int = 3
@@ -39,6 +35,9 @@ class EdgerClient:
     - JSON / bytes 各エンドポイントへのアクセスメソッド提供
     """
 
+    _SEC_API_BASE = "https://data.sec.gov"
+    _ARCHIVES_BASE = "https://www.sec.gov/Archives/edgar"
+
     def __init__(self, config: EdgerConfig) -> None:
         self._config = config
         self._user_agent = f"{_PACKAGE_NAME} (contact: {config.user_agent_email})"
@@ -47,13 +46,13 @@ class EdgerClient:
     def get_submissions(self, cik: str) -> dict[str, Any]:
         """SEC Submissions API から企業の提出一覧を取得する。"""
         cik_pad = cik.zfill(10)
-        url = f"{_SEC_API_BASE}/submissions/CIK{cik_pad}.json"
+        url = f"{self._SEC_API_BASE}/submissions/CIK{cik_pad}.json"
         return self._request_json(url)
 
     def get_company_facts(self, cik: str) -> dict[str, Any]:
         """SEC XBRL CompanyFacts API から企業の全 XBRL ファクトを取得する。"""
         cik_pad = cik.zfill(10)
-        url = f"{_SEC_API_BASE}/api/xbrl/companyfacts/CIK{cik_pad}.json"
+        url = f"{self._SEC_API_BASE}/api/xbrl/companyfacts/CIK{cik_pad}.json"
         return self._request_json(url)
 
     def get_filing_document(self, cik: str, accession: str) -> bytes:
@@ -61,7 +60,7 @@ class EdgerClient:
         cik_pad = cik.zfill(10)
         acc_dir = _accession_to_dir(accession)
         primary_name = f"{accession}-index.htm"
-        url = f"{_ARCHIVES_BASE}/data/{cik_pad}/{acc_dir}/{primary_name}"
+        url = f"{self._ARCHIVES_BASE}/data/{cik_pad}/{acc_dir}/{primary_name}"
         return self._request_bytes(url)
 
     def get_bulk(self, url: str) -> bytes:
