@@ -64,16 +64,18 @@ class Catalog:
     - close: Close the catalog
     """
 
-    def __init__(self, db_path: str, resolver: Optional[FilingResolver] = None) -> None:
+    def __init__(
+        self, db_file_path: str, resolver: Optional[FilingResolver] = None
+    ) -> None:
         """
         Args:
-            db_path: DuckDBファイルパス
+            db_file_path: DuckDBファイルパス
             resolver: Filing 復元用の解決器。None のときは default_resolver を使用
         """
         from fino_filing.collection.filing_resolver import default_resolver
 
-        self.db_path = db_path
-        self.conn = duckdb.connect(db_path)
+        self.db_file_path = db_file_path
+        self.conn = duckdb.connect(db_file_path)
         self._resolver = resolver if resolver is not None else default_resolver
         self._init_schema()
 

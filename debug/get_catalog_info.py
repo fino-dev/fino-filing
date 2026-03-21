@@ -59,17 +59,17 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     default_path = Path.cwd() / ".fino" / "collection" / "index.db"
-    db_path = default_path
+    db_file_path = default_path
 
-    if not db_path.exists():
-        logger.info("Catalog not found: %s", db_path)
+    if not db_file_path.exists():
+        logger.info("Catalog not found: %s", db_file_path)
         logger.info("Create a collection first (e.g. add filings).")
         return
 
-    catalog = Catalog(str(db_path))
+    catalog = Catalog(str(db_file_path))
     try:
         total = catalog.count()
-        logger.info("=== Catalog: %s ===", db_path)
+        logger.info("=== Catalog: %s ===", db_file_path)
         logger.info("Total filings: %d", total)
 
         if total == 0:
