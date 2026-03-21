@@ -18,7 +18,7 @@ from fino_filing.collector.edinet.config import EdinetConfig
 logger = logging.getLogger(__name__)
 
 # 金融庁 EDINET API v2 の固定ベース URL（Config に api_base は持たない）
-_EDINET_API_BASE = "https://disclosure.edinet-fsa.go.jp/api/v2"
+_EDINET_API_BASE = "https://api.edinet-fsa.go.jp/api/v2"
 # 短時間の大量リクエストを避けるため 1 リクエストあたりの推奨間隔（秒）
 _REQUEST_DELAY_SEC: float = 4.0
 _RETRY_503_MAX: int = 3
@@ -69,7 +69,8 @@ class EdinetClient:
     def _request_json(self, url: str) -> dict[str, Any]:
         """GET して JSON をパースして返す。失敗時は空 dict を返す。"""
         try:
-            req = Request(url, headers=self._headers)
+            url_with_api_key = f"{url}&{urlencode(self._headers)}"
+            req = Request(url_with_api_key)
             with urlopen(req, timeout=self._config.timeout) as resp:
                 return json.loads(resp.read().decode())
         except (HTTPError, URLError, json.JSONDecodeError) as e:
