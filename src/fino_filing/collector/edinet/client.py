@@ -17,8 +17,6 @@ from fino_filing.collector.edinet.config import EdinetConfig
 
 logger = logging.getLogger(__name__)
 
-# 金融庁 EDINET API v2 の固定ベース URL（Config に api_base は持たない）
-_EDINET_API_BASE = "https://api.edinet-fsa.go.jp/api/v2"
 # 短時間の大量リクエストを避けるため 1 リクエストあたりの推奨間隔（秒）
 _REQUEST_DELAY_SEC: float = 4.0
 _RETRY_503_MAX: int = 3
@@ -36,6 +34,8 @@ class EdinetClient:
     - 書類一覧取得・書類実体取得のメソッド提供
     """
 
+    _EDINET_API_BASE = "https://api.edinet-fsa.go.jp/api/v2"
+
     def __init__(self, config: EdinetConfig) -> None:
         self._config = config
         self._headers = {"Subscription-Key": config.api_key}
@@ -50,7 +50,7 @@ class EdinetClient:
         """
         time.sleep(_REQUEST_DELAY_SEC)
         params = urlencode({"date": date, "type": type})
-        url = f"{_EDINET_API_BASE}/documents.json?{params}"
+        url = f"{self._EDINET_API_BASE}/documents.json?{params}"
         return self._request_json(url)
 
     def get_document(self, doc_id: str, type: int = 1) -> bytes:
@@ -63,7 +63,7 @@ class EdinetClient:
         """
         time.sleep(_REQUEST_DELAY_SEC)
         params = urlencode({"type": type})
-        url = f"{_EDINET_API_BASE}/documents/{doc_id}?{params}"
+        url = f"{self._EDINET_API_BASE}/documents/{doc_id}?{params}"
         return self._request_bytes(url)
 
     def _request_json(self, url: str) -> dict[str, Any]:
