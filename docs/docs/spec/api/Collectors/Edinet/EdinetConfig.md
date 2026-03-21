@@ -16,10 +16,10 @@ EdinetConfig(
 ) -> EdinetConfig
 ```
 
-| 引数 | 型 | 既定 | 説明 |
-|------|-----|------|------|
+| 引数      | 型  | 既定     | 説明                                                   |
+| --------- | --- | -------- | ------------------------------------------------------ |
 | `api_key` | str | （必須） | EDINET API の Subscription-Key。リクエストヘッダで送る |
-| `timeout` | int | 30 | HTTP リクエストのタイムアウト（秒） |
+| `timeout` | int | 30       | HTTP リクエストのタイムアウト（秒）                    |
 
 ## API key (Subscription-Key)
 

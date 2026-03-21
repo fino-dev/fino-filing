@@ -32,17 +32,19 @@ collect(**criteria: Any) -> list[tuple[Filing, str]]
 ### fetch_documents
 
 ```python
+from datetime import date
+
 fetch_documents(
     *,
-    date_from: str | None = None,
-    date_to: str | None = None,
+    date_from: date,
+    date_to: date,
     limit: int | None = None,
     list_type: int = 2,
     **kwargs: Any,
 ) -> Iterator[RawDocument]
 ```
 
-書類一覧APIで `date_from` 〜 `date_to` の日付範囲を 1 日ずつ取得し、各日の結果について書類取得APIで実体を取得して `RawDocument` を yield する。`date_from` が無い場合は何も返さない。`limit` で件数上限を指定可能。`list_type` は一覧APIの type（1=メタデータのみ、2=メタデータ+書類一覧）。
+書類一覧APIで `date_from` 〜 `date_to` の日付範囲を 1 日ずつ取得し、各日の結果について書類取得APIで実体を取得して `RawDocument` を yield する。`date_from` が `None` の場合は何も返さない。`limit` で件数上限を指定可能。`list_type` は一覧APIの type（1=メタデータのみ、2=メタデータ+書類一覧）。
 
 ### parse_response
 
