@@ -30,7 +30,7 @@ class CustomFiling(Filing):
 
 # ========== セットアップ ==========
 storage = LocalStorage(base_dir=Path.cwd() / ".fino" / "collection")
-catalog = Catalog(db_path=str(Path.cwd() / ".fino" / "collection" / "index.db"))
+catalog = Catalog(db_file_path=str(Path.cwd() / ".fino" / "collection" / "index.db"))
 collection = Collection(storage=storage, catalog=catalog)
 
 content = b"sample filing content"

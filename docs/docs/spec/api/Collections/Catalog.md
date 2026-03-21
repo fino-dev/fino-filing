@@ -10,10 +10,10 @@ DuckDB-backed index for filings. Stores core columns plus indexed fields as phys
 ## Constructor
 
 ```python
-Catalog(db_path: str, resolver: FilingResolver | None = None) -> Catalog
+Catalog(db_file_path: str, resolver: FilingResolver | None = None) -> Catalog
 ```
 
-- **db_path**: Path to DuckDB file.
+- **db_file_path**: Path to DuckDB file.
 - **resolver**: Used to resolve `_filing_class` to a class on get/search. Defaults to `default_resolver` if `None`.
 
 ## Methods

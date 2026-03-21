@@ -182,7 +182,7 @@ class TestCatalog_FilingClass_Behavior:
             submit_datetime=now,
         )
         temp_catalog.index(edinet_filing)
-        catalog_path = temp_catalog.db_path
+        catalog_path = temp_catalog.db_file_path
         temp_catalog.close()
 
         resolver = RegistryOnlyResolver()
@@ -501,7 +501,7 @@ class TestCatalog_Helper_resolve_data_to_filing:
                 return None
 
         # temp_catalogの一時ディレクトリだけ使うため
-        catalog_path = temp_catalog.db_path
+        catalog_path = temp_catalog.db_file_path
         temp_catalog.close()
 
         catalog = Catalog(catalog_path, resolver=NoResolveResolver())
