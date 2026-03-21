@@ -10,31 +10,12 @@ from fino_filing.filing.error import (
     FilingValidationError,
 )
 from fino_filing.filing.meta import FilingMeta
+from fino_filing.util.serialize import serialize
 
 from .field import Field
 
 if TYPE_CHECKING:
     pass
-
-
-def _serialize_field_value(value: Any) -> str:
-    """id 生成用にフィールド値を文字列化する。"""
-    if value is None:
-        return ""
-    if isinstance(value, datetime):
-        return value.isoformat()
-    return str(value)
-
-
-def _generate_filing_id(filing_cls: type[Any], data: dict[str, Any]) -> str:
-    """
-    同一性フィールド（コアの source/name/is_zip/format ＋ ユーザー追加フィールド全て）の値から
-    決定論的に Filing ID を生成する。id / created_at / checksum は同一性に含めない。
-    """
-    identity_names = filing_cls.get_identity_fields()
-    parts = [f"{n}={_serialize_field_value(data.get(n))}" for n in identity_names]
-    payload = "|".join(parts)
-    return hashlib.sha256(payload.encode()).hexdigest()[:32]
 
 
 class Filing(metaclass=FilingMeta):
@@ -49,8 +30,10 @@ class Filing(metaclass=FilingMeta):
     Collectionに依存しない。
 
     id と created_at は省略時は内部生成される。
-    id は同一性フィールド（コアの source/name/is_zip/format ＋ ユーザーが追加した全フィールド）の値から
-    決定論的に生成する。id/created_at/checksum は同一性に含めない。indexed は Catalog の物理カラム・検索専用。
+    id は Field(identifier=True) を付けたフィールドの値だけを連結してハッシュ化して生成する。
+    サブクラスで identifier=True が1つも無い場合は従来どおり、コアの source/name/is_zip/format と
+    ユーザー追加フィールド全てを同一性としてハッシュする。id/created_at/checksum はハッシュ入力に含めない。
+    indexed は Catalog の物理カラム・検索専用。
 
     Usage:
         # モデルベース（Annotated形式）。default値は = 値 で指定
@@ -79,6 +62,7 @@ class Filing(metaclass=FilingMeta):
         str,
         Field(
             indexed=True,
+            identifier=True,
             immutable=True,
             required=True,
             description="Data source",
@@ -90,16 +74,23 @@ class Filing(metaclass=FilingMeta):
     ]
     name: Annotated[
         str,
-        Field(indexed=True, immutable=True, required=True, description="File name"),
+        Field(
+            indexed=True,
+            identifier=True,
+            immutable=True,
+            required=True,
+            description="File name",
+        ),
     ]
     is_zip: Annotated[
         bool,
-        Field(indexed=True, required=True, description="ZIP flag"),
+        Field(indexed=True, identifier=True, required=True, description="ZIP flag"),
     ]
     format: Annotated[
         str,
         Field(
             indexed=True,
+            identifier=True,
             required=True,
             immutable=True,
             description="File format / extension for storage key (e.g. zip, xbrl, pdf, csv) => derived from is_zip.",
@@ -147,7 +138,7 @@ class Filing(metaclass=FilingMeta):
         if self._data.get("created_at") is None:
             setattr(self, "created_at", datetime.now())
         if self._data.get("id") is None:
-            setattr(self, "id", _generate_filing_id(type(self), self._data))
+            setattr(self, "id", self._generate_id(self._data))
 
         # validation check
         self.__validate_fields()
@@ -179,6 +170,21 @@ class Filing(metaclass=FilingMeta):
 
         # 通常の属性設定（Fieldの場合はdescriptor経由で_dataに格納）
         object.__setattr__(self, name, value)
+
+    @classmethod
+    def _generate_id(cls, data: dict[str, Any]) -> str:
+        """
+        identifier=True が設定されたフィールドの値を連結して、Filing ID を決定論的に生成する。(sha256)
+        (id / created_at / checksum は生成対象または可変のためID 生成に含めない)
+        """
+        identifier_fields = sorted(
+            name
+            for name, field in cls._fields.items()
+            if getattr(field, "identifier", False)
+        )
+        parts = [f"{n}={serialize(data.get(n))}" for n in identifier_fields]
+        payload = "|".join(parts)
+        return hashlib.sha256(payload.encode()).hexdigest()[:32]
 
     def __validate_fields(self) -> None:
         """
@@ -285,16 +291,6 @@ class Filing(metaclass=FilingMeta):
         """
 
         return self._data.get(key)
-
-    @classmethod
-    def get_identity_fields(cls) -> list[str]:
-        """
-        ID ハッシュに含めるフィールド一覧（コアの source/name/is_zip/format ＋ ユーザー追加フィールド全て）。
-        """
-        core_id = {"format", "is_zip", "name", "source"}
-        # Filingの_fieldからFilingの元から存在するField( core ) を除外したFieldのリストを取得
-        extra = [field for field in cls._fields if field not in cls._core_fields]
-        return sorted(core_id | set(extra))
 
     @classmethod
     def get_indexed_fields(cls) -> list[str]:

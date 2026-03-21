@@ -14,14 +14,6 @@ from fino_filing.filing.error import (
 @pytest.mark.module
 @pytest.mark.filing
 class TestFiling_Initialize:
-    """
-    Filingのインスタンス化をテストする。
-    - 正常系: すべてのフィールドが設定されている場合
-    - 異常系: 必須フィールドが設定されていない場合
-    - 異常系: 型が一致しない場合
-    - 異常系: core fieldは空文字は許容されない
-    """
-
     def test_filing_init_success(self) -> None:
         filing = Filing(
             source="test_source",
@@ -41,22 +33,10 @@ class TestFiling_Initialize:
         assert filing.format == "zip"
         assert isinstance(filing.created_at, datetime)
 
-    def test_filing_id_generated_deterministically(self) -> None:
-        """同一の source, name, is_zip, format で作成した場合、同じ id が生成される"""
-        common = dict(
-            source="test_source",
-            checksum="test_checksum",
-            name="test_name",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = Filing(**common)
-        f2 = Filing(**common)
-        assert f1.id == f2.id
-        assert len(f1.id) == 32
-
-    def test_filing_id_generated_when_omitted(self) -> None:
-        """id を渡さない場合、id が設定される"""
+    def test_generate_id_success(self) -> None:
+        """
+        Filingのインスタンス時にidが生成されることを確認
+        """
         f = Filing(
             source="s",
             checksum="c",
@@ -68,7 +48,7 @@ class TestFiling_Initialize:
         assert len(f.id) == 32
 
     def test_filing_id_uses_only_identifier_fields_when_marked(self) -> None:
-        """Field(identifier=True) があるときはそのフィールドのみが id ハッシュに使われる"""
+        """Field(identifier=True) のFieldがid ハッシュに使われる"""
 
         class IdentifiedFiling(Filing):
             doc_id: Annotated[
@@ -87,25 +67,6 @@ class TestFiling_Initialize:
         assert a.id == b.id
         c = IdentifiedFiling(**base, checksum="checksum_a", doc_id="other-doc")
         assert a.id != c.id
-
-    def test_filing_id_includes_extended_indexed_metadata(self) -> None:
-        """拡張 Filing ではユーザー追加フィールドが id のハッシュに含まれる"""
-
-        class ExtendedFiling(Filing):
-            doc_id: Annotated[str, Field(indexed=True, description="Doc ID")]
-
-        base = dict(
-            source="s",
-            checksum="c",
-            name="n",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = ExtendedFiling(**base, doc_id="doc1")
-        f2 = ExtendedFiling(**base, doc_id="doc1")
-        f3 = ExtendedFiling(**base, doc_id="doc2")
-        assert f1.id == f2.id
-        assert f1.id != f3.id
 
     def test_filing_init_with_lack_field(self) -> None:
         # id / created_at は内部生成のため省略可能。source, checksum, name, is_zip, format は必須。

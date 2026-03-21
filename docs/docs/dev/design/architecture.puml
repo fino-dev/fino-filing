@@ -77,7 +77,6 @@ package "Fino Filing" {
       + to_dict() : dict[str, Any]
       + from_dict(data: dict) : Self
       + get(key: str) : Any
-      + {class} get_identity_fields() : list[str]
       + {class} get_indexed_fields() : list[str]
     }
 
@@ -91,6 +90,7 @@ package "Fino Filing" {
       + indexed : bool
       + immutable : bool
       + required : bool
+      + identifier : bool
       + description : str | None
       --
       + validate_value(value: Any) : void

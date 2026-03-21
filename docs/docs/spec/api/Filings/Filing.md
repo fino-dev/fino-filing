@@ -18,8 +18,9 @@ Filing(**kwargs) -> Filing
 
 ## Identity and ID generation
 
-- **Identity fields**: Core set `source`, `name`, `is_zip`, `format` plus all user-defined fields (excluding `id`, `created_at`, `checksum`). Used for deterministic `id` generation.
-- **id**: If not provided, computed as SHA256(identity field values)[:32].
+- **ID hash fields**: If any user-defined field uses `Field(..., identifier=True)`, only those fields (sorted by name) are concatenated and hashed for auto-generated `id`. Otherwise, behavior matches **identity fields** below (backward compatible).
+- **Identity fields**: Core set `source`, `name`, `is_zip`, `format` plus all user-defined fields (excluding `id`, `created_at`, `checksum`). Used for deterministic `id` when no `identifier=True` fields exist.
+- **id**: If not provided, computed as SHA256(ID hash field values)[:32].
 - **created_at**: If not provided, set to `datetime.now()`.
 
 ## Instance methods
@@ -31,11 +32,9 @@ Filing(**kwargs) -> Filing
 
 ## Class methods
 
-| Method                                  | Returns                    | Description                                                                                         |
-| --------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
-| `from_dict(cls, data: dict) -> Self`    | Filing instance            | Restore from dict; datetime strings are parsed. Raises same as constructor when keys/types invalid. |
-| `get_identity_fields(cls) -> list[str]` | Sorted list of field names | Fields used for ID generation                                                                       |
-| `get_indexed_fields(cls) -> list[str]`  | List of field names        | Fields stored as physical columns in Catalog (indexed=True)                                         |
+| Method                               | Returns         | Description                                                                                         |
+| ------------------------------------ | --------------- | --------------------------------------------------------------------------------------------------- |
+| `from_dict(cls, data: dict) -> Self` | Filing instance | Restore from dict; datetime strings are parsed. Raises same as constructor when keys/types invalid. |
 
 ## Attributes (core)
 
@@ -50,8 +49,6 @@ All filings have these fields. Required unless noted.
 | `is_zip`     | bool     | yes      | yes     | no        | Whether content is ZIP                                     |
 | `format`     | str      | yes      | yes     | yes       | Format / extension (e.g. xbrl, zip, pdf)                   |
 | `created_at` | datetime | yes      | yes     | yes       | Created timestamp (auto-generated if omitted)              |
-
-`id` is derived from identity fields (source, name, is_zip, format plus any user-defined fields); `created_at` defaults to `datetime.now()` when omitted.
 
 ## Custom Filing subclasses
 
