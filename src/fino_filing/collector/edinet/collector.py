@@ -5,7 +5,7 @@ EDINET 書類一覧API・書類取得API を用いて書類を収集し、Collec
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Iterator, cast
+from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
@@ -27,6 +27,28 @@ class EdinetCollector(BaseCollector):
     def __init__(self, collection: Collection, config: EdinetConfig) -> None:
         super().__init__(collection)
         self._client = EdinetClient(config)
+
+    @override
+    def collect(
+        self,
+        *,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        limit: int | None = None,
+        list_type: int = 2,
+        **kwargs: Any,
+    ) -> list[tuple[EDINETFiling, str]]:
+        """収集フローを実行し、EDINETFiling と保存パスのリストを返す。"""
+        return cast(
+            list[tuple[EDINETFiling, str]],
+            super().collect(
+                date_from=date_from,
+                date_to=date_to,
+                limit=limit,
+                list_type=list_type,
+                **kwargs,
+            ),
+        )
 
     def fetch_documents(
         self,

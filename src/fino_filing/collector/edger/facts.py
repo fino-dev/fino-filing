@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Iterator
+from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
@@ -25,6 +25,24 @@ class EdgerFactsCollector(BaseCollector):
     def __init__(self, collection: Collection, config: EdgerConfig) -> None:
         super().__init__(collection)
         self._client = EdgerClient(config)
+
+    @override
+    def collect(
+        self,
+        *,
+        cik_list: list[str] | None = None,
+        limit_per_company: int | None = None,
+        **kwargs: Any,
+    ) -> list[tuple[EDGARFiling, str]]:
+        """収集フローを実行し、EDGARFiling と保存パスのリストを返す。"""
+        return cast(
+            list[tuple[EDGARFiling, str]],
+            super().collect(
+                cik_list=cik_list,
+                limit_per_company=limit_per_company,
+                **kwargs,
+            ),
+        )
 
     def fetch_documents(
         self,
