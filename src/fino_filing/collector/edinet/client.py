@@ -38,7 +38,7 @@ class EdinetClient:
 
     def __init__(self, config: EdinetConfig) -> None:
         self._config = config
-        self._headers = {"Subscription-Key": config.api_key}
+        self._credential = {"Subscription-Key": config.api_key}
 
     def get_document_list(self, date: str, type: int = 1) -> dict[str, Any]:
         """
@@ -69,8 +69,8 @@ class EdinetClient:
     def _request_json(self, url: str) -> dict[str, Any]:
         """GET して JSON をパースして返す。失敗時は空 dict を返す。"""
         try:
-            url_with_api_key = f"{url}&{urlencode(self._headers)}"
-            req = Request(url_with_api_key)
+            url_with_credential = f"{url}&{urlencode(self._credential)}"
+            req = Request(url_with_credential)
             with urlopen(req, timeout=self._config.timeout) as resp:
                 return json.loads(resp.read().decode())
         except (HTTPError, URLError, json.JSONDecodeError) as e:
@@ -82,7 +82,8 @@ class EdinetClient:
         last_err: Exception | None = None
         for attempt in range(_RETRY_503_MAX):
             try:
-                req = Request(url, headers=self._headers)
+                url_with_credential = f"{url}&{urlencode(self._credential)}"
+                req = Request(url_with_credential)
                 with urlopen(req, timeout=self._config.timeout) as resp:
                     return resp.read()
             except HTTPError as e:
