@@ -20,7 +20,7 @@ package "Fino Filing" {
     }
 
     class Catalog <<Repository>> {
-      + db_path : str
+      + db_file_path : str
       + conn : Connection
       - _resolver : FilingResolver
       + index(filing: Filing) : void
