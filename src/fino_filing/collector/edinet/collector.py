@@ -4,11 +4,12 @@ EDINET 書類一覧API・書類取得API を用いて書類を収集し、Collec
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
+from fino_filing.collector.error import CollectorDateRangeValidationError
 from fino_filing.filing.filing_edinet import EDINETFiling
 
 from ._helpers import _build_edinet_filing, _list_item_to_parsed, _meta_to_parsed
@@ -21,7 +22,7 @@ class EdinetCollector(BaseCollector):
     EDINET の書類一覧APIで一覧取得し、書類取得APIで実体を取得して Collection に保存する。
 
     用途: 提出日範囲で書類一覧を取得し、各書類を PDF 等で取得して EDINETFiling として保存する。
-    収集条件: collect(date_from=..., date_to=..., limit=...) で渡す。
+    収集条件: collect(date_from=..., date_to=..., limit=...) で渡す（日付は datetime.date）。
     """
 
     def __init__(self, collection: Collection, config: EdinetConfig) -> None:
@@ -32,8 +33,8 @@ class EdinetCollector(BaseCollector):
     def collect(
         self,
         *,
-        date_from: str | None = None,
-        date_to: str | None = None,
+        date_from: date,
+        date_to: date,
         limit: int | None = None,
         list_type: int = 2,
         **kwargs: Any,
@@ -53,8 +54,8 @@ class EdinetCollector(BaseCollector):
     def fetch_documents(
         self,
         *,
-        date_from: str | None = None,
-        date_to: str | None = None,
+        date_from: date,
+        date_to: date,
         limit: int | None = None,
         list_type: int = 2,
         **kwargs: Any,
@@ -62,16 +63,10 @@ class EdinetCollector(BaseCollector):
         """
         書類一覧APIで日付範囲の一覧を取得し、各 doc_id で書類実体を取得して RawDocument を yield する。
         """
-        if not date_from:
-            return
-        start = _parse_date(date_from)
-        end = _parse_date(date_to) if date_to else start
-        if start is None:
-            return
-        if end is None:
-            end = start
+        start = date_from
+        end = date_to
         if end < start:
-            end = start
+            raise CollectorDateRangeValidationError(start, end)
 
         total_yielded = 0
         current = start
@@ -111,13 +106,3 @@ class EdinetCollector(BaseCollector):
         """Parsed と content から EDINETFiling を生成する。"""
         name = parsed.get("doc_id") or "document"
         return _build_edinet_filing(parsed, raw.content, name)
-
-
-def _parse_date(s: str | None) -> datetime | None:
-    """YYYY-MM-DD を datetime に変換する。"""
-    if not s:
-        return None
-    try:
-        return datetime.strptime(s[:10], "%Y-%m-%d")
-    except (ValueError, TypeError):
-        return None
