@@ -100,6 +100,8 @@ class Field:
         immutable: bool = False,
         required: bool = False,
         description: str | None = None,
+        *,
+        identifier: bool = False,
     ):
         """
         Args:
@@ -109,6 +111,7 @@ class Field:
             immutable: Immutable Flag
             required: Required Flag（True の場合は default None 不可・インスタンス化時に必須）
             description: Description
+            identifier: True のとき、このフィールドを id 自動生成時のハッシュ入力に含める
         """
         self.name = name
         self._field_type: type | None = _field_type
@@ -116,6 +119,7 @@ class Field:
         self.immutable = immutable
         self.required = required
         self.description = description
+        self.identifier = identifier
 
     def validate_value(self, value: Any) -> None:
         """Field の値の型チェックを行う。"""
@@ -317,7 +321,11 @@ class Field:
         obj._data[self.name] = value
 
     def __repr__(self) -> str:
-        return f"Field(name={self.name!r}, type={self._field_type}, indexed={self.indexed}, immutable={self.immutable}, required={self.required})"
+        return (
+            f"Field(name={self.name!r}, type={self._field_type}, "
+            f"indexed={self.indexed}, immutable={self.immutable}, "
+            f"required={self.required}, identifier={self.identifier})"
+        )
 
 
 # ========== ショートカット関数 ==========

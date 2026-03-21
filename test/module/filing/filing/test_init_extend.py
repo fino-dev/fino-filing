@@ -75,130 +75,58 @@ class TestExtendFiling_Initialize:
 # ================ Extended Filing ID (indexed additional fields) ================
 
 
-class ExtendedIndexedFiling(Filing):
+class ExtendedIdentifierFiling(Filing):
+    """
+    identifier=True のフィールドを持つ拡張 Filing。
+    """
+
+    doc_id: Annotated[
+        str, Field(indexed=True, identifier=True, description="Document ID")
+    ]
+
+
+class ExtendedNonIdentifierFiling(Filing):
     """id のハッシュに含まれる indexed 追加フィールドを持つ拡張 Filing。"""
 
     doc_id: Annotated[str, Field(indexed=True, description="Document ID")]
 
 
-class ExtendedIndexedAndNonIndexedFiling(Filing):
-    """indexed と non-indexed の追加フィールドを持つ拡張 Filing。"""
-
-    doc_id: Annotated[str, Field(indexed=True, description="Document ID")]
-    memo: Annotated[str, Field(description="Memo (not indexed)")]
-
-
 @pytest.mark.module
 @pytest.mark.filing
 class TestExtendFiling_IdGeneration:
-    """
-    継承後の Filing の追加 Field の違いに応じて id が適切に一致/非一致することを検証する。
-    同一性はコア 4 項目（source/name/is_zip/format）＋ユーザー追加フィールド全てで決まる。
-    - Filingと追加Fieldを持つクラスの名前が異なる場合は異なる id が生成される
-    - 同じコア＋同じ追加フィールドなら同じ id が生成される
-    - 同じコアでも追加フィールドが異なれば異なる id が生成される（indexed に限らない）
-    - 同じコア＋同じ追加フィールド（indexed も non-indexed も）なら同じ id
-    - non-indexed 追加フィールドが違っても id は異なる（追加フィールドは全て同一性に含まれる）
-    - indexed 追加フィールドが違えば異なる id
-    - 同じFieldでクラス名が異なる場合は異なる id が生成される
-    """
+    base = dict(
+        source="src",
+        checksum="c1",
+        name="n.xbrl",
+        is_zip=False,
+        format="xbrl",
+    )
 
-    def test_different_id_when_class_name_differs(self) -> None:
-        """Filingと追加Fieldを持つクラスの名前が異なる場合は異なる id が生成される"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = Filing(**base)
-        f2 = ExtendedIndexedFiling(**base, doc_id="DOC-001")
+    def test_same_id_when_class_name_differs(self) -> None:
+        """Filingのクラスの違いによるIDの同一性は変わらず、identifierのみによる同一性を担保していることを確認する"""
+        f1 = Filing(**self.base)
+        f2 = ExtendedNonIdentifierFiling(**self.base, doc_id="DOC-001")
+        assert f1.id == f2.id
+
+    def test_different_id_when_class_name_differs_and_extra_identifier_fields(
+        self,
+    ) -> None:
+        """追加フィールドを含めidentifier=True のフィールド場合、そのFieldの値を含まないものとは異なるIDとなる"""
+        f1 = Filing(**self.base)
+        f2 = ExtendedIdentifierFiling(**self.base, doc_id="DOC-001")
+        assert f1.id != f2.id
+
+    def test_different_id_when_any_extra_field_differs(self) -> None:
+        """追加フィールドが異なれば異なる ID となる"""
+        f1 = ExtendedIdentifierFiling(**self.base, doc_id="DOC-001")
+        f2 = ExtendedIdentifierFiling(**self.base, doc_id="DOC-002")
         assert f1.id != f2.id
 
     def test_same_id_when_all_extra_fields_match(self) -> None:
-        """同じコア＋同じ追加フィールドなら同じ id が生成される"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = ExtendedIndexedFiling(**base, doc_id="DOC-001")
-        f2 = ExtendedIndexedFiling(**base, doc_id="DOC-001")
-        assert f1.id == f2.id
+        """追加のidentifier=True のフィールドが存在しない場合は、通常のFilingと同じIDとなる"""
 
-    def test_different_id_when_any_extra_field_differs(self) -> None:
-        """同じコアでも追加フィールドが異なれば異なる id が生成される（indexed に限らない）"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = ExtendedIndexedFiling(**base, doc_id="DOC-001")
-        f2 = ExtendedIndexedFiling(**base, doc_id="DOC-002")
-        assert f1.id != f2.id
-
-    def test_same_id_when_all_extra_fields_match_including_non_indexed(self) -> None:
-        """同じコア＋同じ追加フィールド（indexed も non-indexed も）なら同じ id"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = ExtendedIndexedAndNonIndexedFiling(**base, doc_id="DOC-001", memo="X")
-        f2 = ExtendedIndexedAndNonIndexedFiling(**base, doc_id="DOC-001", memo="X")
-        assert f1.id == f2.id
-
-    def test_different_id_when_non_indexed_extra_differs(self) -> None:
-        """non-indexed 追加フィールドが違っても id は異なる（追加フィールドは全て同一性に含まれる）"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = ExtendedIndexedAndNonIndexedFiling(**base, doc_id="DOC-001", memo="A")
-        f2 = ExtendedIndexedAndNonIndexedFiling(**base, doc_id="DOC-001", memo="B")
-        assert f1.id != f2.id
-
-    def test_different_id_when_indexed_extra_differs(self) -> None:
-        """indexed 追加フィールドが違えば異なる id"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-        f1 = ExtendedIndexedAndNonIndexedFiling(**base, doc_id="DOC-001", memo="same")
-        f2 = ExtendedIndexedAndNonIndexedFiling(**base, doc_id="DOC-002", memo="same")
-        assert f1.id != f2.id
-
-    def test_different_id_when_created_at_differs(self) -> None:
-        """同じFieldでクラス名が異なる場合は同じ id が生成される"""
-        base = dict(
-            source="src",
-            checksum="c1",
-            name="n.xbrl",
-            is_zip=False,
-            format="xbrl",
-        )
-
-        class ExtededIndexedFilingWithDefaultName(ExtendedIndexedFiling):
-            name = "n.xbrl"
-
-        f1 = ExtendedIndexedFiling(**base, doc_id="DOC-001")
-        f2 = ExtededIndexedFilingWithDefaultName(
-            **base,
-            doc_id="DOC-001",
-        )
+        f1 = ExtendedNonIdentifierFiling(**self.base, doc_id="DOC-001")
+        f2 = ExtendedNonIdentifierFiling(**self.base, doc_id="DOC-001")
         assert f1.id == f2.id
 
 
