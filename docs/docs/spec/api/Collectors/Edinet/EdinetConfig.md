@@ -21,6 +21,14 @@ EdinetConfig(
 | `api_key` | str | （必須） | EDINET API の Subscription-Key。リクエストヘッダで送る |
 | `timeout` | int | 30       | HTTP リクエストのタイムアウト（秒）                    |
 
+## API key (Subscription-Key)
+
+Use the value from EDINET as `api_key`. For account creation or contact updates, follow the instructions on the EDINET site (see also [account / contact](https://api.edinet-fsa.go.jp/api/auth/index.aspx?mode=1)).
+
+To **reissue** an API key, open the official issuance screen:
+
+- [EDINET API key issuance / reissue](https://api.edinet-fsa.go.jp/WEEE0090.aspx)
+
 ## 使用例
 
 ```python

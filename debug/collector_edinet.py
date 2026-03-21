@@ -11,3 +11,4 @@ edinetCollector = ff.EdinetCollector(
 )
 
 edinetCollector.collect(date_from=date(2025, 1, 1), date_to=date(2025, 1, 2))
+edinetCollector.collect(date_from=date(2025, 1, 1), date_to=date(2025, 1, 2))
