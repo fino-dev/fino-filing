@@ -47,12 +47,14 @@ class EdgerClient:
         """SEC Submissions API から企業の提出一覧を取得する。"""
         cik_pad = cik.zfill(10)
         url = f"{self._SEC_API_BASE}/submissions/CIK{cik_pad}.json"
+        time.sleep(_REQUEST_DELAY_SEC)
         return self._request_json(url)
 
     def get_company_facts(self, cik: str) -> dict[str, Any]:
         """SEC XBRL CompanyFacts API から企業の全 XBRL ファクトを取得する。"""
         cik_pad = cik.zfill(10)
         url = f"{self._SEC_API_BASE}/api/xbrl/companyfacts/CIK{cik_pad}.json"
+        time.sleep(_REQUEST_DELAY_SEC)
         return self._request_json(url)
 
     def get_filing_document(self, cik: str, accession: str) -> bytes:
@@ -61,15 +63,17 @@ class EdgerClient:
         acc_dir = _accession_to_dir(accession)
         primary_name = f"{accession}-index.htm"
         url = f"{self._ARCHIVES_BASE}/data/{cik_pad}/{acc_dir}/{primary_name}"
+        time.sleep(_REQUEST_DELAY_SEC)
         return self._request_bytes(url)
 
     def get_bulk(self, url: str) -> bytes:
         """指定 URL から Bulk データを bytes で取得する。"""
+        time.sleep(_REQUEST_DELAY_SEC)
         return self._request_bytes(url)
 
     def _request_json(self, url: str) -> dict[str, Any]:
         """GET して JSON をパースして返す。失敗時は空 dict を返す。"""
-        time.sleep(_REQUEST_DELAY_SEC)
+
         try:
             req = Request(url, headers=self._headers)
             with urlopen(req, timeout=self._config.timeout) as resp:
@@ -80,7 +84,6 @@ class EdgerClient:
 
     def _request_bytes(self, url: str) -> bytes:
         """GET して bytes を返す。503 時はリトライし、失敗時は空 bytes を返す。"""
-        time.sleep(_REQUEST_DELAY_SEC)
         last_err: Exception | None = None
         for attempt in range(_RETRY_503_MAX):
             try:
