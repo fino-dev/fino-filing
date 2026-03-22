@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict
+from datetime import date
 from typing import Any
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
 from fino_filing.collector.edinet.config import EdinetConfig
+from fino_filing.util._date import date_to_str
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +26,11 @@ class EdinetClient:
 
         self._http_client = HttpClient(HttpClientConfig.from_dict(asdict(config)))
 
-    def get_document_list(self, date: str, type: int = 1) -> dict[str, Any]:
+    def get_document_list(self, date: date, type: int = 1) -> dict[str, Any]:
+
         params: dict[str, str | int] = {
             "Subscription-Key": self._credential,
-            "date": date,
+            "date": date_to_str(date),
             "type": type,
         }
         url = f"{self._EDINET_API_BASE}/documents.json"

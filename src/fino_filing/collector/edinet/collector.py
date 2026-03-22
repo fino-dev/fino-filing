@@ -60,8 +60,7 @@ class EdinetCollector(BaseCollector):
         total_yielded = 0
         current = start
         while current <= end:
-            date_str = current.strftime("%Y-%m-%d")
-            resp = self._client.get_document_list(date_str, type=list_type)
+            resp = self._client.get_document_list(current, type=list_type)
             raw_results = resp.get("results")
             if isinstance(raw_results, list):
                 results = cast(list[Any], raw_results)
