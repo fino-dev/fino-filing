@@ -18,13 +18,6 @@ from .config import EdinetConfig
 
 
 class EdinetCollector(BaseCollector):
-    """
-    EDINET の書類一覧APIで一覧取得し、書類取得APIで実体を取得して Collection に保存する。
-
-    用途: 提出日範囲で書類一覧を取得し、各書類を PDF 等で取得して EDINETFiling として保存する。
-    収集条件: collect(date_from=..., date_to=..., limit=...) で渡す（日付は datetime.date）。
-    """
-
     def __init__(self, collection: Collection, config: EdinetConfig) -> None:
         super().__init__(collection)
         self._client = EdinetClient(config)
@@ -39,7 +32,6 @@ class EdinetCollector(BaseCollector):
         list_type: int = 2,
         **kwargs: Any,
     ) -> list[tuple[EDINETFiling, str]]:
-        """収集フローを実行し、EDINETFiling と保存パスのリストを返す。"""
         return cast(
             list[tuple[EDINETFiling, str]],
             super().collect(
@@ -60,9 +52,6 @@ class EdinetCollector(BaseCollector):
         list_type: int = 2,
         **kwargs: Any,
     ) -> Iterator[RawDocument]:
-        """
-        書類一覧APIで日付範囲の一覧を取得し、各 doc_id で書類実体を取得して RawDocument を yield する。
-        """
         start = date_from
         end = date_to
         if end < start:
@@ -99,10 +88,8 @@ class EdinetCollector(BaseCollector):
             current += timedelta(days=1)
 
     def parse_response(self, raw: RawDocument) -> Parsed:
-        """RawDocument の meta を EDINETFiling 用の Parsed に正規化する。"""
         return _meta_to_parsed(raw.meta)
 
     def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDINETFiling:
-        """Parsed と content から EDINETFiling を生成する。"""
         name = parsed.get("doc_id") or "document"
         return _build_edinet_filing(parsed, raw.content, name)
