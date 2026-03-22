@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from fino_filing.collector._http_client import HttpClientConfig
 
-@dataclass
-class EdgerConfig:
+
+@dataclass(kw_only=True)
+class EdgerConfig(HttpClientConfig):
     """
     EDGAR 用ユーザー設定。
 
@@ -16,4 +18,3 @@ class EdgerConfig:
     """
 
     user_agent_email: str
-    timeout: int = 30

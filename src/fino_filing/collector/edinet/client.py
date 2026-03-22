@@ -19,12 +19,10 @@ class EdinetClient:
     _EDINET_API_BASE = "https://api.edinet-fsa.go.jp/api/v2"
 
     def __init__(self, config: EdinetConfig) -> None:
+        self._config = config
         self._credential = config.api_key
 
-        config_dict = asdict(config).copy()
-        config_dict.pop("api_key", None)
-
-        self._http_client = HttpClient(HttpClientConfig(**config_dict))
+        self._http_client = HttpClient(HttpClientConfig.from_dict(asdict(config)))
 
     def get_document_list(self, date: str, type: int = 1) -> dict[str, Any]:
         params: dict[str, str | int] = {

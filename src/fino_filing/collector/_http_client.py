@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -42,6 +42,19 @@ class HttpClientConfig:
     retry_backoff_factor: float = 1.0
     max_retries: int = 3
     timeout: int = 30
+
+    @classmethod
+    def from_dict(cls, dict: dict[str, Any]) -> "HttpClientConfig":
+        return cls(
+            rate_limit_delay=dict.get("rate_limit_delay", 0.1),
+            retry_status_codes=dict.get(
+                "retry_status_codes", [429, 500, 502, 503, 504]
+            ),
+            retry_methods=dict.get("retry_methods", ["GET"]),
+            retry_backoff_factor=dict.get("retry_backoff_factor", 1.0),
+            max_retries=dict.get("max_retries", 3),
+            timeout=dict.get("timeout", 30),
+        )
 
 
 class HttpClient:
@@ -103,7 +116,8 @@ class HttpClient:
     def get(
         self,
         url: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -131,6 +145,7 @@ class HttpClient:
             response = self.session.get(
                 url,
                 params=params,
+                headers=headers,
                 timeout=self.timeout,
                 **kwargs,
             )
@@ -153,7 +168,8 @@ class HttpClient:
     def get_raw(
         self,
         url: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> bytes:
         """
@@ -181,6 +197,7 @@ class HttpClient:
             response = self.session.get(
                 url,
                 params=params,
+                headers=headers,
                 timeout=self.timeout,
                 **kwargs,
             )
