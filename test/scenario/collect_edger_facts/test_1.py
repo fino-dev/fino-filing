@@ -20,7 +20,7 @@ class TestScenario_CollectEdgerFacts:
 
         collector = EdgerFactsCollector(
             collection=temp_collection,
-            config=EdgerConfig("test@example.com"),
+            config=EdgerConfig(user_agent_email="test@example.com"),
         )
 
         print("===================================")
