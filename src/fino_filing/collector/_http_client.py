@@ -1,10 +1,7 @@
-import json
 import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -44,7 +41,10 @@ class HttpClientConfig:
     timeout: int = 30
 
     @classmethod
-    def from_dict(cls, dict: dict[str, Any]) -> "HttpClientConfig":
+    def from_dict(cls, dict: dict[str, Any] | None = None) -> "HttpClientConfig":
+        if dict is None:
+            dict = {}
+
         return cls(
             rate_limit_delay=dict.get("rate_limit_delay", 0.1),
             retry_status_codes=dict.get(
@@ -101,13 +101,21 @@ class HttpClient:
 
         logger.info("HTTP client initialized")
 
-    def _rate_limit(self) -> None:
-        """Enforce rate limiting between requests."""
-        current_time = time.time()
-        elapsed = current_time - self._last_request_time
+    def _rate_limit(
+        self, rate_limit_delay: float, last_request_time: float | None = None
+    ) -> None:
+        """
+        Enforce rate limiting between requests.
 
-        if elapsed < self.rate_limit_delay:
-            sleep_time = self.rate_limit_delay - elapsed
+        Args:
+        - rate_limit_delay: Delay time between requests in seconds
+        - last_request_time: Time of last request in seconds
+        """
+        current_time = time.time()
+        elapsed = current_time - (last_request_time or 0.0)
+
+        if elapsed < rate_limit_delay:
+            sleep_time = rate_limit_delay - elapsed
             logger.debug(f"Rate limiting: sleeping for {sleep_time:.3f} seconds")
             time.sleep(sleep_time)
 
@@ -139,7 +147,7 @@ class HttpClient:
         """
 
         # 2回目以降はリクエスト間隔を指定時間だけ待つ（レート制限）
-        self._rate_limit()
+        self._rate_limit(self.rate_limit_delay, self._last_request_time)
 
         try:
             response = self.session.get(
@@ -191,7 +199,7 @@ class HttpClient:
         """
 
         # 2回目以降はリクエスト間隔を指定時間だけ待つ（レート制限）
-        self._rate_limit()
+        self._rate_limit(self.rate_limit_delay, self._last_request_time)
 
         try:
             response = self.session.get(
@@ -216,14 +224,3 @@ class HttpClient:
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed for {url}: {str(e)}")
             raise HttpRequestError(url, e) from e
-
-    @staticmethod
-    def request_json(url: str, headers: dict[str, str], timeout: int) -> dict[str, Any]:
-        try:
-            req = Request(url, headers=headers)
-            with urlopen(req, timeout=timeout) as resp:
-                # responseのbyteをstrに変換してJSON としてパースする
-                return json.loads(resp.read().decode())
-        except (HTTPError, URLError, json.JSONDecodeError) as e:
-            logger.error("Failed to fetch JSON and return empty dict %s: %s", url, e)
-            return {}
