@@ -188,9 +188,7 @@ class TestHttpClientRequestJson:
         """成功時は JSON を dict で返す"""
         payload = {"items": [1]}
         mock_cm = MagicMock()
-        mock_cm.__enter__.return_value.read.return_value = json.dumps(
-            payload
-        ).encode()
+        mock_cm.__enter__.return_value.read.return_value = json.dumps(payload).encode()
 
         with patch(
             "fino_filing.collector._http_client.urlopen",
@@ -208,9 +206,7 @@ class TestHttpClientRequestJson:
         """HTTP エラー時は空 dict"""
         with patch(
             "fino_filing.collector._http_client.urlopen",
-            side_effect=HTTPError(
-                "https://x", 500, "err", cast(Any, {}), None
-            ),
+            side_effect=HTTPError("https://x", 500, "err", cast(Any, {}), None),
         ):
             result = HttpClient.request_json("https://x", {}, 5)
         assert result == {}
