@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from dataclasses import dataclass, field
 from typing import Any, Optional
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -18,10 +19,29 @@ from fino_filing.collector.error import (
 
 logger = logging.getLogger(__name__)
 
-BATCKOFF_FACTOR = 1.0
-RETRY_ERROR_STATUS = [429, 500, 502, 503, 504]
-RETRY_MAX_COUNT = 3
-RETRY_METHOD = ["GET"]
+
+@dataclass(kw_only=True)
+class HttpClientConfig:
+    """
+    HttpClient configuration class
+
+    Properties:
+    - rate_limit_delay: Minimum delay between requests in seconds
+    - retry_status_codes: Status codes to retry on
+    - retry_methods: HTTP methods to retry on
+    - retry_backoff_factor: Backoff factor for exponential backoff
+    - max_retries: Maximum number of retry attempts
+    - timeout: Request timeout in seconds
+    """
+
+    rate_limit_delay: float = 0.1
+    retry_status_codes: list[int] = field(
+        default_factory=lambda: [429, 500, 502, 503, 504]
+    )
+    retry_methods: list[str] = field(default_factory=lambda: ["GET"])
+    retry_backoff_factor: float = 1.0
+    max_retries: int = 3
+    timeout: int = 30
 
 
 class HttpClient:
@@ -44,12 +64,10 @@ class HttpClient:
         >>> data = client.get("https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json")
     """
 
-    def __init__(
-        self, rate_limit_delay: float = 0.1, max_retries: int = 3, timeout: int = 30
-    ) -> None:
-        self.rate_limit_delay = rate_limit_delay
-        self.max_retries = max_retries
-        self.timeout = timeout
+    def __init__(self, config: HttpClientConfig) -> None:
+        self.rate_limit_delay = config.rate_limit_delay
+        self.max_retries = config.max_retries
+        self.timeout = config.timeout
 
         # Initialize last request time for rate limiting
         self._last_request_time = 0.0
@@ -57,10 +75,10 @@ class HttpClient:
         # Configure session with retry strategy
         self.session = requests.Session()
         retry_strategy = Retry(
-            total=max_retries,
-            backoff_factor=BATCKOFF_FACTOR,
-            status_forcelist=RETRY_ERROR_STATUS,
-            allowed_methods=RETRY_METHOD,
+            total=self.max_retries,
+            backoff_factor=config.retry_backoff_factor,
+            status_forcelist=config.retry_status_codes,
+            allowed_methods=config.retry_methods,
         )
 
         # Register Adapter
