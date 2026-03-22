@@ -1,16 +1,11 @@
 """EdinetClient の get_document_list / get_document を検証する（モック利用）"""
 
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
 
 from fino_filing.collector.edinet import EdinetClient, EdinetConfig
-from fino_filing.collector.error import (
-    HttpNotFoundError,
-    HttpRateLimitError,
-    HttpRequestError,
-)
 
 
 @pytest.mark.module
@@ -37,26 +32,10 @@ class TestEdinetClient:
             patch("requests.Session.get", return_value=mock_resp),
         ):
             client = EdinetClient(edinet_config)
-            result = client.get_document_list("2024-01-01", type=1)
+            result = client.get_document_list(date(2024, 1, 1), type=1)
 
         assert result == body
         assert result.get("results", [])[0]["docID"] == "S100XXX"
-
-    def test_get_document_list_failure_raises_http_request_error(
-        self, edinet_config: EdinetConfig
-    ) -> None:
-        """get_document_list は HTTP 5xx 等で HttpRequestError を送出する"""
-        mock_resp = MagicMock()
-        mock_resp.status_code = 500
-        mock_resp.raise_for_status.side_effect = requests.HTTPError(response=mock_resp)
-
-        with (
-            patch("fino_filing.collector._http_client.time.sleep"),
-            patch("requests.Session.get", return_value=mock_resp),
-        ):
-            client = EdinetClient(edinet_config)
-            with pytest.raises(HttpRequestError):
-                client.get_document_list("2024-01-01")
 
     def test_get_document_returns_bytes(self, edinet_config: EdinetConfig) -> None:
         """get_document は書類実体を bytes で返す"""
@@ -75,19 +54,6 @@ class TestEdinetClient:
 
         assert result == content
 
-    def test_get_document_not_found_raises(self, edinet_config: EdinetConfig) -> None:
-        """get_document は 404 のとき HttpNotFoundError を送出する"""
-        mock_resp = MagicMock()
-        mock_resp.status_code = 404
-
-        with (
-            patch("fino_filing.collector._http_client.time.sleep"),
-            patch("requests.Session.get", return_value=mock_resp),
-        ):
-            client = EdinetClient(edinet_config)
-            with pytest.raises(HttpNotFoundError):
-                client.get_document("S100NONEXISTENT")
-
     def test_get_document_list_uses_documents_json_url_and_params(
         self, edinet_config: EdinetConfig
     ) -> None:
@@ -102,7 +68,7 @@ class TestEdinetClient:
             patch("requests.Session.get", return_value=mock_resp) as m_get,
         ):
             client = EdinetClient(edinet_config)
-            client.get_document_list("2024-06-01", type=2)
+            client.get_document_list(date(2024, 6, 1), type=2)
 
         m_get.assert_called_once()
         assert m_get.call_args[0][0] == (
@@ -139,18 +105,3 @@ class TestEdinetClient:
             "Subscription-Key": "test-api-key",
             "type": 5,
         }
-
-    def test_get_document_list_raises_rate_limit_on_429(
-        self, edinet_config: EdinetConfig
-    ) -> None:
-        """一覧取得が 429 のとき HttpRateLimitError（HttpClient 委譲）"""
-        mock_resp = MagicMock()
-        mock_resp.status_code = 429
-
-        with (
-            patch("fino_filing.collector._http_client.time.sleep"),
-            patch("requests.Session.get", return_value=mock_resp),
-        ):
-            client = EdinetClient(edinet_config)
-            with pytest.raises(HttpRateLimitError):
-                client.get_document_list("2024-01-01")

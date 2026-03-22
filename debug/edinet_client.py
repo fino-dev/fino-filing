@@ -1,4 +1,6 @@
+import json
 import os
+from datetime import date
 
 import fino_filing as ff
 from fino_filing.collector.edinet import EdinetClient
@@ -10,4 +12,11 @@ print(edinet_api_key)
 client = EdinetClient(ff.EdinetConfig(api_key=os.getenv("EDINET_API_KEY") or ""))
 
 
-print(client.get_document_list("2025-01-01"))
+print("----------------------------------------------------------------")
+print(type(client.get_document_list(date(2025, 4, 1), type=1)))
+print(json.dumps(client.get_document_list(date(2025, 4, 2), type=1), indent=4))
+print("----------------------------------------------------------------")
+print(type(client.get_document_list(date(2025, 4, 2), type=2)))
+# print(json.dumps(client.get_document_list(date(2025, 4, 2), type=2), indent=4))
+print(client.get_document_list(date(2025, 4, 2), type=2))
+print("----------------------------------------------------------------")
