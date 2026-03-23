@@ -23,6 +23,27 @@ class EdinetCollector(BaseCollector):
         self._client = EdinetClient(config)
 
     @override
+    def iter_collect(
+        self,
+        *,
+        date_from: date,
+        date_to: date,
+        limit: int | None = None,
+        list_type: int = 2,
+        **kwargs: Any,
+    ) -> Iterator[tuple[EDINETFiling, str]]:
+        yield from cast(
+            Iterator[tuple[EDINETFiling, str]],
+            super().iter_collect(
+                date_from=date_from,
+                date_to=date_to,
+                limit=limit,
+                list_type=list_type,
+                **kwargs,
+            ),
+        )
+
+    @override
     def collect(
         self,
         *,
@@ -32,15 +53,14 @@ class EdinetCollector(BaseCollector):
         list_type: int = 2,
         **kwargs: Any,
     ) -> list[tuple[EDINETFiling, str]]:
-        return cast(
-            list[tuple[EDINETFiling, str]],
-            super().collect(
+        return list(
+            self.iter_collect(
                 date_from=date_from,
                 date_to=date_to,
                 limit=limit,
                 list_type=list_type,
                 **kwargs,
-            ),
+            )
         )
 
     def fetch_documents(

@@ -21,13 +21,37 @@ EdinetCollector(
 
 ## Methods
 
+### iter_collect
+
+```python
+from datetime import date
+
+iter_collect(
+    *,
+    date_from: date,
+    date_to: date,
+    limit: int | None = None,
+    list_type: int = 2,
+    **kwargs: Any,
+) -> Iterator[tuple[EDINETFiling, str]]
+```
+
+`BaseCollector.iter_collect`。1 件ごとに Collection へ保存し `(EDINETFiling, path)` を yield する。進捗表示や早期終了に利用する。
+
 ### collect
 
 ```python
-collect(**criteria: Any) -> list[tuple[Filing, str]]
+collect(
+    *,
+    date_from: date,
+    date_to: date,
+    limit: int | None = None,
+    list_type: int = 2,
+    **kwargs: Any,
+) -> list[tuple[EDINETFiling, str]]
 ```
 
-`BaseCollector` のテンプレートメソッド。収集条件は `criteria` で渡す（`date_from`, `date_to`, `limit` 等）。
+`list(iter_collect(...))` と同じ。収集条件は `date_from`, `date_to`, `limit` 等。
 
 ### fetch_documents
 

@@ -39,12 +39,25 @@ class BaseCollector(ABC):
     """
     収集の共通フローを定義する Template Method の抽象基底クラス。
 
-    collect(**criteria) が骨格を定義し、fetch_documents / parse_response / build_filing を
-    サブクラスで差し替える。収集条件（cik_list 等）は collect() 呼び出し時に渡す。
+    collect(**criteria) / iter_collect(**criteria) が骨格を定義し、
+    fetch_documents / parse_response / build_filing をサブクラスで差し替える。
+    収集条件（cik_list 等）は collect / iter_collect 呼び出し時に渡す。
     """
 
     def __init__(self, collection: Collection) -> None:
         self._collection = collection
+
+    def iter_collect(self, **criteria: Any) -> Iterator[tuple[Filing, str]]:
+        """
+        1 件ずつ fetch → parse → build_filing → add_to_collection を行い、
+        各件の (Filing, path) を yield する。collect() は本イテレータを list 化したもの。
+
+        イテレーションを途中で止めた場合、それまでに yield した分は Collection に保存済み。
+        """
+        for raw in self.fetch_documents(**criteria):
+            parsed = self.parse_response(raw)
+            filing = self.build_filing(parsed, raw)
+            yield self.add_to_collection(filing, raw.content)
 
     def collect(self, **criteria: Any) -> list[tuple[Filing, str]]:
         """
@@ -58,12 +71,7 @@ class BaseCollector(ABC):
         Returns:
             add_to_collection の戻り値のリスト（各要素は (Filing, path)）
         """
-        results: list[tuple[Filing, str]] = []
-        for raw in self.fetch_documents(**criteria):
-            parsed = self.parse_response(raw)
-            filing = self.build_filing(parsed, raw)
-            results.append(self.add_to_collection(filing, raw.content))
-        return results
+        return list(self.iter_collect(**criteria))
 
     def add_to_collection(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
         """Collection に 1 件追加する。Facade である Collection.add に委譲する。"""

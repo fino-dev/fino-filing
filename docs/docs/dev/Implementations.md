@@ -36,7 +36,7 @@ Summary of the current implementation by boundary. See [Codebase](/docs/dev/Code
 
 ## Collector boundary
 
-- **`BaseCollector`** (`collector/base.py`) — Template Method: `collect()` runs `fetch_documents()` → `parse_response(raw)` → `build_filing(parsed, raw)` → `add_to_collection(filing, content)`. Subclasses implement the three abstract methods.
+- **`BaseCollector`** (`collector/base.py`) — Template Method: `iter_collect()` yields per item from `fetch_documents()` → `parse_response(raw)` → `build_filing(parsed, raw)` → `add_to_collection(filing, content)`; `collect()` is `list(iter_collect(...))`. Subclasses implement the three abstract methods.
 - **`RawDocument`** — `content: bytes`, `meta: dict`. One item per fetch.
 - **`Parsed`** — `dict[str, Any]`; intermediate before building a Filing.
 - **Edger** (`collector/edger.py`): **EdgerConfig** (SEC/Bulk URLs, timeout, rate limit), **EdgerSecApi** (SEC Company Submissions API → EDGARFiling), **EdgerBulkData** (daily-index ZIPs → EDGARFiling), **EdgerCollector** (orchestrates strategies and calls `add_to_collection`).

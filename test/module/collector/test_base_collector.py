@@ -81,3 +81,38 @@ class TestBaseCollector:
         assert stub.parse_called == 0
         assert stub.build_called == 0
         assert len(results) == 0
+
+    def test_iter_collect_yields_same_pairs_as_collect(
+        self,
+        temp_collection: tuple[Collection, object],
+    ) -> None:
+        """iter_collect が collect と同じ id・checksum・保存パスを返す（連続呼び出し時は created_at が異なる）"""
+        collection, _ = temp_collection
+        stub = StubCollector(collection)
+        raw1 = RawDocument(content=b"a", meta={})
+        raw2 = RawDocument(content=b"b", meta={})
+        stub.raws = [raw1, raw2]
+
+        collected = stub.collect()
+        iterated = list(stub.iter_collect())
+
+        assert len(collected) == len(iterated)
+        for (f_a, p_a), (f_b, p_b) in zip(collected, iterated, strict=True):
+            assert f_a.id == f_b.id
+            assert f_a.checksum == f_b.checksum
+            assert p_a == p_b
+
+    def test_iter_collect_allows_progress_between_items(
+        self,
+        temp_collection: tuple[Collection, object],
+    ) -> None:
+        """iter_collect でループ中に件数を数えられる"""
+        collection, _ = temp_collection
+        stub = StubCollector(collection)
+        stub.raws = [RawDocument(content=b"x", meta={})]
+
+        count = 0
+        for _ in stub.iter_collect():
+            count += 1
+
+        assert count == 1

@@ -27,6 +27,24 @@ class EdgerFactsCollector(BaseCollector):
         self._client = EdgerClient(config)
 
     @override
+    def iter_collect(
+        self,
+        *,
+        cik_list: list[str] | None = None,
+        limit_per_company: int | None = None,
+        **kwargs: Any,
+    ) -> Iterator[tuple[EDGARFiling, str]]:
+        """1 件ずつ Collection に追加し、(EDGARFiling, path) を yield する。"""
+        yield from cast(
+            Iterator[tuple[EDGARFiling, str]],
+            super().iter_collect(
+                cik_list=cik_list,
+                limit_per_company=limit_per_company,
+                **kwargs,
+            ),
+        )
+
+    @override
     def collect(
         self,
         *,
@@ -35,13 +53,12 @@ class EdgerFactsCollector(BaseCollector):
         **kwargs: Any,
     ) -> list[tuple[EDGARFiling, str]]:
         """収集フローを実行し、EDGARFiling と保存パスのリストを返す。"""
-        return cast(
-            list[tuple[EDGARFiling, str]],
-            super().collect(
+        return list(
+            self.iter_collect(
                 cik_list=cik_list,
                 limit_per_company=limit_per_company,
                 **kwargs,
-            ),
+            )
         )
 
     def fetch_documents(

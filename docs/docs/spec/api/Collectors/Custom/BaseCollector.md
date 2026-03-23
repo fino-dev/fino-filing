@@ -16,13 +16,21 @@ BaseCollector(collection: Collection) -> BaseCollector
 
 ## Methods
 
+### iter_collect
+
+```python
+iter_collect(**criteria: Any) -> Iterator[tuple[Filing, str]]
+```
+
+For each item from `fetch_documents(**criteria)`: calls `parse_response(raw)` → `build_filing(parsed, raw)` → `add_to_collection(filing, raw.content)`, and **yields** each `(Filing, path)` from `add_to_collection`. Use this when the caller needs progress per item or may stop early. If iteration stops early, documents already yielded remain saved.
+
 ### collect
 
 ```python
-collect() -> list[tuple[Filing, str]]
+collect(**criteria: Any) -> list[tuple[Filing, str]]
 ```
 
-For each item from `fetch_documents()`: calls `parse_response(raw)` → `build_filing(parsed, raw)` → `add_to_collection(filing, raw.content)`. Returns the list of `(Filing, path)` returned by `add_to_collection`. If an error occurs mid-run, previously processed documents remain saved.
+Equivalent to `list(iter_collect(**criteria))`. If an error occurs mid-run, previously processed documents remain saved.
 
 ### add_to_collection
 
