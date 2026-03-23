@@ -20,11 +20,15 @@ logger = logging.getLogger(__name__)
 class EdinetClient:
     _EDINET_API_BASE = "https://api.edinet-fsa.go.jp/api/v2"
 
-    def __init__(self, config: EdinetConfig) -> None:
+    def __init__(
+        self, config: EdinetConfig, *, _http_client: HttpClient | None = None
+    ) -> None:
         self._config = config
         self._credential = config.api_key
 
-        self._http_client = HttpClient(HttpClientConfig.from_dict(asdict(config)))
+        self._http_client = _http_client or HttpClient(
+            HttpClientConfig.from_dict(asdict(config))
+        )
 
     def get_document_list(self, date: date, type: int = 1) -> dict[str, Any]:
 

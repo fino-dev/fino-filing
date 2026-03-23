@@ -21,7 +21,7 @@ class TestEdinetCollector:
         self,
         temp_collection: tuple,
         sample_edinet_raw_document: RawDocument,
-        edinet_config: EdinetConfig,
+        tmp_edinet_config: EdinetConfig,
     ) -> None:
         """fetch_documents が 1 件返すとき collect() で 1 件が Collection に add される"""
         from fino_filing.collection.collection import Collection
@@ -32,7 +32,7 @@ class TestEdinetCollector:
             def fetch_documents(self, **kwargs: Any) -> Iterator[RawDocument]:
                 yield sample_edinet_raw_document
 
-        collector = OneDocCollector(collection=collection, config=edinet_config)
+        collector = OneDocCollector(collection=collection, config=tmp_edinet_config)
         results = collector.collect(
             date_from=date(2024, 1, 1), date_to=date(2024, 1, 2)
         )
@@ -53,12 +53,12 @@ class TestEdinetCollector:
     def test_collect_raises_error_when_date_from_is_greater_than_date_to(
         self,
         temp_collection: tuple,
-        edinet_config: EdinetConfig,
+        tmp_edinet_config: EdinetConfig,
     ) -> None:
         """date_from が date_to より大きいときエラーを返す"""
         from fino_filing.collection.collection import Collection
 
         collection: Collection = temp_collection[0]
-        collector = EdinetCollector(collection=collection, config=edinet_config)
+        collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
         with pytest.raises(CollectorDateRangeValidationError):
             collector.collect(date_from=date(2024, 1, 2), date_to=date(2024, 1, 1))
