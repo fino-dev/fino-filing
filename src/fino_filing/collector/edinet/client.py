@@ -31,7 +31,6 @@ class EdinetClient:
         )
 
     def get_document_list(self, date: date, type: int = 1) -> dict[str, Any]:
-
         params: dict[str, str | int] = {
             "Subscription-Key": self._credential,
             "date": date_to_str(date),
