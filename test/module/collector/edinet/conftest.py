@@ -7,7 +7,7 @@ from fino_filing import EdinetConfig, RawDocument
 
 
 @pytest.fixture
-def edinet_config() -> EdinetConfig:
+def tmp_edinet_config() -> EdinetConfig:
     return EdinetConfig(api_key="test-api-key", timeout=5)
 
 
