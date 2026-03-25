@@ -4,7 +4,8 @@ EDINET 書類一覧API・書類取得API を用いて書類を収集し、Collec
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+import hashlib
+from datetime import date, datetime, timedelta
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
@@ -12,7 +13,7 @@ from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.collector.error import CollectorDateRangeValidationError
 from fino_filing.filing.filing_edinet import EDINETFiling
 
-from ._helpers import _build_edinet_filing, _edinet_meta_to_parsed
+from ._helpers import _parse_edinet_datetime
 from .client import EdinetClient
 from .config import EdinetConfig
 
@@ -104,8 +105,61 @@ class EdinetCollector(BaseCollector):
             current += timedelta(days=1)
 
     def _parse_response(self, raw: RawDocument) -> Parsed:
-        return _edinet_meta_to_parsed(raw.meta)
+        ここの整理を仕様書を元に行う
+        https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140206.pdf
+        return {
+            "doc_id": raw.meta.get("docID") or raw.meta.get("doc_id") or "",
+            "edinet_code": raw.meta.get("edinetCode")
+            or raw.meta.get("edinet_code")
+            or "",
+            "sec_code": raw.meta.get("secCode") or raw.meta.get("sec_code") or "",
+            "jcn": raw.meta.get("JCN") or raw.meta.get("jcn") or "",
+            "filer_name": raw.meta.get("filerName") or raw.meta.get("filer_name") or "",
+            "ordinance_code": raw.meta.get("ordinanceCode")
+            or raw.meta.get("ordinance_code")
+            or "",
+            "form_code": raw.meta.get("formCode") or raw.meta.get("form_code") or "",
+            "doc_type_code": raw.meta.get("docTypeCode")
+            or raw.meta.get("doc_type_code")
+            or "",
+            "doc_description": raw.meta.get("docDescription")
+            or raw.meta.get("doc_description")
+            or "",
+            "period_start": _parse_edinet_datetime(
+                raw.meta.get("periodStart") or raw.meta.get("period_start")
+            ),
+            "period_end": _parse_edinet_datetime(
+                raw.meta.get("periodEnd") or raw.meta.get("period_end")
+            ),
+            "submit_datetime": _parse_edinet_datetime(
+                raw.meta.get("submitDateTime") or raw.meta.get("submit_datetime")
+            ),
+            "parent_doc_id": raw.meta.get("parentDocID")
+            or raw.meta.get("parent_doc_id"),
+        }
 
     def _build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
         name = parsed.get("doc_id") or "document"
-        return _build_edinet_filing(parsed, content, name)
+        checksum = hashlib.sha256(content).hexdigest()
+        # if will generate from identifier fields
+        return EDINETFiling(
+            source="EDINET",
+            name=name,
+            checksum=checksum,
+            format="pdf",
+            is_zip=False,
+            doc_id=parsed.get("doc_id", ""),
+            edinet_code=parsed.get("edinet_code", ""),
+            sec_code=parsed.get("sec_code", ""),
+            jcn=parsed.get("jcn", ""),
+            filer_name=parsed.get("filer_name", ""),
+            ordinance_code=parsed.get("ordinance_code", ""),
+            form_code=parsed.get("form_code", ""),
+            doc_type_code=parsed.get("doc_type_code", ""),
+            doc_description=parsed.get("doc_description", ""),
+            period_start=parsed.get("period_start"),
+            period_end=parsed.get("period_end"),
+            submit_datetime=parsed.get("submit_datetime"),
+            parent_doc_id=parsed.get("parent_doc_id"),
+            created_at=datetime.now(),
+        )

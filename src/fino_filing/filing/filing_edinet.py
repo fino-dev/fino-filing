@@ -10,12 +10,10 @@ class EDINETFiling(Filing):
     """
     EDINET Filing Template
 
-    EDINET Fixed Field
-
+    Fixed Field
     - source(Data Source) = "EDINET"
 
-    EDINET Additional Fields
-
+    Additional Fields
     - doc_id(書類管理番号): str
     - edinet_code(EDINETコード): str
     - sec_code(証券コード): str
@@ -29,16 +27,14 @@ class EDINETFiling(Filing):
     - period_end(期間終了): datetime
     - submit_datetime(提出日時): datetime
 
-    EDINET Additional Fields (Optional)
-
+    Additional Fields (Optional)
     - parent_doc_id(親書類管理番号): str | None
     """
 
-    # EDINET固定フィールド
     source = "EDINET"
 
-    # EDINET 固有フィールド
-    doc_id: Annotated[str, Field(description="Doc ID(書類管理番号)")]
+    # use doc_id as identifier field
+    doc_id: Annotated[str, Field(identifier=True, description="Doc ID(書類管理番号)")]
     edinet_code: Annotated[str, Field(description="EDINET CODE(EDINETコード)")]
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
     jcn: Annotated[str, Field(description="JCN(法人番号)")]
