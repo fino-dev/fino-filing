@@ -21,50 +21,41 @@ def _parse_edinet_datetime(s: str | None) -> datetime | None:
         return None
 
 
-def _list_item_to_parsed(item: dict[str, Any]) -> Parsed:
-    """書類一覧 API の 1 件（results 要素）を EDINETFiling 用 Parsed に変換する。"""
-    doc_id = item.get("docID") or item.get("doc_id") or ""
+def _coerce_edinet_datetime(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        return _parse_edinet_datetime(value)
+    return None
+
+
+def _edinet_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
+    """一覧 API の 1 件または同一形状の meta を EDINETFiling 用 Parsed に変換する。"""
+    doc_id = meta.get("docID") or meta.get("doc_id") or ""
     return {
         "doc_id": doc_id,
-        "edinet_code": item.get("edinetCode") or item.get("edinet_code") or "",
-        "sec_code": item.get("secCode") or item.get("sec_code") or "",
-        "jcn": item.get("JCN") or item.get("jcn") or "",
-        "filer_name": item.get("filerName") or item.get("filer_name") or "",
-        "ordinance_code": item.get("ordinanceCode") or item.get("ordinance_code") or "",
-        "form_code": item.get("formCode") or item.get("form_code") or "",
-        "doc_type_code": item.get("docTypeCode") or item.get("doc_type_code") or "",
-        "doc_description": item.get("docDescription")
-        or item.get("doc_description")
+        "edinet_code": meta.get("edinetCode") or meta.get("edinet_code") or "",
+        "sec_code": meta.get("secCode") or meta.get("sec_code") or "",
+        "jcn": meta.get("JCN") or meta.get("jcn") or "",
+        "filer_name": meta.get("filerName") or meta.get("filer_name") or "",
+        "ordinance_code": meta.get("ordinanceCode") or meta.get("ordinance_code") or "",
+        "form_code": meta.get("formCode") or meta.get("form_code") or "",
+        "doc_type_code": meta.get("docTypeCode") or meta.get("doc_type_code") or "",
+        "doc_description": meta.get("docDescription")
+        or meta.get("doc_description")
         or "",
-        "period_start": _parse_edinet_datetime(
-            item.get("periodStart") or item.get("period_start")
+        "period_start": _coerce_edinet_datetime(
+            meta.get("periodStart") or meta.get("period_start")
         ),
-        "period_end": _parse_edinet_datetime(
-            item.get("periodEnd") or item.get("period_end")
+        "period_end": _coerce_edinet_datetime(
+            meta.get("periodEnd") or meta.get("period_end")
         ),
-        "submit_datetime": _parse_edinet_datetime(
-            item.get("submitDateTime") or item.get("submit_datetime")
+        "submit_datetime": _coerce_edinet_datetime(
+            meta.get("submitDateTime") or meta.get("submit_datetime")
         ),
-        "parent_doc_id": item.get("parentDocID") or item.get("parent_doc_id"),
-    }
-
-
-def _meta_to_parsed(meta: dict[str, Any]) -> Parsed:
-    """RawDocument.meta から EDINETFiling 用 Parsed を組み立てる。"""
-    return {
-        "doc_id": meta.get("doc_id", ""),
-        "edinet_code": meta.get("edinet_code", ""),
-        "sec_code": meta.get("sec_code", ""),
-        "jcn": meta.get("jcn", ""),
-        "filer_name": meta.get("filer_name", ""),
-        "ordinance_code": meta.get("ordinance_code", ""),
-        "form_code": meta.get("form_code", ""),
-        "doc_type_code": meta.get("doc_type_code", ""),
-        "doc_description": meta.get("doc_description", ""),
-        "period_start": meta.get("period_start"),
-        "period_end": meta.get("period_end"),
-        "submit_datetime": meta.get("submit_datetime"),
-        "parent_doc_id": meta.get("parent_doc_id"),
+        "parent_doc_id": meta.get("parentDocID") or meta.get("parent_doc_id"),
     }
 
 

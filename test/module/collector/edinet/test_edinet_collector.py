@@ -2,10 +2,12 @@
 
 from datetime import date
 from typing import Any, Iterator
+from unittest.mock import MagicMock
 
 import pytest
 
 from fino_filing import EDINETFiling
+from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edinet import EdinetCollector, EdinetConfig
 from fino_filing.collector.error import CollectorDateRangeValidationError
@@ -15,7 +17,7 @@ from fino_filing.collector.error import CollectorDateRangeValidationError
 @pytest.mark.collector
 @pytest.mark.edinet
 class TestEdinetCollector:
-    """EdinetCollector: collect フローと add_to_collection"""
+    """EdinetCollector Test"""
 
     def test_collect_adds_edinet_filing_to_collection(
         self,
@@ -24,8 +26,6 @@ class TestEdinetCollector:
         tmp_edinet_config: EdinetConfig,
     ) -> None:
         """fetch_documents が 1 件返すとき collect() で 1 件が Collection に add される"""
-        from fino_filing.collection.collection import Collection
-
         collection: Collection = temp_collection[0]
 
         class OneDocCollector(EdinetCollector):
@@ -56,9 +56,36 @@ class TestEdinetCollector:
         tmp_edinet_config: EdinetConfig,
     ) -> None:
         """date_from が date_to より大きいときエラーを返す"""
-        from fino_filing.collection.collection import Collection
-
         collection: Collection = temp_collection[0]
         collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
         with pytest.raises(CollectorDateRangeValidationError):
             collector.collect(date_from=date(2024, 1, 2), date_to=date(2024, 1, 1))
+
+    def test_collect_parses_list_api_keys_in_parse_response(
+        self,
+        temp_collection: tuple,
+        tmp_edinet_config: EdinetConfig,
+    ) -> None:
+        collection: Collection = temp_collection[0]
+        collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+        mock_client = MagicMock()
+        collector._client = mock_client
+        mock_client.get_document_list.return_value = {
+            "results": [
+                {
+                    "docID": "S100APIKEY",
+                    "filerName": "提出者カナメ",
+                    "edinetCode": "E99999",
+                }
+            ]
+        }
+        mock_client.get_document.return_value = b"%PDF-1.4"
+
+        results = collector.collect(
+            date_from=date(2024, 8, 1), date_to=date(2024, 8, 1)
+        )
+        assert len(results) == 1
+        filing, _path = results[0]
+        assert filing.doc_id == "S100APIKEY"
+        assert filing.filer_name == "提出者カナメ"
+        assert filing.edinet_code == "E99999"

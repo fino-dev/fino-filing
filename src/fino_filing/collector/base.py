@@ -56,7 +56,7 @@ class BaseCollector(ABC):
         """
         for raw in self.fetch_documents(**criteria):
             parsed = self.parse_response(raw)
-            filing = self.build_filing(parsed, raw)
+            filing = self.build_filing(parsed, raw.content)
             yield self.add_to_collection(filing, raw.content)
 
     def collect(self, **criteria: Any) -> list[tuple[Filing, str]]:
@@ -88,6 +88,6 @@ class BaseCollector(ABC):
         ...
 
     @abstractmethod
-    def build_filing(self, parsed: Parsed, raw: RawDocument) -> Filing:
+    def build_filing(self, parsed: Parsed, content: bytes) -> Filing:
         """Parsed と raw（checksum 等に必要）から Filing を生成する。サブクラスで実装する。"""
         ...
