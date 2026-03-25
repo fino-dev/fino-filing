@@ -1,7 +1,7 @@
 """BaseCollector のテンプレートメソッド collect() のフローを検証する"""
 
 import hashlib
-from typing import Iterator
+from typing import Any, Iterator
 
 import pytest
 
@@ -19,17 +19,16 @@ class StubCollector(BaseCollector):
         self.build_called = 0
         self.raws: list[RawDocument] = []
 
-    def fetch_documents(self) -> Iterator[RawDocument]:
+    def _fetch_documents(self, **kwargs: Any) -> Iterator[RawDocument]:
         self.fetch_called += 1
         yield from self.raws
 
-    def parse_response(self, raw: RawDocument) -> Parsed:
+    def _parse_response(self, raw: RawDocument) -> Parsed:
         self.parse_called += 1
         return {"_raw_id": id(raw)}
 
-    def build_filing(self, parsed: Parsed, raw: RawDocument) -> Filing:
+    def _build_filing(self, parsed: Parsed, content: bytes) -> Filing:
         self.build_called += 1
-        content = raw.content
         checksum = hashlib.sha256(content).hexdigest()
         return Filing(
             source="stub",
@@ -43,7 +42,7 @@ class StubCollector(BaseCollector):
 @pytest.mark.module
 @pytest.mark.collector
 class TestBaseCollector:
-    """BaseCollector.collect() の呼び出し順と add の回数を検証する"""
+    """BaseCollector Test"""
 
     def test_collect_calls_fetch_then_parse_build_add_per_raw(
         self,
