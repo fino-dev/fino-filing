@@ -63,7 +63,7 @@ class EdinetCollector(BaseCollector):
             )
         )
 
-    def fetch_documents(
+    def _fetch_documents(
         self,
         *,
         date_from: date,
@@ -103,9 +103,9 @@ class EdinetCollector(BaseCollector):
                     return
             current += timedelta(days=1)
 
-    def parse_response(self, raw: RawDocument) -> Parsed:
+    def _parse_response(self, raw: RawDocument) -> Parsed:
         return _edinet_meta_to_parsed(raw.meta)
 
-    def build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
         name = parsed.get("doc_id") or "document"
         return _build_edinet_filing(parsed, content, name)
