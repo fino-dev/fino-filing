@@ -12,7 +12,7 @@ from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.collector.error import CollectorDateRangeValidationError
 from fino_filing.filing.filing_edinet import EDINETFiling
 
-from ._helpers import _build_edinet_filing, _list_item_to_parsed, _meta_to_parsed
+from ._helpers import _build_edinet_filing, _edinet_meta_to_parsed
 from .client import EdinetClient
 from .config import EdinetConfig
 
@@ -95,11 +95,8 @@ class EdinetCollector(BaseCollector):
                 content = self._client.get_document(doc_id)
                 if not content:
                     continue
-                parsed = _list_item_to_parsed(item)
-                meta: dict[str, Any] = {
-                    **parsed,
-                    "doc_id": doc_id,
-                }
+                meta = dict(item)
+                meta["doc_id"] = doc_id
                 yield RawDocument(content=content, meta=meta)
                 total_yielded += 1
                 if limit is not None and total_yielded >= limit:
@@ -107,8 +104,8 @@ class EdinetCollector(BaseCollector):
             current += timedelta(days=1)
 
     def parse_response(self, raw: RawDocument) -> Parsed:
-        return _meta_to_parsed(raw.meta)
+        return _edinet_meta_to_parsed(raw.meta)
 
-    def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDINETFiling:
+    def build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
         name = parsed.get("doc_id") or "document"
-        return _build_edinet_filing(parsed, raw.content, name)
+        return _build_edinet_filing(parsed, content, name)
