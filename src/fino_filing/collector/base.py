@@ -71,10 +71,6 @@ class BaseCollector(ABC):
         """
         return list(self.iter_collect(**criteria))
 
-    def _add_to_collection(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
-        """Adds a single Filing to the Collection."""
-        return self._collection.add(filing, content)
-
     @abstractmethod
     def _fetch_documents(self, **kwargs: Any) -> Iterator[RawDocument]:
         """Yields one RawDocument per fetched document."""
@@ -89,3 +85,7 @@ class BaseCollector(ABC):
     def _build_filing(self, parsed: Parsed, content: bytes) -> Filing:
         """Builds a Filing from the parsed data and raw content."""
         ...
+
+    def _add_to_collection(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
+        """Adds a single Filing to the Collection."""
+        return self._collection.add(filing, content)
