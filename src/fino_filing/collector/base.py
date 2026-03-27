@@ -10,6 +10,8 @@ from fino_filing.filing.filing import Filing
 
 logger = logging.getLogger(__name__)
 
+Meta = dict[str, Any]
+
 
 @dataclass(frozen=True)
 class RawDocument:
@@ -21,7 +23,7 @@ class RawDocument:
     """
 
     content: bytes
-    meta: dict[str, Any]
+    meta: Meta
 
 
 # Intermediate structure before building a Filing.
@@ -54,7 +56,7 @@ class BaseCollector(ABC):
         """
 
         for raw in self._fetch_documents(**criteria):
-            parsed = self._parse_response(raw)
+            parsed = self._parse_response(raw.meta)
             filing = self._build_filing(parsed, raw.content)
             yield self._add_to_collection(filing, raw.content)
 
@@ -79,7 +81,7 @@ class BaseCollector(ABC):
         ...
 
     @abstractmethod
-    def _parse_response(self, raw: RawDocument) -> Parsed:
+    def _parse_response(self, meta: Meta) -> Parsed:
         """Parses the raw document and converts it to a Parsed dictionary."""
         ...
 
