@@ -34,7 +34,9 @@ class EDINETFiling(Filing):
     source = "EDINET"
 
     # use doc_id as identifier field
-    doc_id: Annotated[str, Field(identifier=True, description="Doc ID(書類管理番号)")]
+    doc_id: Annotated[
+        str, Field(identifier=True, required=True, description="Doc ID(書類管理番号)")
+    ]
     edinet_code: Annotated[str, Field(description="EDINET CODE(EDINETコード)")]
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
     jcn: Annotated[str, Field(description="JCN(法人番号)")]

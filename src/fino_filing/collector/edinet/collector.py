@@ -1,7 +1,3 @@
-"""
-EDINET 書類一覧API・書類取得API を用いて書類を収集し、Collection に保存する Collector。
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -9,16 +5,23 @@ from datetime import date, datetime, timedelta
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
-from fino_filing.collector.error import CollectorDateRangeValidationError
+from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
+from fino_filing.collector.error import (
+    CollectorDateRangeValidationError,
+    CollectorParseResponseValidationError,
+)
 from fino_filing.filing.filing_edinet import EDINETFiling
 
-from ._helpers import _parse_edinet_datetime
+from ._helpers import _parse_edinet_date, _parse_edinet_datetime
 from .client import EdinetClient
 from .config import EdinetConfig
 
 
 class EdinetCollector(BaseCollector):
+    """
+    Edinet Collector that collects filings from the Edinet API.
+    """
+
     def __init__(self, collection: Collection, config: EdinetConfig) -> None:
         super().__init__(collection)
         self._client = EdinetClient(config)
@@ -30,17 +33,24 @@ class EdinetCollector(BaseCollector):
         date_from: date,
         date_to: date,
         limit: int | None = None,
-        list_type: int = 2,
-        **kwargs: Any,
     ) -> Iterator[tuple[EDINETFiling, str]]:
+        """
+        Iterates over the Edinet filing collect flow and yields tuples of (EDINETFiling, str).
+
+        Args:
+            date_from: The start date of the date range.
+            date_to: The end date of the date range.
+            limit: The maximum number of filings to collect.
+
+        Yields:
+            tuple[EDINETFiling, str]: A tuple containing the EDINET filing and the path.
+        """
         yield from cast(
             Iterator[tuple[EDINETFiling, str]],
             super().iter_collect(
                 date_from=date_from,
                 date_to=date_to,
                 limit=limit,
-                list_type=list_type,
-                **kwargs,
             ),
         )
 
@@ -51,27 +61,24 @@ class EdinetCollector(BaseCollector):
         date_from: date,
         date_to: date,
         limit: int | None = None,
-        list_type: int = 2,
-        **kwargs: Any,
     ) -> list[tuple[EDINETFiling, str]]:
+        """
+        Collects Edinet filings within the given date range.
+
+        Args:
+            date_from: The start date of the date range.
+            date_to: The end date of the date range.
+            limit: The maximum number of filings to collect.
+
+        Returns:
+            list[tuple[EDINETFiling, str]]: A list of tuples containing the EDINET filing and the filing path.
+        """
         return list(
-            self.iter_collect(
-                date_from=date_from,
-                date_to=date_to,
-                limit=limit,
-                list_type=list_type,
-                **kwargs,
-            )
+            self.iter_collect(date_from=date_from, date_to=date_to, limit=limit)
         )
 
     def _fetch_documents(
-        self,
-        *,
-        date_from: date,
-        date_to: date,
-        limit: int | None = None,
-        list_type: int = 2,
-        **kwargs: Any,
+        self, *, date_from: date, date_to: date, limit: int | None = None
     ) -> Iterator[RawDocument]:
         start = date_from
         end = date_to
@@ -81,7 +88,8 @@ class EdinetCollector(BaseCollector):
         total_yielded = 0
         current = start
         while current <= end:
-            resp = self._client.get_document_list(current, type=list_type)
+            # type=2: Metadata + document list
+            resp = self._client.get_document_list(current, type=2)
             raw_results = resp.get("results")
             if isinstance(raw_results, list):
                 results = cast(list[Any], raw_results)
@@ -104,44 +112,32 @@ class EdinetCollector(BaseCollector):
                     return
             current += timedelta(days=1)
 
-    def _parse_response(self, raw: RawDocument) -> Parsed:
-        ここの整理を仕様書を元に行う
-        https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140206.pdf
+    def _parse_response(self, meta: Meta) -> Parsed:
+
+        doc_id = meta.get("docId")
+        if doc_id is None:
+            raise CollectorParseResponseValidationError("doc_id is required")
+
         return {
-            "doc_id": raw.meta.get("docID") or raw.meta.get("doc_id") or "",
-            "edinet_code": raw.meta.get("edinetCode")
-            or raw.meta.get("edinet_code")
-            or "",
-            "sec_code": raw.meta.get("secCode") or raw.meta.get("sec_code") or "",
-            "jcn": raw.meta.get("JCN") or raw.meta.get("jcn") or "",
-            "filer_name": raw.meta.get("filerName") or raw.meta.get("filer_name") or "",
-            "ordinance_code": raw.meta.get("ordinanceCode")
-            or raw.meta.get("ordinance_code")
-            or "",
-            "form_code": raw.meta.get("formCode") or raw.meta.get("form_code") or "",
-            "doc_type_code": raw.meta.get("docTypeCode")
-            or raw.meta.get("doc_type_code")
-            or "",
-            "doc_description": raw.meta.get("docDescription")
-            or raw.meta.get("doc_description")
-            or "",
-            "period_start": _parse_edinet_datetime(
-                raw.meta.get("periodStart") or raw.meta.get("period_start")
-            ),
-            "period_end": _parse_edinet_datetime(
-                raw.meta.get("periodEnd") or raw.meta.get("period_end")
-            ),
-            "submit_datetime": _parse_edinet_datetime(
-                raw.meta.get("submitDateTime") or raw.meta.get("submit_datetime")
-            ),
-            "parent_doc_id": raw.meta.get("parentDocID")
-            or raw.meta.get("parent_doc_id"),
+            "doc_id": doc_id,
+            "edinet_code": meta.get("edinetCode"),
+            "sec_code": meta.get("secCode"),
+            "jcn": meta.get("JCN"),
+            "filer_name": meta.get("filerName"),
+            "ordinance_code": meta.get("ordinanceCode"),
+            "form_code": meta.get("formCode"),
+            "doc_type_code": meta.get("docTypeCode"),
+            "doc_description": meta.get("docDescription"),
+            "period_start": _parse_edinet_date(meta.get("periodStart")),
+            "period_end": _parse_edinet_date(meta.get("periodEnd")),
+            "submit_datetime": _parse_edinet_datetime(meta.get("submitDateTime")),
+            "parent_doc_id": meta.get("parentDocID"),
         }
 
     def _build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
         name = parsed.get("doc_id") or "document"
         checksum = hashlib.sha256(content).hexdigest()
-        # if will generate from identifier fields
+        # ID will be automatically generated from identifier fields
         return EDINETFiling(
             source="EDINET",
             name=name,
