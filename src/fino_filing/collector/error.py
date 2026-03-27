@@ -15,6 +15,16 @@ class CollectorDateRangeValidationError(FinoFilingException, ValueError):
         self.date_to = date_to
 
 
+class CollectorLimitValidationError(FinoFilingException, ValueError):
+    """Collector Limit Validation Error"""
+
+    def __init__(self, limit: int):
+        super().__init__(
+            f"Limit validation error: limit must be greater than 0: {limit}"
+        )
+        self.limit = limit
+
+
 class CollectorParseResponseValidationError(FinoFilingException, ValueError):
     """Collector Parse Response Validation Error"""
 

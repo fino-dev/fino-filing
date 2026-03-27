@@ -8,6 +8,7 @@ from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
 from fino_filing.collector.error import (
     CollectorDateRangeValidationError,
+    CollectorLimitValidationError,
     CollectorParseResponseValidationError,
 )
 from fino_filing.filing.filing_edinet import EDINETFiling
@@ -80,40 +81,43 @@ class EdinetCollector(BaseCollector):
     def _fetch_documents(
         self, *, date_from: date, date_to: date, limit: int | None = None
     ) -> Iterator[RawDocument]:
+        # Validation
         start = date_from
         end = date_to
         if end < start:
             raise CollectorDateRangeValidationError(start, end)
+        if limit is not None and limit <= 0:
+            raise CollectorLimitValidationError(limit)
 
         total_yielded = 0
         current = start
         while current <= end:
-            # type=2: Metadata + document list
+            # Fetch document list <type=2: Metadata + metadata_list>
             resp = self._client.get_document_list(current, type=2)
-            raw_results = resp.get("results")
-            if isinstance(raw_results, list):
-                results = cast(list[Any], raw_results)
-            else:
-                results = []
-            for item in results:
-                if limit is not None and total_yielded >= limit:
-                    return
-                doc_id = item.get("docID") or item.get("doc_id") or ""
+            results = resp.get("results")
+            if not isinstance(results, list):
+                raise CollectorParseResponseValidationError("results")
+
+            for i, row in enumerate(results):
+                if not isinstance(row, dict):
+                    raise CollectorParseResponseValidationError(f"results[${i}]")
+                item = dict[str, Any](**row)
+                doc_id = item.get("docID")
                 if not doc_id:
                     continue
+
                 content = self._client.get_document(doc_id)
                 if not content:
                     continue
-                meta = dict(item)
-                meta["doc_id"] = doc_id
-                yield RawDocument(content=content, meta=meta)
+
+                yield RawDocument(content=content, meta=item)
                 total_yielded += 1
+                # limit に達したら、その場で return して翌日の get_document_list に行かない
                 if limit is not None and total_yielded >= limit:
                     return
             current += timedelta(days=1)
 
     def _parse_response(self, meta: Meta) -> Parsed:
-
         doc_id = meta.get("docId")
         if doc_id is None:
             raise CollectorParseResponseValidationError("doc_id is required")
