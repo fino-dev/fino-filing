@@ -10,7 +10,7 @@ from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 
 
 class StubCollector(BaseCollector):
-    """抽象メソッドをスタブ実装した具象クラス"""
+    """Stub Collector for testing BaseCollector"""
 
     def __init__(self, collection: Collection) -> None:
         super().__init__(collection)

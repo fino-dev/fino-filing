@@ -96,7 +96,7 @@ class TestEdinetClient_GetDocument:
     """EdinetClient.get_document Test"""
 
     def test_get_document_url_params(self) -> None:
-        """get_document の URL と params が正しクリクエストされていることを確認する"""
+        """get_document の URL と params が正しいリクエストされていることを確認する"""
         http_client_mock = MagicMock()
         http_client_mock.get_raw.return_value = b"test-document"
 

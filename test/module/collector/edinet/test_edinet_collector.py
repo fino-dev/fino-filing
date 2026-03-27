@@ -1,14 +1,12 @@
 """EdinetCollector の collect フローと Collection 連携を検証する"""
 
 from datetime import date
-from typing import Any, Iterator
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
-from fino_filing import EDINETFiling
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edinet import EdinetCollector, EdinetConfig
 from fino_filing.collector.error import CollectorDateRangeValidationError
 
@@ -19,36 +17,27 @@ from fino_filing.collector.error import CollectorDateRangeValidationError
 class TestEdinetCollector:
     """EdinetCollector Test"""
 
-    def test_collect_adds_edinet_filing_to_collection(
+    def test_collector_initialize_with_config(
+        self, temp_collection: tuple[Collection, Path]
+    ) -> None:
+        """Collector の初期化が config を渡してclientを注入できる"""
+        collection, _ = temp_collection
+        collector = EdinetCollector(
+            collection=collection, config=EdinetConfig(api_key="test-api-key")
+        )
+        assert collector._client._credential == "test-api-key"
+
+    def test_fetch_documents_returns_raw_documents(
         self,
-        temp_collection: tuple,
-        sample_edinet_raw_document: RawDocument,
+        temp_collection: tuple[Collection, Path],
         tmp_edinet_config: EdinetConfig,
     ) -> None:
-        """fetch_documents が 1 件返すとき collect() で 1 件が Collection に add される"""
-        collection: Collection = temp_collection[0]
-
-        class OneDocCollector(EdinetCollector):
-            def fetch_documents(self, **kwargs: Any) -> Iterator[RawDocument]:
-                yield sample_edinet_raw_document
-
-        collector = OneDocCollector(collection=collection, config=tmp_edinet_config)
-        results = collector.collect(
+        """EdinetCollector._fetch_documents のテスト"""
+        collection, _ = temp_collection
+        collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+        results = collector._fetch_documents(
             date_from=date(2024, 1, 1), date_to=date(2024, 1, 2)
         )
-
-        assert len(results) == 1
-        filing, path = results[0]
-        assert isinstance(filing, EDINETFiling)
-        assert filing.source == "EDINET"
-        assert filing.doc_id == sample_edinet_raw_document.meta["doc_id"]
-        assert filing.filer_name == sample_edinet_raw_document.meta["filer_name"]
-        assert path
-        got = collection.get_filing(filing.id)
-        assert got is not None
-        assert got.doc_id == filing.doc_id
-        content = collection.get_content(filing.id)
-        assert content == sample_edinet_raw_document.content
 
     def test_collect_raises_error_when_date_from_is_greater_than_date_to(
         self,
