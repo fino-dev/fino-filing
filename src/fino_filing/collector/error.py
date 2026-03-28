@@ -28,9 +28,9 @@ class CollectorLimitValidationError(FinoFilingException, ValueError):
 class CollectorParseResponseValidationError(FinoFilingException, ValueError):
     """Collector Parse Response Validation Error"""
 
-    def __init__(self, field: str):
-        super().__init__(f"null is returned for expected field: {field}")
-        self.field = field
+    def __init__(self, cause: str):
+        super().__init__(f"expected field is not validated: {cause}")
+        self.field = cause
 
 
 # HTTP Request Error

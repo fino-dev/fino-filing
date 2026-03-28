@@ -2,13 +2,17 @@
 
 from datetime import date
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.edinet import EdinetCollector, EdinetConfig
-from fino_filing.collector.error import CollectorDateRangeValidationError
+from fino_filing.collector.error import (
+    CollectorDateRangeValidationError,
+    CollectorLimitValidationError,
+)
 
 
 @pytest.mark.module
@@ -27,54 +31,105 @@ class TestEdinetCollector:
         )
         assert collector._client._credential == "test-api-key"
 
-    def test_fetch_documents_returns_raw_documents(
-        self,
-        temp_collection: tuple[Collection, Path],
-        tmp_edinet_config: EdinetConfig,
-    ) -> None:
-        """EdinetCollector._fetch_documents のテスト"""
-        collection, _ = temp_collection
-        collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
-        results = collector._fetch_documents(
-            date_from=date(2024, 1, 1), date_to=date(2024, 1, 2)
-        )
+    class TestFetchDocuments:
+        """EdinetCollector._fetch_documents Test"""
 
-    def test_collect_raises_error_when_date_from_is_greater_than_date_to(
-        self,
-        temp_collection: tuple,
-        tmp_edinet_config: EdinetConfig,
-    ) -> None:
-        """date_from が date_to より大きいときエラーを返す"""
-        collection: Collection = temp_collection[0]
-        collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
-        with pytest.raises(CollectorDateRangeValidationError):
-            collector.collect(date_from=date(2024, 1, 2), date_to=date(2024, 1, 1))
+        def test_fetch_documents_returns_raw_documents(
+            self,
+            temp_collection: tuple[Collection, Path],
+            tmp_edinet_config: EdinetConfig,
+            edinet_document_list_response_type2_5_items: dict[str, Any],
+        ) -> None:
+            """EdinetCollector._fetch_documents のテスト"""
+            collection, _ = temp_collection
+            collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+            mock_client = MagicMock()
+            mock_client.get_document_list.return_value = (
+                edinet_document_list_response_type2_5_items
+            )
+            mock_client.get_document.return_value = b"%PDF-1.4 dummy"
+            collector._client = mock_client
 
-    def test_collect_parses_list_api_keys_in_parse_response(
-        self,
-        temp_collection: tuple,
-        tmp_edinet_config: EdinetConfig,
-    ) -> None:
-        collection: Collection = temp_collection[0]
-        collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
-        mock_client = MagicMock()
-        collector._client = mock_client
-        mock_client.get_document_list.return_value = {
-            "results": [
-                {
-                    "docID": "S100APIKEY",
-                    "filerName": "提出者カナメ",
-                    "edinetCode": "E99999",
-                }
-            ]
-        }
-        mock_client.get_document.return_value = b"%PDF-1.4"
+            results = list(
+                collector._fetch_documents(
+                    date_from=date(2024, 1, 1), date_to=date(2024, 1, 2)
+                )
+            )
 
-        results = collector.collect(
-            date_from=date(2024, 8, 1), date_to=date(2024, 8, 1)
-        )
-        assert len(results) == 1
-        filing, _path = results[0]
-        assert filing.doc_id == "S100APIKEY"
-        assert filing.filer_name == "提出者カナメ"
-        assert filing.edinet_code == "E99999"
+            # edinet_document_list_response_type2_5_items の場合、2日分のデータが計10件取得される。
+            # Collectioに保存しないため重複はこのケースでは許容する
+            assert len(results) == 10
+            assert mock_client.get_document_list.call_count == 2
+            mock_client.get_document_list.assert_any_call(date(2024, 1, 1), type=2)
+            mock_client.get_document_list.assert_any_call(date(2024, 1, 2), type=2)
+            assert mock_client.get_document.call_count == 10
+            assert results[0].meta["docID"] == "S100VIZF"
+            assert results[0].content == b"%PDF-1.4 dummy"
+
+        def test_fetch_documents_returns_empty_iterator(
+            self,
+            temp_collection: tuple[Collection, Path],
+            tmp_edinet_config: EdinetConfig,
+            edinet_document_list_response_type2_no_items: dict[str, Any],
+        ) -> None:
+            """EdinetCollector._fetch_documents が空のイテレータを返す"""
+            collection, _ = temp_collection
+            collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+            mock_client = MagicMock()
+            mock_client.get_document_list.return_value = (
+                edinet_document_list_response_type2_no_items
+            )
+            collector._client = mock_client
+            results = list(
+                collector._fetch_documents(
+                    date_from=date(2024, 1, 1), date_to=date(2024, 1, 2)
+                )
+            )
+            assert len(results) == 0
+            assert mock_client.get_document_list.call_count == 2
+            assert mock_client.get_document.call_count == 0
+
+        def test_fetch_documents_argument_validation(
+            self,
+            temp_collection: tuple[Collection, Path],
+            tmp_edinet_config: EdinetConfig,
+        ) -> None:
+            """EdinetCollector._fetch_documents の引数バリデーションのテスト"""
+            collection, _ = temp_collection
+            collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+
+            # 日付指定が逆転しているケース
+            with pytest.raises(CollectorDateRangeValidationError):
+                list(
+                    collector._fetch_documents(
+                        date_from=date(2024, 1, 2), date_to=date(2024, 1, 1)
+                    )
+                )
+            # limit が 0 以下のケース
+            with pytest.raises(CollectorLimitValidationError):
+                list(
+                    collector._fetch_documents(
+                        date_from=date(2024, 1, 1), date_to=date(2024, 1, 2), limit=0
+                    )
+                )
+
+    class TestParseResponse:
+        """EdinetCollector._parse_response Test"""
+
+        def test_parse_response_normalizes_meta(
+            self,
+            temp_collection: tuple[Collection, Path],
+            tmp_edinet_config: EdinetConfig,
+            edinet_document_list_response_type2_5_items: dict[str, Any],
+        ) -> None:
+            """EdinetCollector._parse_response が meta を正規化する"""
+            collection, _ = temp_collection
+            collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+            parsed = collector._parse_response(
+                edinet_document_list_response_type2_5_items["results"][0]
+            )
+            assert parsed["doc_id"] == "S100VIZF"
+            assert (
+                parsed["edinet_code"]
+                == "1000000000000000000000000000000000000000000000000000000000000000"
+            )
