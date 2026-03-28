@@ -120,7 +120,9 @@ class EdinetCollector(BaseCollector):
     def _parse_response(self, meta: Meta) -> Parsed:
         doc_id = meta.get("docId")
         if doc_id is None:
-            raise CollectorParseResponseValidationError("doc_id is required")
+            raise CollectorParseResponseValidationError(
+                "docID is required but not found"
+            )
 
         return {
             "doc_id": doc_id,
@@ -139,7 +141,7 @@ class EdinetCollector(BaseCollector):
         }
 
     def _build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
-        name = parsed.get("doc_id") or "document"
+        name = parsed.get("doc_id")
         checksum = hashlib.sha256(content).hexdigest()
         # ID will be automatically generated from identifier fields
         return EDINETFiling(
@@ -148,7 +150,7 @@ class EdinetCollector(BaseCollector):
             checksum=checksum,
             format="pdf",
             is_zip=False,
-            doc_id=parsed.get("doc_id", ""),
+            doc_id=parsed.get("doc_id"),
             edinet_code=parsed.get("edinet_code", ""),
             sec_code=parsed.get("sec_code", ""),
             jcn=parsed.get("jcn", ""),
