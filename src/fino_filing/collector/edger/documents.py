@@ -71,7 +71,6 @@ class EdgerDocumentsCollector(BaseCollector):
         if not cik_list:
             return
         for cik in cik_list:
-            cik_pad = cik.zfill(10)
             submissions = self._client.get_submissions(cik)
             if not submissions:
                 continue

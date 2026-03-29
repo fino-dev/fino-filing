@@ -154,6 +154,7 @@ class EdinetCollector(BaseCollector):
             "sec_code": meta.get("secCode"),
             "jcn": meta.get("JCN"),
             "filer_name": meta.get("filerName"),
+            "fund_code": meta.get("fundCode"),
             "ordinance_code": meta.get("ordinanceCode"),
             "form_code": meta.get("formCode"),
             "doc_type_code": meta.get("docTypeCode"),
@@ -161,6 +162,7 @@ class EdinetCollector(BaseCollector):
             "period_start": _parse_edinet_date(meta.get("periodStart")),
             "period_end": _parse_edinet_date(meta.get("periodEnd")),
             "submit_datetime": _parse_edinet_datetime(meta.get("submitDateTime")),
+            "current_report_reason": meta.get("currentReportReason"),
             "parent_doc_id": meta.get("parentDocID"),
             # Additinal field for internal use
             "_document_download_type": meta.get("_document_download_type"),
@@ -189,6 +191,7 @@ class EdinetCollector(BaseCollector):
             sec_code=parsed.get("sec_code"),
             jcn=parsed.get("jcn"),
             filer_name=parsed.get("filer_name"),
+            fund_code=parsed.get("fund_code"),
             ordinance_code=parsed.get("ordinance_code"),
             form_code=parsed.get("form_code"),
             doc_type_code=parsed.get("doc_type_code"),
@@ -196,5 +199,6 @@ class EdinetCollector(BaseCollector):
             period_start=parsed.get("period_start"),
             period_end=parsed.get("period_end"),
             submit_datetime=parsed.get("submit_datetime"),
+            current_report_reason=parsed.get("current_report_reason"),
             parent_doc_id=parsed.get("parent_doc_id"),
         )
