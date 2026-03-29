@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from fino_filing.collector.base import Parsed
-from fino_filing.filing.filing_edger import EDGARFiling
+from fino_filing.filing.filing_edger import EDGARCompanyFactsFiling, EDGARFiling
 
 
 def _pad_cik(cik: str) -> str:
@@ -33,7 +33,7 @@ def _accession_to_dir(accession: str) -> str:
 def _build_edgar_filing(
     parsed: Parsed, content: bytes, primary_name: str
 ) -> EDGARFiling:
-    """Parsed と content から EDGARFiling を組み立てる。3 Collector で共有する。"""
+    """提出書類用: Parsed と content から EDGARFiling を組み立てる。"""
     checksum = hashlib.sha256(content).hexdigest()
     filing_date = parsed.get("filing_date")
     created_at = filing_date if isinstance(filing_date, datetime) else datetime.now()
@@ -56,8 +56,29 @@ def _build_edgar_filing(
     )
 
 
+def _build_edgar_company_facts_filing(
+    parsed: Parsed, content: bytes, primary_name: str
+) -> EDGARCompanyFactsFiling:
+    """Company Facts JSON 用: Parsed と content から EDGARCompanyFactsFiling を組み立てる。"""
+    checksum = hashlib.sha256(content).hexdigest()
+    created_at = datetime.now()
+    return EDGARCompanyFactsFiling(
+        source="EDGAR",
+        name=primary_name,
+        checksum=checksum,
+        format=parsed.get("format", "json"),
+        is_zip=False,
+        cik=parsed.get("cik", ""),
+        company_name=parsed.get("company_name", ""),
+        sic_code=parsed.get("sic_code", ""),
+        state_of_incorporation=parsed.get("state_of_incorporation", ""),
+        fiscal_year_end=parsed.get("fiscal_year_end", ""),
+        created_at=created_at,
+    )
+
+
 def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
-    """RawDocument.meta から EDGARFiling 用 Parsed を組み立てる。3 Collector で共有する。"""
+    """提出書類: RawDocument.meta から EDGARFiling 用 Parsed を組み立てる。"""
     return {
         "cik": meta.get("cik", ""),
         "accession_number": meta.get("accession_number", ""),
@@ -69,5 +90,18 @@ def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
         "state_of_incorporation": meta.get("state_of_incorporation", ""),
         "fiscal_year_end": meta.get("fiscal_year_end", ""),
         "format": meta.get("format", "htm"),
+        "primary_name": meta.get("primary_name", ""),
+    }
+
+
+def _parse_company_facts_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
+    """Company Facts: RawDocument.meta から EDGARCompanyFactsFiling 用 Parsed を組み立てる。"""
+    return {
+        "cik": meta.get("cik", ""),
+        "company_name": meta.get("company_name", ""),
+        "sic_code": meta.get("sic_code", ""),
+        "state_of_incorporation": meta.get("state_of_incorporation", ""),
+        "fiscal_year_end": meta.get("fiscal_year_end", ""),
+        "format": meta.get("format", "json"),
         "primary_name": meta.get("primary_name", ""),
     }
