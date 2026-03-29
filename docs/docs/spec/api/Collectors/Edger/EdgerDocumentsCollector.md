@@ -23,15 +23,15 @@ EdgerDocumentsCollector(
 ### collect
 
 ```python
-collect(**criteria: Any) -> list[tuple[Filing, str]]
+collect(**criteria: Any) -> list[tuple[EDGARFiling, str]]
 ```
 
 `BaseCollector` のテンプレートメソッド。収集条件は `criteria` で渡す（例: `cik_list=`, `limit_per_company=`）。
 
-### fetch_documents
+### _fetch_documents
 
 ```python
-fetch_documents(
+_fetch_documents(
     *,
     cik_list: list[str] | None = None,
     limit_per_company: int | None = None,
@@ -44,18 +44,18 @@ fetch_documents(
 - **limit_per_company**: 1 企業あたりの提出件数上限。
 - **Yields**: `RawDocument`。`content` は HTML bytes、`meta` に `_origin="documents"` 等を格納。
 
-### parse_response
+### _parse_response
 
 ```python
-parse_response(raw: RawDocument) -> Parsed
+_parse_response(meta: Meta) -> Parsed
 ```
 
-`raw.meta` を EDGARFiling 用の Parsed 辞書に正規化する。
+`meta` を `EDGARFiling` 用の Parsed 辞書に正規化する。
 
-### build_filing
+### _build_filing
 
 ```python
-build_filing(parsed: Parsed, raw: RawDocument) -> EDGARFiling
+_build_filing(parsed: Parsed, content: bytes) -> EDGARFiling
 ```
 
-Parsed と `raw.content` から `EDGARFiling` を生成する。
+Parsed と `content` から `EDGARFiling` を生成する。

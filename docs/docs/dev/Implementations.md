@@ -18,7 +18,7 @@ Summary of the current implementation by boundary. See [Codebase](/docs/dev/Code
 ## Catalog and indexing
 
 - **`Catalog`** (`collection/catalog.py`) — DuckDB-backed index. Core columns: `id`, `source`, `checksum`, `name`, `is_zip`, `format`, `created_at`, `_filing_class`, `data` (JSON). Indexed fields from Filing are added as physical columns.
-- **`FilingResolver`** (`collection/filing_resolver.py`) — Maps `_filing_class` (FQCN) to Filing subclass for restore. Built-in: register; fallback: dynamic import. `default_resolver` is used by Catalog; EDINETFiling and EDGARFiling are registered in `__init__.py`.
+- **`FilingResolver`** (`collection/filing_resolver.py`) — Maps `_filing_class` (FQCN) to Filing subclass for restore. Built-in: register; fallback: dynamic import. `default_resolver` is used by Catalog; `EDINETFiling`, `EDGARFiling`, and `EDGARCompanyFactsFiling` are registered in `__init__.py`.
 - **`register_filing_class`** — Convenience that registers a class with `default_resolver`.
 
 ## Storage and path
@@ -32,14 +32,14 @@ Summary of the current implementation by boundary. See [Codebase](/docs/dev/Code
 - **`Filing`** (`filing/filing.py`) — Document model with metaclass `FilingMeta`. Core fields: id, source, checksum, name, is_zip, format, created_at. Identity (for id generation) = core fields minus id/created_at/checksum plus any user-defined fields. Supports `to_dict` / `from_dict`, `get_indexed_fields()`, etc.
 - **`Field`** (`filing/field.py`) — Descriptor and query DSL (e.g. `Field("x") == 1`, `in_()`, `between()`). Used in model definitions and in Expr.
 - **`Expr`** (`filing/expr.py`) — WHERE abstraction: `sql` + `params`. Supports `&`, `|`, `~`. Catalog compiles to DuckDB.
-- **`EDINETFiling`** / **`EDGARFiling`** — Built-in subclasses with source-specific fields; registered on `default_resolver`.
+- **`EDINETFiling`** / **`EDGARFiling`** / **`EDGARCompanyFactsFiling`** — Built-in subclasses with source-specific fields; registered on `default_resolver`.
 
 ## Collector boundary
 
-- **`BaseCollector`** (`collector/base.py`) — Template Method: `iter_collect()` yields per item from `fetch_documents()` → `parse_response(raw)` → `build_filing(parsed, raw)` → `add_to_collection(filing, content)`; `collect()` is `list(iter_collect(...))`. Subclasses implement the three abstract methods.
+- **`BaseCollector`** (`collector/base.py`) — Template Method: `iter_collect()` yields per item from `_fetch_documents()` → `_parse_response(meta)` → `_build_filing(parsed, content)` → `add_to_collection(filing, content)`; `collect()` is `list(iter_collect(...))`. Subclasses implement the three abstract methods.
 - **`RawDocument`** — `content: bytes`, `meta: dict`. One item per fetch.
 - **`Parsed`** — `dict[str, Any]`; intermediate before building a Filing.
-- **Edger** (`collector/edger.py`): **EdgerConfig** (SEC/Bulk URLs, timeout, rate limit), **EdgerSecApi** (SEC Company Submissions API → EDGARFiling), **EdgerBulkData** (daily-index ZIPs → EDGARFiling), **EdgerCollector** (orchestrates strategies and calls `add_to_collection`).
+- **Edger** (`collector/edger/`): 共有 **EdgerConfig**, **EdgerClient**, **_helpers**。`documents/`・`bulk/` → **EdgerDocumentsCollector** / **EdgerBulkCollector**（`EDGARFiling`）; `facts/` → **EdgerFactsCollector**（`EDGARCompanyFactsFiling`）。
 
 ## Errors
 
