@@ -23,6 +23,7 @@ class TestFiling_Initialize_EDINET:
             sec_code="test_sec_code",
             jcn="test_jcn",
             filer_name="test_filer_name",
+            fund_code="test_fund_code",
             ordinance_code="test_ordinance_code",
             form_code="test_form_code",
             doc_type_code="test_doc_type_code",
@@ -30,6 +31,7 @@ class TestFiling_Initialize_EDINET:
             period_start=datetime_now,
             period_end=datetime_now,
             submit_datetime=datetime_now,
+            current_report_reason="test_current_report_reason",
             parent_doc_id="test_parent_doc_id",
         )
 
@@ -44,6 +46,7 @@ class TestFiling_Initialize_EDINET:
         assert edinet_filing.sec_code == "test_sec_code"
         assert edinet_filing.jcn == "test_jcn"
         assert edinet_filing.filer_name == "test_filer_name"
+        assert edinet_filing.fund_code == "test_fund_code"
         assert edinet_filing.ordinance_code == "test_ordinance_code"
         assert edinet_filing.form_code == "test_form_code"
         assert edinet_filing.doc_type_code == "test_doc_type_code"
@@ -51,4 +54,5 @@ class TestFiling_Initialize_EDINET:
         assert edinet_filing.period_start == datetime_now
         assert edinet_filing.period_end == datetime_now
         assert edinet_filing.submit_datetime == datetime_now
+        assert edinet_filing.current_report_reason == "test_current_report_reason"
         assert edinet_filing.parent_doc_id == "test_parent_doc_id"

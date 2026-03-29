@@ -200,6 +200,7 @@ class TestEdinetCollector:
             assert (
                 parsed["filer_name"] == "ＪＰモルガン・アセット・マネジメント株式会社"
             )
+            assert parsed["fund_code"] == "G04728"
             assert parsed["ordinance_code"] == "030"
             assert parsed["form_code"] == "04A000"
             assert parsed["doc_type_code"] == "030"
@@ -207,6 +208,7 @@ class TestEdinetCollector:
             assert parsed["period_start"] is None
             assert parsed["period_end"] is None
             assert parsed["submit_datetime"] == datetime(2025, 4, 2, 9, 18)
+            assert parsed["current_report_reason"] is None
             assert parsed["parent_doc_id"] is None
             # _fetch_documentsで追加される想定なのでここではNone
             assert parsed["_document_download_type"] is None
@@ -246,6 +248,7 @@ class TestEdinetCollector:
             assert filing.sec_code is None
             assert filing.jcn == "6010001098507"
             assert filing.filer_name == "ＪＰモルガン・アセット・マネジメント株式会社"
+            assert filing.fund_code == "G04728"
             assert filing.ordinance_code == "030"
             assert filing.form_code == "04A000"
             assert filing.doc_type_code == "030"
@@ -253,4 +256,5 @@ class TestEdinetCollector:
             assert filing.period_start is None
             assert filing.period_end is None
             assert filing.submit_datetime == datetime(2025, 4, 2, 9, 18)
+            assert filing.current_report_reason is None
             assert filing.parent_doc_id is None
