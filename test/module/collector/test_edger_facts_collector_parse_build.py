@@ -2,7 +2,12 @@
 
 import pytest
 
-from fino_filing import Collection, EDGARCompanyFactsFiling, EdgerConfig, EdgerFactsCollector
+from fino_filing import (
+    Collection,
+    EDGARCompanyFactsFiling,
+    EdgerConfig,
+    EdgerFactsCollector,
+)
 
 
 @pytest.mark.module

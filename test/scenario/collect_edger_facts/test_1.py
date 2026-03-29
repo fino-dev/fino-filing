@@ -77,5 +77,7 @@ class TestScenario_CollectEdgerFacts:
         assert filing.company_name == "Alphabet Inc."
 
         # 左辺でモデルフィールド（デフォルトあり）でも search 可能
-        filings = temp_collection.search(expr=(EDGARCompanyFactsFiling.source == "EDGAR"))
+        filings = temp_collection.search(
+            expr=(EDGARCompanyFactsFiling.source == "EDGAR")
+        )
         assert len(filings) == 1 and filings[0].id == collected[0][0].id
