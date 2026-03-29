@@ -4,6 +4,7 @@ from datetime import date
 
 import fino_filing as ff
 from fino_filing.collector.edinet import EdinetClient
+from fino_filing.collector.edinet.enum import EDINET_DOCUMENT_LIST_TYPE
 
 edinet_api_key = os.getenv("EDINET_API_KEY")
 
@@ -27,6 +28,8 @@ client = EdinetClient(ff.EdinetConfig(api_key=os.getenv("EDINET_API_KEY") or "")
 # print(type(filings["results"][10]["submitDateTime"]))
 # print(filings["results"][10]["submitDateTime"])
 
-filings = client.get_document_list(date(2025, 4, 1), type=2)
+filings = client.get_document_list(
+    date(2025, 4, 1), type=EDINET_DOCUMENT_LIST_TYPE.METADATA_AND_LIST
+)
 
 print(json.dumps(filings, indent=4))
