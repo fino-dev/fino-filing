@@ -9,17 +9,14 @@ from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.filing.filing_edger import EDGARFiling
 
-from ._helpers import _build_edgar_filing, _parse_meta_to_parsed
-from .client import EdgerClient
-from .config import EdgerConfig
+from .._helpers import _build_edgar_filing, _parse_meta_to_parsed
+from ..client import EdgerClient
+from ..config import EdgerConfig
 
 
 class EdgerFactsCollector(BaseCollector):
     """
-    SEC XBRL CompanyFacts API / Submissions API から構造化データを収集して Collection に保存する。
-
-    用途: ファクト・概念など JSON 構造化データを取得して Collection に保存する。
-    収集条件: collect(cik_list=[...], limit_per_company=N) で渡す。
+    Edger Collector for Facts API
     """
 
     def __init__(self, collection: Collection, config: EdgerConfig) -> None:
@@ -31,16 +28,13 @@ class EdgerFactsCollector(BaseCollector):
         self,
         *,
         cik_list: list[str] | None = None,
-        limit_per_company: int | None = None,
-        **kwargs: Any,
+        limit: int | None = None,
     ) -> Iterator[tuple[EDGARFiling, str]]:
-        """1 件ずつ Collection に追加し、(EDGARFiling, path) を yield する。"""
         yield from cast(
             Iterator[tuple[EDGARFiling, str]],
             super().iter_collect(
                 cik_list=cik_list,
-                limit_per_company=limit_per_company,
-                **kwargs,
+                limit=limit,
             ),
         )
 
@@ -49,15 +43,12 @@ class EdgerFactsCollector(BaseCollector):
         self,
         *,
         cik_list: list[str] | None = None,
-        limit_per_company: int | None = None,
-        **kwargs: Any,
+        limit: int | None = None,
     ) -> list[tuple[EDGARFiling, str]]:
-        """収集フローを実行し、EDGARFiling と保存パスのリストを返す。"""
         return list(
             self.iter_collect(
                 cik_list=cik_list,
-                limit_per_company=limit_per_company,
-                **kwargs,
+                limit=limit,
             )
         )
 
@@ -65,14 +56,11 @@ class EdgerFactsCollector(BaseCollector):
         self,
         *,
         cik_list: list[str] | None = None,
-        limit_per_company: int | None = None,
-        **kwargs: Any,
+        limit: int | None = None,
     ) -> Iterator[RawDocument]:
-        """各 CIK の CompanyFacts JSON を取得し、JSON bytes を content にした RawDocument を yield する。"""
         if not cik_list:
             return
         for cik in cik_list:
-            cik_pad = cik.zfill(10)
             submissions = self._client.get_submissions(cik)
             if not submissions:
                 continue
@@ -106,11 +94,9 @@ class EdgerFactsCollector(BaseCollector):
             yield RawDocument(content=content, meta=meta)
 
     def _parse_response(self, raw: RawDocument) -> Parsed:
-        """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
         return _parse_meta_to_parsed(raw.meta)
 
     def _build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
-        """Parsed と content から EDGARFiling を生成する。"""
         primary_name = (
             parsed.get("primary_name") or f"{parsed.get('cik', '')}-companyfacts.json"
         )

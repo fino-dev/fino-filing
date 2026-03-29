@@ -5,7 +5,7 @@ from .bulk import EdgerBulkCollector
 from .client import EdgerClient
 from .config import EdgerConfig
 from .documents import EdgerDocumentsCollector
-from .facts import EdgerFactsCollector
+from .facts.collector import EdgerFactsCollector
 
 __all__ = [
     "EdgerBulkCollector",
