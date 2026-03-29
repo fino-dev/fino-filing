@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
+from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.collector.edinet.enum import (
     EDINET_DOCUMENT_DOWNLOAD_TYPE,
     EDINET_DOCUMENT_LIST_TYPE,
@@ -147,7 +147,8 @@ class EdinetCollector(BaseCollector):
                     return
             current += timedelta(days=1)
 
-    def _parse_response(self, meta: Meta) -> Parsed:
+    def _parse_response(self, raw: RawDocument) -> Parsed:
+        meta = raw.meta
         return {
             "doc_id": meta.get("docID"),
             "edinet_code": meta.get("edinetCode"),

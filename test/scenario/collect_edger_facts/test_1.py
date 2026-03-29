@@ -72,9 +72,10 @@ class TestScenario_CollectEdgerFacts:
         assert filing.created_at == collected[0][0].created_at
         assert filing.format == "json"
         assert filing.is_zip is False
+        assert filing.edgar_resource_kind == "companyfacts"
 
         assert filing.cik == "0001652044"
-        assert filing.company_name == "Alphabet Inc."
+        assert filing.filer_name == "Alphabet Inc."
 
         # 左辺でモデルフィールド（デフォルトあり）でも search 可能
         filings = temp_collection.search(

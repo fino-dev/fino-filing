@@ -17,7 +17,7 @@ Built-in Filing subclass for **one SEC filing** (Submissions filing row + Archiv
 |-------|------|-------------|
 | `cik` | str | Central Index Key |
 | `accession_number` | str | Accession number |
-| `company_name` | str | Company name |
+| `filer_name` | str | Company name |
 | `form_type` | str | Form type (e.g. 10-K, 10-Q) |
 | `filing_date` | datetime | Filing date |
 | `period_of_report` | datetime | Period of report |

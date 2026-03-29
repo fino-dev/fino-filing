@@ -24,7 +24,7 @@ def sample_raw_document() -> RawDocument:
     meta = {
         "cik": "0000320193",
         "accession_number": "0000320193-23-000106",
-        "company_name": "Apple Inc.",
+        "filer_name": "Apple Inc.",
         "form_type": "10-K",
         "filing_date": datetime(2023, 10, 27),
         "period_of_report": datetime(2023, 9, 30),

@@ -8,6 +8,7 @@ from fino_filing import (
     EdgerConfig,
     EdgerFactsCollector,
 )
+from fino_filing.collector.base import RawDocument
 
 
 @pytest.mark.module
@@ -26,7 +27,7 @@ class TestEdgerFactsCollector_ParseBuild:
         )
         meta = {
             "cik": "0001652044",
-            "company_name": "Alphabet Inc.",
+            "name": "Alphabet Inc.",
             "sic": "7370",
             "sic_description": "Services",
             "filer_category": "Large accelerated filer",
@@ -37,11 +38,13 @@ class TestEdgerFactsCollector_ParseBuild:
             "format": "json",
             "primary_name": "CIK0001652044-companyfacts.json",
         }
-        parsed = collector._parse_response(meta)
+        raw = RawDocument(content=b"{}", meta=meta)
+        parsed = collector._parse_response(raw)
         filing = collector._build_filing(parsed, b"{}")
         assert isinstance(filing, EDGARCompanyFactsFiling)
         assert filing.cik == "0001652044"
-        assert filing.company_name == "Alphabet Inc."
+        assert filing.filer_name == "Alphabet Inc."
         assert filing.format == "json"
+        assert filing.edgar_resource_kind == "companyfacts"
         assert filing.tickers_key == "GOOG|GOOGL"
         assert filing.exchanges_key == "Nasdaq"

@@ -17,7 +17,7 @@ class EDGARFiling(Filing):
 
     cik: Annotated[str, Field(description="CIK")]
     accession_number: Annotated[str, Field(description="Accession Number")]
-    company_name: Annotated[str, Field(description="Company Name")]
+    filer_name: Annotated[str, Field(description="Company Name")]
     form_type: Annotated[str, Field(description="Form Type")]
     filing_date: Annotated[datetime, Field(description="Filing Date")]
     period_of_report: Annotated[datetime, Field(description="Period of Report")]
@@ -37,9 +37,19 @@ class EDGARCompanyFactsFiling(Filing):
     """
 
     source = "EDGAR"
+    format = "json"
+    is_zip = False
 
-    cik: Annotated[str, Field(description="CIK")]
-    company_name: Annotated[str, Field(description="Company Name")]
+    edgar_resource_kind: Annotated[
+        str,
+        Field(indexed=True, description="EDGAR Resource Kind"),
+    ] = "companyfacts"
+
+    cik: Annotated[
+        str, Field(indexed=True, identifier=True, required=True, description="CIK")
+    ]
+    entity_type: Annotated[str, Field(description="Entity Type")]
+    filer_name: Annotated[str, Field(description="Company Name")]
     sic: Annotated[str, Field(description="SIC Code")]
     sic_description: Annotated[str, Field(description="SIC Description")]
     filer_category: Annotated[str, Field(description="Filer Category")]
@@ -49,13 +59,13 @@ class EDGARCompanyFactsFiling(Filing):
         str,
         Field(
             indexed=True,
-            description="Pipe-delimited sorted tickers for search (e.g. AAPL|MSFT)",
+            description="Pipe-delimited sorted tickers(e.g. AAPL|MSFT)",
         ),
-    ] = ""
+    ]
     exchanges_key: Annotated[
         str,
         Field(
             indexed=True,
-            description="Pipe-delimited sorted exchanges for search (e.g. Nasdaq)",
+            description="Pipe-delimited sorted exchanges(e.g. Nasdaq|NYSE)",
         ),
-    ] = ""
+    ]

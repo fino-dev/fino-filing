@@ -16,7 +16,7 @@ Built-in Filing subclass for **one Company Facts API** response (`/api/xbrl/comp
 | Field | Type | Description |
 |-------|------|-------------|
 | `cik` | str | Central Index Key |
-| `company_name` | str | Company name (from Submissions API) |
+| `filer_name` | str | Company name (from Submissions API) |
 | `sic_code` | str | SIC code or description |
 | `state_of_incorporation` | str | State of incorporation |
 | `fiscal_year_end` | str | Fiscal year end |
