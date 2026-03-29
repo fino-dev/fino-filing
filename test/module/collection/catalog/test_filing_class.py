@@ -96,14 +96,15 @@ class TestCatalog_FilingClass_Behavior:
         """default_resolver が EDINETFiling を登録しているため、get で EDINETFiling として復元される"""
         content = b"dummy"
         checksum = hashlib.sha256(content).hexdigest()
-        now = datetime.now()
+        now_dt = datetime.now()
+        today = now_dt.date()
         filing = EDINETFiling(
             id="fc_get_edinet_001",
             checksum=checksum,
             name="f.txt",
             is_zip=False,
             format="xbrl",
-            created_at=now,
+            created_at=now_dt,
             doc_id="doc1",
             edinet_code="E12345",
             sec_code="12345",
@@ -113,9 +114,9 @@ class TestCatalog_FilingClass_Behavior:
             form_code="030101",
             doc_type_code="120",
             doc_description="有価証券報告書",
-            period_start=now,
-            period_end=now,
-            submit_datetime=now,
+            period_start=today,
+            period_end=today,
+            submit_datetime=now_dt,
         )
         temp_catalog.index(filing)
 

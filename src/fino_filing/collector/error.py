@@ -25,6 +25,14 @@ class CollectorLimitValidationError(FinoFilingException, ValueError):
         self.limit = limit
 
 
+class CollectorNoContentError(FinoFilingException, ValueError):
+    """Collector No Content Error"""
+
+    def __init__(self, content_id: str):
+        super().__init__(f"No content found for content of id: {content_id}")
+        self.content_id = content_id
+
+
 class CollectorParseResponseValidationError(FinoFilingException, ValueError):
     """Collector Parse Response Validation Error"""
 

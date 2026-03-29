@@ -8,6 +8,10 @@ import pytest
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
 from fino_filing.collector.edinet import EdinetClient, EdinetConfig
+from fino_filing.collector.edinet.enum import (
+    EDINET_DOCUMENT_DOWNLOAD_TYPE,
+    EDINET_DOCUMENT_LIST_TYPE,
+)
 
 
 @pytest.mark.module
@@ -72,7 +76,9 @@ class TestEdinetClient_GetDocumentList:
 
         target_date = date(2025, 4, 1)
 
-        result = client.get_document_list(target_date, type=1)
+        result = client.get_document_list(
+            target_date, type=EDINET_DOCUMENT_LIST_TYPE.METADATA
+        )
 
         #  Confirm response is not modified
         http_client_mock.get.assert_called_once()
@@ -104,7 +110,9 @@ class TestEdinetClient_GetDocument:
         client = EdinetClient(config=config, _http_client=http_client_mock)
 
         target_doc_id = "S100XXX"
-        result = client.get_document(target_doc_id, type=1)
+        result = client.get_document(
+            target_doc_id, type=EDINET_DOCUMENT_DOWNLOAD_TYPE.CSV
+        )
 
         http_client_mock.get_raw.assert_called_once()
         assert result == b"test-document"
@@ -113,5 +121,5 @@ class TestEdinetClient_GetDocument:
         )
         assert http_client_mock.get_raw.call_args[1]["params"] == {
             "Subscription-Key": "test-api-key",
-            "type": 1,
+            "type": 5,
         }

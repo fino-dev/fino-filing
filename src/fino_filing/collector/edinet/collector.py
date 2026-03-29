@@ -1,19 +1,24 @@
 from __future__ import annotations
 
-import hashlib
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
+from fino_filing.collector.edinet.enum import (
+    EDINET_DOCUMENT_DOWNLOAD_TYPE,
+    EDINET_DOCUMENT_LIST_TYPE,
+)
 from fino_filing.collector.error import (
     CollectorDateRangeValidationError,
     CollectorLimitValidationError,
+    CollectorNoContentError,
     CollectorParseResponseValidationError,
 )
 from fino_filing.filing.filing_edinet import EDINETFiling
+from fino_filing.util.content import is_zip_content, sha256_checksum
 
-from ._helpers import _parse_edinet_date, _parse_edinet_datetime
+from ._helpers import _infer_edinet_format, _parse_edinet_date, _parse_edinet_datetime
 from .client import EdinetClient
 from .config import EdinetConfig
 
@@ -25,6 +30,7 @@ class EdinetCollector(BaseCollector):
 
     def __init__(self, collection: Collection, config: EdinetConfig) -> None:
         super().__init__(collection)
+        self._config = config
         self._client = EdinetClient(config)
 
     @override
@@ -33,6 +39,7 @@ class EdinetCollector(BaseCollector):
         *,
         date_from: date,
         date_to: date,
+        document_type: EDINET_DOCUMENT_DOWNLOAD_TYPE = EDINET_DOCUMENT_DOWNLOAD_TYPE.XBRL,
         limit: int | None = None,
     ) -> Iterator[tuple[EDINETFiling, str]]:
         """
@@ -41,6 +48,12 @@ class EdinetCollector(BaseCollector):
         Args:
             date_from: The start date of the date range.
             date_to: The end date of the date range.
+            document_type: The type of document to collect.
+                - 1: XBRL (zip) <default>
+                - 2: PDF
+                - 3: Alternative documents and attachments (zip)
+                - 4: English version of the file (zip)
+                - 5: CSV (zip)
             limit: The maximum number of filings to collect.
 
         Yields:
@@ -61,6 +74,7 @@ class EdinetCollector(BaseCollector):
         *,
         date_from: date,
         date_to: date,
+        document_type: EDINET_DOCUMENT_DOWNLOAD_TYPE = EDINET_DOCUMENT_DOWNLOAD_TYPE.XBRL,
         limit: int | None = None,
     ) -> list[tuple[EDINETFiling, str]]:
         """
@@ -69,6 +83,12 @@ class EdinetCollector(BaseCollector):
         Args:
             date_from: The start date of the date range.
             date_to: The end date of the date range.
+            document_type: The type of document to collect.
+                - 1: XBRL (zip) <default>
+                - 2: PDF
+                - 3: Alternative documents and attachments (zip)
+                - 4: English version of the file (zip)
+                - 5: CSV (zip)
             limit: The maximum number of filings to collect.
 
         Returns:
@@ -79,7 +99,12 @@ class EdinetCollector(BaseCollector):
         )
 
     def _fetch_documents(
-        self, *, date_from: date, date_to: date, limit: int | None = None
+        self,
+        *,
+        date_from: date,
+        date_to: date,
+        document_type: EDINET_DOCUMENT_DOWNLOAD_TYPE,
+        limit: int | None = None,
     ) -> Iterator[RawDocument]:
         # Validation
         start = date_from
@@ -93,7 +118,9 @@ class EdinetCollector(BaseCollector):
         current = start
         while current <= end:
             # Fetch document list <type=2: Metadata + metadata_list>
-            resp = self._client.get_document_list(current, type=2)
+            resp = self._client.get_document_list(
+                date=current, type=EDINET_DOCUMENT_LIST_TYPE.METADATA_AND_LIST
+            )
             results = resp.get("results")
             if not isinstance(results, list):
                 raise CollectorParseResponseValidationError("results")
@@ -104,13 +131,16 @@ class EdinetCollector(BaseCollector):
                 item = dict[str, Any](**row)
                 doc_id = item.get("docID")
                 if not doc_id:
-                    continue
+                    raise CollectorParseResponseValidationError("docID")
 
-                content = self._client.get_document(doc_id)
+                content = self._client.get_document(doc_id=doc_id, type=document_type)
                 if not content:
-                    continue
+                    raise CollectorNoContentError(doc_id)
 
+                # Add document download type to infer format from API's parameter
+                item["_document_download_type"] = document_type
                 yield RawDocument(content=content, meta=item)
+
                 total_yielded += 1
                 # limit に達したら、その場で return して翌日の get_document_list に行かない
                 if limit is not None and total_yielded >= limit:
@@ -118,14 +148,9 @@ class EdinetCollector(BaseCollector):
             current += timedelta(days=1)
 
     def _parse_response(self, meta: Meta) -> Parsed:
-        doc_id = meta.get("docId")
-        if doc_id is None:
-            raise CollectorParseResponseValidationError(
-                "docID is required but not found"
-            )
 
         return {
-            "doc_id": doc_id,
+            "doc_id": meta.get("docID"),
             "edinet_code": meta.get("edinetCode"),
             "sec_code": meta.get("secCode"),
             "jcn": meta.get("JCN"),
@@ -138,30 +163,39 @@ class EdinetCollector(BaseCollector):
             "period_end": _parse_edinet_date(meta.get("periodEnd")),
             "submit_datetime": _parse_edinet_datetime(meta.get("submitDateTime")),
             "parent_doc_id": meta.get("parentDocID"),
+            # Additinal field for internal use
+            "_document_download_type": meta.get("_document_download_type"),
         }
 
     def _build_filing(self, parsed: Parsed, content: bytes) -> EDINETFiling:
-        name = parsed.get("doc_id")
-        checksum = hashlib.sha256(content).hexdigest()
-        # ID will be automatically generated from identifier fields
+        document_download_type = parsed.get("_document_download_type")
+        if not isinstance(document_download_type, EDINET_DOCUMENT_DOWNLOAD_TYPE):
+            raise CollectorParseResponseValidationError("document_download_type")
+
+        doc_id = parsed.get("doc_id")
+        format = _infer_edinet_format(document_download_type)
+
         return EDINETFiling(
-            source="EDINET",
-            name=name,
-            checksum=checksum,
-            format="pdf",
-            is_zip=False,
-            doc_id=parsed.get("doc_id"),
-            edinet_code=parsed.get("edinet_code", ""),
-            sec_code=parsed.get("sec_code", ""),
-            jcn=parsed.get("jcn", ""),
-            filer_name=parsed.get("filer_name", ""),
-            ordinance_code=parsed.get("ordinance_code", ""),
-            form_code=parsed.get("form_code", ""),
-            doc_type_code=parsed.get("doc_type_code", ""),
-            doc_description=parsed.get("doc_description", ""),
+            # ID will be automatically generated from identifier fields
+            name=EDINETFiling.build_name(
+                doc_id=doc_id,
+                doc_description=parsed.get("doc_description"),
+                format=format,
+            ),
+            checksum=sha256_checksum(content),
+            format=format,
+            is_zip=is_zip_content(content),
+            doc_id=doc_id,
+            edinet_code=parsed.get("edinet_code"),
+            sec_code=parsed.get("sec_code"),
+            jcn=parsed.get("jcn"),
+            filer_name=parsed.get("filer_name"),
+            ordinance_code=parsed.get("ordinance_code"),
+            form_code=parsed.get("form_code"),
+            doc_type_code=parsed.get("doc_type_code"),
+            doc_description=parsed.get("doc_description"),
             period_start=parsed.get("period_start"),
             period_end=parsed.get("period_end"),
             submit_datetime=parsed.get("submit_datetime"),
             parent_doc_id=parsed.get("parent_doc_id"),
-            created_at=datetime.now(),
         )
