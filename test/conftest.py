@@ -1,6 +1,6 @@
 import hashlib
 import tempfile
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Iterator
 
@@ -12,6 +12,11 @@ from fino_filing import Catalog, Collection, Filing, LocalStorage
 @pytest.fixture
 def datetime_now() -> datetime:
     return datetime.now()
+
+
+@pytest.fixture
+def date_now() -> date:
+    return datetime.now().date()
 
 
 @pytest.fixture

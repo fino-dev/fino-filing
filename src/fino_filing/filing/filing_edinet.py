@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated
 
+from fino_filing.filing.error import FilingRequiredError
 from fino_filing.filing.field import Field
 
 from .filing import Filing
@@ -33,6 +34,21 @@ class EDINETFiling(Filing):
 
     source = "EDINET"
 
+    @staticmethod
+    def build_name(
+        doc_id: str | None, doc_description: str | None, format: str | None
+    ) -> str:
+        base_parts = [part for part in (doc_id, doc_description) if part]
+
+        if not base_parts:
+            raise FilingRequiredError("doc_id or doc_description are required")
+
+        base = "_".join(base_parts)
+
+        if format:
+            return f"{base}.{format}"
+        return base
+
     # use doc_id as identifier field
     doc_id: Annotated[
         str, Field(identifier=True, required=True, description="Doc ID(書類管理番号)")
@@ -45,8 +61,8 @@ class EDINETFiling(Filing):
     form_code: Annotated[str, Field(description="Form Code(様式コード)")]
     doc_type_code: Annotated[str, Field(description="Doc Type Code(書類種別コード)")]
     doc_description: Annotated[str, Field(description="Doc Description(書類名)")]
-    period_start: Annotated[datetime, Field(description="Period Start(期間開始)")]
-    period_end: Annotated[datetime, Field(description="Period End(期間終了)")]
+    period_start: Annotated[date, Field(description="Period Start(期間開始)")]
+    period_end: Annotated[date, Field(description="Period End(期間終了)")]
     submit_datetime: Annotated[datetime, Field(description="Submit Datetime(提出日時)")]
     parent_doc_id: Annotated[
         str | None, Field(description="Parent Doc ID(親書類管理番号)")

@@ -1,0 +1,14 @@
+from enum import Enum
+
+
+class EDINET_DOCUMENT_LIST_TYPE(Enum):
+    METADATA = 1
+    METADATA_AND_LIST = 2
+
+
+class EDINET_DOCUMENT_DOWNLOAD_TYPE(Enum):
+    XBRL = 1
+    PDF = 2
+    ALTERNATIVE_DOCUMENTS__ATTACHMENTS = 3
+    ENGLISH_VERSION_FILE = 4
+    CSV = 5

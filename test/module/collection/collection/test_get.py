@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime
+from datetime import date, datetime
 
 import pytest
 
@@ -58,6 +58,7 @@ class TestCollection_Get:
         temp_storage: LocalStorage,
         temp_catalog: Catalog,
         datetime_now: datetime,
+        date_now: date,
     ) -> None:
         """EDINETFilingでaddした場合、get_filingでEDINETFilingとして復元される"""
         content = b"test content"
@@ -78,8 +79,8 @@ class TestCollection_Get:
             form_code="test_form_code",
             doc_type_code="test_doc_type_code",
             doc_description="test_doc_description",
-            period_start=datetime_now,
-            period_end=datetime_now,
+            period_start=date_now,
+            period_end=date_now,
             submit_datetime=datetime_now,
         )
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
