@@ -9,7 +9,7 @@ Resolves a fully qualified class name (`_filing_class`) to a Filing subclass. Us
 
 ## Instance
 
-**default_resolver**: Module-level `FilingResolver()` used by Catalog when no custom resolver is passed. `EDINETFiling` and `EDGARFiling` are registered in `fino_filing.__init__`.
+**default_resolver**: Module-level `FilingResolver()` used by Catalog when no custom resolver is passed. `EDINETFiling`, `EDGARFiling`, and `EDGARCompanyFactsFiling` are registered in `fino_filing.__init__`.
 
 ## Methods
 

@@ -5,12 +5,17 @@ from __future__ import annotations
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
+from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
 from fino_filing.filing.filing_edger import EDGARFiling
 
-from ._helpers import _build_edgar_filing, _parse_edgar_date, _parse_meta_to_parsed
-from .client import EdgerClient
-from .config import EdgerConfig
+from .._helpers import (
+    _build_edgar_filing,
+    _pad_cik,
+    _parse_edgar_date,
+    _parse_meta_to_parsed,
+)
+from ..client import EdgerClient
+from ..config import EdgerConfig
 
 
 class EdgerDocumentsCollector(BaseCollector):
@@ -60,7 +65,8 @@ class EdgerDocumentsCollector(BaseCollector):
             )
         )
 
-    def fetch_documents(
+    @override
+    def _fetch_documents(
         self,
         *,
         cik_list: list[str] | None = None,
@@ -71,12 +77,12 @@ class EdgerDocumentsCollector(BaseCollector):
         if not cik_list:
             return
         for cik in cik_list:
-            cik_pad = cik.zfill(10)
+            cik_pad = _pad_cik(cik)
             submissions = self._client.get_submissions(cik)
             if not submissions:
                 continue
 
-            company_name = submissions.get("name") or ""
+            filer_name = submissions.get("name") or ""
             sic = (submissions.get("sic") or "").strip()
             sic_desc = submissions.get("sicDescription") or ""
             state = (submissions.get("stateOfIncorporation") or "").strip()
@@ -117,7 +123,7 @@ class EdgerDocumentsCollector(BaseCollector):
                 meta: dict[str, Any] = {
                     "cik": cik_pad,
                     "accession_number": accession,
-                    "company_name": company_name,
+                    "filer_name": filer_name,
                     "form_type": form,
                     "filing_date": _parse_edgar_date(filing_date_s),
                     "period_of_report": _parse_edgar_date(report_date_s),
@@ -130,13 +136,15 @@ class EdgerDocumentsCollector(BaseCollector):
                 }
                 yield RawDocument(content=content, meta=meta)
 
-    def parse_response(self, raw: RawDocument) -> Parsed:
+    @override
+    def _parse_response(self, meta: Meta) -> Parsed:
         """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
-        return _parse_meta_to_parsed(raw.meta)
+        return _parse_meta_to_parsed(meta)
 
-    def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
+    @override
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARFiling:
         """Parsed と content から EDGARFiling を生成する。"""
         primary_name = parsed.get("primary_name") or (
             parsed.get("accession_number", "") + "-index.htm"
         )
-        return _build_edgar_filing(parsed, raw.content, primary_name)
+        return _build_edgar_filing(parsed, content, primary_name)

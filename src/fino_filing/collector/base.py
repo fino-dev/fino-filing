@@ -56,7 +56,7 @@ class BaseCollector(ABC):
         """
 
         for raw in self._fetch_documents(**criteria):
-            parsed = self._parse_response(raw.meta)
+            parsed = self._parse_response(raw)
             filing = self._build_filing(parsed, raw.content)
             yield self._add_to_collection(filing, raw.content)
 
@@ -77,7 +77,7 @@ class BaseCollector(ABC):
         ...
 
     @abstractmethod
-    def _parse_response(self, meta: Meta) -> Parsed:
+    def _parse_response(self, raw: RawDocument) -> Parsed:
         """Parses the raw document and converts it to a Parsed dictionary."""
         ...
 

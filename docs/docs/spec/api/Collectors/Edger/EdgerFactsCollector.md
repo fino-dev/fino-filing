@@ -23,39 +23,38 @@ EdgerFactsCollector(
 ### collect
 
 ```python
-collect(**criteria: Any) -> list[tuple[Filing, str]]
+collect(**criteria: Any) -> list[tuple[EDGARCompanyFactsFiling, str]]
 ```
 
-`BaseCollector` のテンプレートメソッド。`fetch_documents(**criteria)` を呼び、各 RawDocument を parse → build_filing → add_to_collection する。収集条件は `criteria` で渡す（例: `cik_list=`, `limit_per_company=`）。
+`BaseCollector` のテンプレートメソッド。`_fetch_documents(**criteria)` を呼び、各 RawDocument を `_parse_response` → `_build_filing` → add_to_collection する。収集条件は `criteria` で渡す（例: `cik_list=`, `limit=`）。
 
-### fetch_documents
+### _fetch_documents
 
 ```python
-fetch_documents(
+_fetch_documents(
     *,
     cik_list: list[str] | None = None,
-    limit_per_company: int | None = None,
-    **kwargs: Any,
+    limit: int | None = None,
 ) -> Iterator[RawDocument]
 ```
 
-- 各 CIK について Submissions API で企業情報を取得し、CompanyFacts API で JSON を取得する。
+- 各 CIK について Submissions API で企業メタを取得し、CompanyFacts API で JSON を取得する。
 - **cik_list**: CIK のリスト。`None` または空なら何も yield しない。
-- **limit_per_company**: 未使用（Facts は 1 企業あたり 1 件の companyfacts JSON）。
-- **Yields**: `RawDocument`。`content` は JSON bytes、`meta` に `_origin="facts"` 等を格納。
+- **limit**: 予約（現状未使用。1 企業あたり 1 件の companyfacts JSON）。
+- **Yields**: `RawDocument`。`content` は JSON bytes、`meta` に会社属性と `_origin="facts"` 等を格納（accession / form は含めない）。
 
-### parse_response
-
-```python
-parse_response(raw: RawDocument) -> Parsed
-```
-
-`raw.meta` を EDGARFiling 用の Parsed 辞書に正規化する。
-
-### build_filing
+### _parse_response
 
 ```python
-build_filing(parsed: Parsed, raw: RawDocument) -> EDGARFiling
+_parse_response(meta: Meta) -> Parsed
 ```
 
-Parsed と `raw.content` から `EDGARFiling` を生成する。
+`meta` を `EDGARCompanyFactsFiling` 用の Parsed 辞書に正規化する。
+
+### _build_filing
+
+```python
+_build_filing(parsed: Parsed, content: bytes) -> EDGARCompanyFactsFiling
+```
+
+Parsed と `content` から `EDGARCompanyFactsFiling` を生成する。

@@ -10,4 +10,5 @@ The **Filing** boundary provides the document model and the query DSL. It does n
 | [Field](/docs/spec/api/Filings/Field)               | Descriptor and query DSL (e.g. `Field("source") == "EDGAR"`)                                                   |
 | [Expr](/docs/spec/api/Filings/Expr)                 | WHERE abstraction (sql + params); supports `&`, `|`, `~`                                                     |
 | [EDINETFiling](/docs/spec/api/Filings/EDINETFiling) | Built-in subclass for EDINET documents                                                                         |
-| [EDGARFiling](/docs/spec/api/Filings/EDGARFiling)   | Built-in subclass for EDGAR documents                                                                          |
+| [EDGARFiling](/docs/spec/api/Filings/EDGARFiling)   | Built-in subclass for one EDGAR submission document (Submissions + Archives)                                  |
+| [EDGARCompanyFactsFiling](/docs/spec/api/Filings/EDGARCompanyFactsFiling) | Built-in subclass for Company Facts API JSON snapshot                                                         |

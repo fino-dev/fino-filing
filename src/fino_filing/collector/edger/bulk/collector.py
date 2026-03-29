@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
+from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
 from fino_filing.filing.filing_edger import EDGARFiling
 
-from ._helpers import _build_edgar_filing, _parse_meta_to_parsed
-from .client import EdgerClient
-from .config import EdgerConfig
+from .._helpers import _build_edgar_filing, _parse_meta_to_parsed
+from ..client import EdgerClient
+from ..config import EdgerConfig
 
 
 class EdgerBulkCollector(BaseCollector):
@@ -69,7 +69,8 @@ class EdgerBulkCollector(BaseCollector):
             )
         )
 
-    def fetch_documents(
+    @override
+    def _fetch_documents(
         self,
         *,
         date_from: str | None = None,
@@ -81,13 +82,15 @@ class EdgerBulkCollector(BaseCollector):
         """Bulk データを取得して RawDocument を yield する。TODO: 実装。"""
         yield from ()
 
-    def parse_response(self, raw: RawDocument) -> Parsed:
+    @override
+    def _parse_response(self, meta: Meta) -> Parsed:
         """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
-        return _parse_meta_to_parsed(raw.meta)
+        return _parse_meta_to_parsed(meta)
 
-    def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
+    @override
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARFiling:
         """Parsed と content から EDGARFiling を生成する。"""
         primary_name = parsed.get("primary_name") or (
             parsed.get("accession_number", "") + "-index.htm"
         )
-        return _build_edgar_filing(parsed, raw.content, primary_name)
+        return _build_edgar_filing(parsed, content, primary_name)
