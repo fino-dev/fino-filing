@@ -193,7 +193,7 @@ class TestCatalog_Index_IndexedColumns:
             format="json",
             created_at=created,
             cik="0001111111",
-            company_name="Co A",
+            filer_name="Co A",
             sic="0000",
             sic_description="",
             filer_category="",
@@ -211,7 +211,7 @@ class TestCatalog_Index_IndexedColumns:
             format="json",
             created_at=created,
             cik="0002222222",
-            company_name="Co B",
+            filer_name="Co B",
             sic="0000",
             sic_description="",
             filer_category="",
@@ -226,3 +226,56 @@ class TestCatalog_Index_IndexedColumns:
         hits = catalog.search(expr=Field("tickers_key").contains("AA"), limit=10)
         assert len(hits) == 1
         assert hits[0].id == "facts_edgar_aa"
+
+    def test_edgar_company_facts_edgar_resource_kind_eq_search(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """EDGARCompanyFactsFiling の edgar_resource_kind（indexed）を等価検索できる"""
+        catalog = temp_catalog
+        content = b"{}"
+        checksum = hashlib.sha256(content).hexdigest()
+        created = datetime(2024, 1, 15, 10, 0, 0)
+        f_company = EDGARCompanyFactsFiling(
+            id="facts_kind_cf",
+            checksum=checksum,
+            name="cf.json",
+            is_zip=False,
+            format="json",
+            created_at=created,
+            cik="0003333333",
+            filer_name="Co CF",
+            sic="0000",
+            sic_description="",
+            filer_category="",
+            state_of_incorporation="DE",
+            fiscal_year_end="1231",
+            tickers_key="ZZ",
+            exchanges_key="NYSE",
+        )
+        f_other = EDGARCompanyFactsFiling(
+            id="facts_kind_other",
+            checksum=checksum,
+            name="other.json",
+            is_zip=False,
+            format="json",
+            created_at=created,
+            edgar_resource_kind="other_kind",
+            cik="0004444444",
+            filer_name="Co Other",
+            sic="0000",
+            sic_description="",
+            filer_category="",
+            state_of_incorporation="DE",
+            fiscal_year_end="1231",
+            tickers_key="YY",
+            exchanges_key="NYSE",
+        )
+        catalog.index(f_company)
+        catalog.index(f_other)
+
+        hits = catalog.search(
+            expr=Field("edgar_resource_kind") == "companyfacts", limit=10
+        )
+        assert len(hits) == 1
+        assert hits[0].id == "facts_kind_cf"
+        assert hits[0].edgar_resource_kind == "companyfacts"

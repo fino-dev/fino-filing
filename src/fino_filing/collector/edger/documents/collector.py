@@ -82,7 +82,7 @@ class EdgerDocumentsCollector(BaseCollector):
             if not submissions:
                 continue
 
-            company_name = submissions.get("name") or ""
+            filer_name = submissions.get("name") or ""
             sic = (submissions.get("sic") or "").strip()
             sic_desc = submissions.get("sicDescription") or ""
             state = (submissions.get("stateOfIncorporation") or "").strip()
@@ -123,7 +123,7 @@ class EdgerDocumentsCollector(BaseCollector):
                 meta: dict[str, Any] = {
                     "cik": cik_pad,
                     "accession_number": accession,
-                    "company_name": company_name,
+                    "filer_name": filer_name,
                     "form_type": form,
                     "filing_date": _parse_edgar_date(filing_date_s),
                     "period_of_report": _parse_edgar_date(report_date_s),

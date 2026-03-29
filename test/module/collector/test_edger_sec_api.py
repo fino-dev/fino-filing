@@ -28,7 +28,7 @@
 #         parsed = collector.parse_response(sample_raw_document)
 #         assert parsed["cik"] == "0000320193"
 #         assert parsed["accession_number"] == "0000320193-23-000106"
-#         assert parsed["company_name"] == "Apple Inc."
+#         assert parsed["filer_name"] == "Apple Inc."
 #         assert parsed["form_type"] == "10-K"
 #         assert parsed["sic_code"] == "3571"
 #         assert parsed["state_of_incorporation"] == "CA"
@@ -50,7 +50,7 @@
 #         assert filing.source == "EDGAR"
 #         assert filing.cik == "0000320193"
 #         assert filing.accession_number == "0000320193-23-000106"
-#         assert filing.company_name == "Apple Inc."
+#         assert filing.filer_name == "Apple Inc."
 #         assert filing.form_type == "10-K"
 #         assert (
 #             filing.checksum == hashlib.sha256(sample_raw_document.content).hexdigest()
