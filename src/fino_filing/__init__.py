@@ -19,17 +19,19 @@ from .collector.edinet import EdinetCollector, EdinetConfig
 from .filing.expr import Expr
 from .filing.field import Field
 from .filing.filing import Filing
-from .filing.filing_edger import EDGARFiling
+from .filing.filing_edger import EDGARCompanyFactsFiling, EDGARFiling
 from .filing.filing_edinet import EDINETFiling
 
 # 組み込み Filing サブクラスを default_resolver に明示登録
 default_resolver.register(EDINETFiling)
 default_resolver.register(EDGARFiling)
+default_resolver.register(EDGARCompanyFactsFiling)
 
 __all__ = [
     "BaseCollector",
     "Catalog",
     "Collection",
+    "EDGARCompanyFactsFiling",
     "EDGARFiling",
     "EDINETFiling",
     "EdgerBulkCollector",
