@@ -100,10 +100,9 @@ class EdgerFactsCollector(BaseCollector):
         return _parse_company_facts_meta_to_parsed(meta)
 
     @override
-    def _build_filing(
-        self, parsed: Parsed, content: bytes
-    ) -> EDGARCompanyFactsFiling:
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARCompanyFactsFiling:
         primary_name = (
-            parsed.get("primary_name") or f"CIK{parsed.get('cik', '')}-companyfacts.json"
+            parsed.get("primary_name")
+            or f"CIK{parsed.get('cik', '')}-companyfacts.json"
         )
         return _build_edgar_company_facts_filing(parsed, content, primary_name)
