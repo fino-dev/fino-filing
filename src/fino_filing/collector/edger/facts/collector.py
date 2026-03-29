@@ -7,6 +7,7 @@ from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
+from fino_filing.collector.error import CollectorNoContentError
 from fino_filing.filing.filing_edger import EDGARCompanyFactsFiling
 
 from .._helpers import (
@@ -34,6 +35,16 @@ class EdgerFactsCollector(BaseCollector):
         cik_list: list[str] | None = None,
         limit: int | None = None,
     ) -> Iterator[tuple[EDGARCompanyFactsFiling, str]]:
+        """
+        Iterates over the Edger company facts. yields tuples of (EDGARCompanyFactsFiling, path).
+
+        Args:
+            cik_list: The list of CIKs to collect.
+            limit: The maximum number of filings to collect.
+
+        Yields:
+            tuple[EDGARCompanyFactsFiling, str]: A tuple containing the EDGARCompanyFactsFiling and the path.
+        """
         yield from cast(
             Iterator[tuple[EDGARCompanyFactsFiling, str]],
             super().iter_collect(
@@ -49,6 +60,16 @@ class EdgerFactsCollector(BaseCollector):
         cik_list: list[str] | None = None,
         limit: int | None = None,
     ) -> list[tuple[EDGARCompanyFactsFiling, str]]:
+        """
+        Collects Edger company facts within the given CIK list.
+
+        Args:
+            cik_list: The list of CIKs to collect.
+            limit: The maximum number of filings to collect.
+
+        Returns:
+            list[tuple[EDGARCompanyFactsFiling, str]]: A list of tuples containing the EDGARCompanyFactsFiling and the filing path.
+        """
         return list(
             self.iter_collect(
                 cik_list=cik_list,
@@ -67,14 +88,23 @@ class EdgerFactsCollector(BaseCollector):
             return
         for cik in cik_list:
             cik_pad = _pad_cik(cik)
+
             submissions = self._client.get_submissions(cik)
             if not submissions:
-                continue
-            company_name = submissions.get("name") or ""
-            sic = (submissions.get("sic") or "").strip()
-            sic_desc = submissions.get("sicDescription") or ""
+                raise CollectorNoContentError(cik)
+
+            company_name = submissions.get("name")
+            sic_raw = submissions.get("sic")
+            sic_str = (
+                str(sic_raw).strip()
+                if sic_raw is not None and str(sic_raw).strip() != ""
+                else ""
+            )
+            sic_desc = (submissions.get("sicDescription") or "").strip()
             state = (submissions.get("stateOfIncorporation") or "").strip()
             fye = (submissions.get("fiscalYearEnd") or "").strip()
+            tickers = submissions.get("tickers")
+            exchanges = submissions.get("exchanges")
 
             facts = self._client.get_company_facts(cik)
             if not facts:
@@ -86,9 +116,13 @@ class EdgerFactsCollector(BaseCollector):
             meta: dict[str, Any] = {
                 "cik": cik_pad,
                 "company_name": company_name,
-                "sic_code": sic or sic_desc,
+                "sic": sic_str,
+                "sic_description": sic_desc,
+                "filer_category": (submissions.get("category") or "").strip(),
                 "state_of_incorporation": state,
                 "fiscal_year_end": fye,
+                "tickers": list(tickers) if isinstance(tickers, list) else [],
+                "exchanges": list(exchanges) if isinstance(exchanges, list) else [],
                 "format": "json",
                 "primary_name": primary_name,
                 "_origin": "facts",

@@ -62,9 +62,13 @@ class TestFiling_Initialize_EDGAR_CompanyFacts:
             created_at=datetime_now,
             cik="0001652044",
             company_name="Alphabet Inc.",
-            sic_code="7370",
+            sic="7370",
+            sic_description="Services",
+            filer_category="Large accelerated filer",
             state_of_incorporation="DE",
             fiscal_year_end="12-31",
+            tickers_key="GOOGL",
+            exchanges_key="Nasdaq",
         )
         assert f.id == "facts_id"
         assert f.cik == "0001652044"

@@ -13,7 +13,7 @@ from typing import Annotated
 
 import pytest
 
-from fino_filing import Catalog, Field, Filing
+from fino_filing import Catalog, EDGARCompanyFactsFiling, Field, Filing
 
 
 def _table_columns(catalog: Catalog) -> set[str]:
@@ -176,3 +176,53 @@ class TestCatalog_Index_IndexedColumns:
         raw_ext = catalog.get_raw("batch_ext_001")
         assert raw_ext is not None
         assert raw_ext.get("ticker") == "7203"
+
+    def test_edgar_company_facts_tickers_key_contains_search(
+        self, temp_catalog: Catalog
+    ) -> None:
+        """EDGARCompanyFactsFiling の tickers_key を Field(...).contains で検索できる"""
+        catalog = temp_catalog
+        content = b"{}"
+        checksum = hashlib.sha256(content).hexdigest()
+        created = datetime(2024, 1, 15, 10, 0, 0)
+        f1 = EDGARCompanyFactsFiling(
+            id="facts_edgar_aa",
+            checksum=checksum,
+            name="a.json",
+            is_zip=False,
+            format="json",
+            created_at=created,
+            cik="0001111111",
+            company_name="Co A",
+            sic="0000",
+            sic_description="",
+            filer_category="",
+            state_of_incorporation="DE",
+            fiscal_year_end="1231",
+            tickers_key="AA|BB",
+            exchanges_key="NYSE",
+        )
+        f2 = EDGARCompanyFactsFiling(
+            id="facts_edgar_cc",
+            source="EDGAR",
+            checksum=checksum,
+            name="b.json",
+            is_zip=False,
+            format="json",
+            created_at=created,
+            cik="0002222222",
+            company_name="Co B",
+            sic="0000",
+            sic_description="",
+            filer_category="",
+            state_of_incorporation="DE",
+            fiscal_year_end="1231",
+            tickers_key="CC",
+            exchanges_key="Nasdaq",
+        )
+        catalog.index(f1)
+        catalog.index(f2)
+
+        hits = catalog.search(expr=Field("tickers_key").contains("AA"), limit=10)
+        assert len(hits) == 1
+        assert hits[0].id == "facts_edgar_aa"
