@@ -148,7 +148,6 @@ class EdinetCollector(BaseCollector):
             current += timedelta(days=1)
 
     def _parse_response(self, meta: Meta) -> Parsed:
-
         return {
             "doc_id": meta.get("docID"),
             "edinet_code": meta.get("edinetCode"),

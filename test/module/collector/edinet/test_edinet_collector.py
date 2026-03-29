@@ -195,7 +195,7 @@ class TestEdinetCollector:
             )
             assert parsed["doc_id"] == "S100VIZF"
             assert parsed["edinet_code"] == "E06264"
-            assert parsed["sec_code"] == None
+            assert parsed["sec_code"] is None
             assert parsed["jcn"] == "6010001098507"
             assert (
                 parsed["filer_name"] == "ＪＰモルガン・アセット・マネジメント株式会社"
@@ -204,12 +204,12 @@ class TestEdinetCollector:
             assert parsed["form_code"] == "04A000"
             assert parsed["doc_type_code"] == "030"
             assert parsed["doc_description"] == "有価証券届出書（内国投資信託受益証券）"
-            assert parsed["period_start"] == None
-            assert parsed["period_end"] == None
+            assert parsed["period_start"] is None
+            assert parsed["period_end"] is None
             assert parsed["submit_datetime"] == datetime(2025, 4, 2, 9, 18)
-            assert parsed["parent_doc_id"] == None
+            assert parsed["parent_doc_id"] is None
             # _fetch_documentsで追加される想定なのでここではNone
-            assert parsed["_document_download_type"] == None
+            assert parsed["_document_download_type"] is None
 
     class TestBuildFiling:
         """EdinetCollector._build_filing Test"""
@@ -239,18 +239,18 @@ class TestEdinetCollector:
             )
             assert filing.checksum == sha256_checksum(b"%PDF-1.4 dummy")
             assert filing.format == "pdf"
-            assert filing.is_zip == False
+            assert not filing.is_zip
             assert before <= filing.created_at <= after
             assert filing.doc_id == "S100VIZF"
             assert filing.edinet_code == "E06264"
-            assert filing.sec_code == None
+            assert filing.sec_code is None
             assert filing.jcn == "6010001098507"
             assert filing.filer_name == "ＪＰモルガン・アセット・マネジメント株式会社"
             assert filing.ordinance_code == "030"
             assert filing.form_code == "04A000"
             assert filing.doc_type_code == "030"
             assert filing.doc_description == "有価証券届出書（内国投資信託受益証券）"
-            assert filing.period_start == None
-            assert filing.period_end == None
+            assert filing.period_start is None
+            assert filing.period_end is None
             assert filing.submit_datetime == datetime(2025, 4, 2, 9, 18)
-            assert filing.parent_doc_id == None
+            assert filing.parent_doc_id is None
