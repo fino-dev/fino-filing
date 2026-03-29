@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from fino_filing import EDGARFiling
+from fino_filing import EDGARCompanyFactsFiling, EDGARFiling
 
 
 @pytest.mark.module
@@ -41,3 +41,32 @@ class TestFiling_Initialize_EDGAR:
         assert edgar_filing.cik == "0001234567"
         assert edgar_filing.company_name == "Test Corp"
         assert edgar_filing.form_type == "10-K"
+
+
+@pytest.mark.module
+@pytest.mark.filing
+@pytest.mark.edger
+class TestFiling_Initialize_EDGAR_CompanyFacts:
+    """EDGARCompanyFactsFiling. 観点: 正常系（初期化）"""
+
+    def test_filing_initialize_edgar_company_facts_success(self) -> None:
+        """EDGARCompanyFactsFiling を必須フィールドで初期化できる"""
+        datetime_now = datetime.now()
+        f = EDGARCompanyFactsFiling(
+            id="facts_id",
+            source="EDGAR",
+            checksum="b" * 64,
+            name="CIK0001652044-companyfacts.json",
+            is_zip=False,
+            format="json",
+            created_at=datetime_now,
+            cik="0001652044",
+            company_name="Alphabet Inc.",
+            sic_code="7370",
+            state_of_incorporation="DE",
+            fiscal_year_end="12-31",
+        )
+        assert f.id == "facts_id"
+        assert f.cik == "0001652044"
+        assert f.company_name == "Alphabet Inc."
+        assert f.format == "json"

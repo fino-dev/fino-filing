@@ -4,7 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from fino_filing import Collection, EDGARFiling, EdgerConfig, EdgerFactsCollector, Field
+from fino_filing import (
+    Collection,
+    EDGARCompanyFactsFiling,
+    EdgerConfig,
+    EdgerFactsCollector,
+    Field,
+)
 
 
 @pytest.mark.scenario
@@ -54,10 +60,12 @@ class TestScenario_CollectEdgerFacts:
         assert Path(path).resolve() == Path(collected[0][1]).resolve()
 
         # Collectionからsearchできる（右辺でクラス参照）
-        filings = temp_collection.search(expr=(Field("source") == EDGARFiling.source))
+        filings = temp_collection.search(
+            expr=(Field("source") == EDGARCompanyFactsFiling.source)
+        )
         filing = filings[0]
         assert filing is not None
-        assert isinstance(filing, EDGARFiling)
+        assert isinstance(filing, EDGARCompanyFactsFiling)
         assert filing.source == "EDGAR"
         assert filing.id == collected[0][0].id
         assert filing.name == collected[0][0].name
@@ -66,10 +74,8 @@ class TestScenario_CollectEdgerFacts:
         assert filing.is_zip is False
 
         assert filing.cik == "0001652044"
-        assert filing.accession_number == "facts-0001652044"
-        assert filing.form_type == "companyfacts"
         assert filing.company_name == "Alphabet Inc."
 
         # 左辺でモデルフィールド（デフォルトあり）でも search 可能
-        filings = temp_collection.search(expr=(EDGARFiling.source == "EDGAR"))
+        filings = temp_collection.search(expr=(EDGARCompanyFactsFiling.source == "EDGAR"))
         assert len(filings) == 1 and filings[0].id == collected[0][0].id
