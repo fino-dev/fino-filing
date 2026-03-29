@@ -3,6 +3,7 @@ from datetime import date
 from fino_filing.core.error import FinoFilingException
 
 
+# Collector Validation Error
 class CollectorDateRangeValidationError(FinoFilingException, ValueError):
     """Edinet Date Range Validation Error"""
 
@@ -14,6 +15,33 @@ class CollectorDateRangeValidationError(FinoFilingException, ValueError):
         self.date_to = date_to
 
 
+class CollectorLimitValidationError(FinoFilingException, ValueError):
+    """Collector Limit Validation Error"""
+
+    def __init__(self, limit: int):
+        super().__init__(
+            f"Limit validation error: limit must be greater than 0: {limit}"
+        )
+        self.limit = limit
+
+
+class CollectorNoContentError(FinoFilingException, ValueError):
+    """Collector No Content Error"""
+
+    def __init__(self, content_id: str):
+        super().__init__(f"No content found for content of id: {content_id}")
+        self.content_id = content_id
+
+
+class CollectorParseResponseValidationError(FinoFilingException, ValueError):
+    """Collector Parse Response Validation Error"""
+
+    def __init__(self, cause: str):
+        super().__init__(f"expected field is not validated: {cause}")
+        self.field = cause
+
+
+# HTTP Request Error
 class HttpRequestError(FinoFilingException):
     """Raised when HTTP request fails."""
 

@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated
 
+from fino_filing.filing.error import FilingRequiredError
 from fino_filing.filing.field import Field
 
 from .filing import Filing
@@ -10,12 +11,10 @@ class EDINETFiling(Filing):
     """
     EDINET Filing Template
 
-    EDINET Fixed Field
-
+    Fixed Field
     - source(Data Source) = "EDINET"
 
-    EDINET Additional Fields
-
+    Additional Fields
     - doc_id(書類管理番号): str
     - edinet_code(EDINETコード): str
     - sec_code(証券コード): str
@@ -29,16 +28,31 @@ class EDINETFiling(Filing):
     - period_end(期間終了): datetime
     - submit_datetime(提出日時): datetime
 
-    EDINET Additional Fields (Optional)
-
+    Additional Fields (Optional)
     - parent_doc_id(親書類管理番号): str | None
     """
 
-    # EDINET固定フィールド
     source = "EDINET"
 
-    # EDINET 固有フィールド
-    doc_id: Annotated[str, Field(description="Doc ID(書類管理番号)")]
+    @staticmethod
+    def build_name(
+        doc_id: str | None, doc_description: str | None, format: str | None
+    ) -> str:
+        base_parts = [part for part in (doc_id, doc_description) if part]
+
+        if not base_parts:
+            raise FilingRequiredError("doc_id or doc_description are required")
+
+        base = "_".join(base_parts)
+
+        if format:
+            return f"{base}.{format}"
+        return base
+
+    # use doc_id as identifier field
+    doc_id: Annotated[
+        str, Field(identifier=True, required=True, description="Doc ID(書類管理番号)")
+    ]
     edinet_code: Annotated[str, Field(description="EDINET CODE(EDINETコード)")]
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
     jcn: Annotated[str, Field(description="JCN(法人番号)")]
@@ -47,8 +61,8 @@ class EDINETFiling(Filing):
     form_code: Annotated[str, Field(description="Form Code(様式コード)")]
     doc_type_code: Annotated[str, Field(description="Doc Type Code(書類種別コード)")]
     doc_description: Annotated[str, Field(description="Doc Description(書類名)")]
-    period_start: Annotated[datetime, Field(description="Period Start(期間開始)")]
-    period_end: Annotated[datetime, Field(description="Period End(期間終了)")]
+    period_start: Annotated[date, Field(description="Period Start(期間開始)")]
+    period_end: Annotated[date, Field(description="Period End(期間終了)")]
     submit_datetime: Annotated[datetime, Field(description="Submit Datetime(提出日時)")]
     parent_doc_id: Annotated[
         str | None, Field(description="Parent Doc ID(親書類管理番号)")

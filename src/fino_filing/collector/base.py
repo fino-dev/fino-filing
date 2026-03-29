@@ -10,6 +10,8 @@ from fino_filing.filing.filing import Filing
 
 logger = logging.getLogger(__name__)
 
+Meta = dict[str, Any]
+
 
 @dataclass(frozen=True)
 class RawDocument:
@@ -21,7 +23,7 @@ class RawDocument:
     """
 
     content: bytes
-    meta: dict[str, Any]
+    meta: Meta
 
 
 # Intermediate structure before building a Filing.
@@ -54,7 +56,7 @@ class BaseCollector(ABC):
         """
 
         for raw in self._fetch_documents(**criteria):
-            parsed = self._parse_response(raw)
+            parsed = self._parse_response(raw.meta)
             filing = self._build_filing(parsed, raw.content)
             yield self._add_to_collection(filing, raw.content)
 
@@ -69,17 +71,13 @@ class BaseCollector(ABC):
         """
         return list(self.iter_collect(**criteria))
 
-    def _add_to_collection(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
-        """Adds a single Filing to the Collection."""
-        return self._collection.add(filing, content)
-
     @abstractmethod
     def _fetch_documents(self, **kwargs: Any) -> Iterator[RawDocument]:
         """Yields one RawDocument per fetched document."""
         ...
 
     @abstractmethod
-    def _parse_response(self, raw: RawDocument) -> Parsed:
+    def _parse_response(self, meta: Meta) -> Parsed:
         """Parses the raw document and converts it to a Parsed dictionary."""
         ...
 
@@ -87,3 +85,7 @@ class BaseCollector(ABC):
     def _build_filing(self, parsed: Parsed, content: bytes) -> Filing:
         """Builds a Filing from the parsed data and raw content."""
         ...
+
+    def _add_to_collection(self, filing: Filing, content: bytes) -> tuple[Filing, str]:
+        """Adds a single Filing to the Collection."""
+        return self._collection.add(filing, content)
