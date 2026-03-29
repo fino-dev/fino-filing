@@ -162,6 +162,7 @@ class EdinetCollector(BaseCollector):
             "period_start": _parse_edinet_date(meta.get("periodStart")),
             "period_end": _parse_edinet_date(meta.get("periodEnd")),
             "submit_datetime": _parse_edinet_datetime(meta.get("submitDateTime")),
+            "current_report_reason": meta.get("currentReportReason"),
             "parent_doc_id": meta.get("parentDocID"),
             # Additinal field for internal use
             "_document_download_type": meta.get("_document_download_type"),
@@ -198,5 +199,6 @@ class EdinetCollector(BaseCollector):
             period_start=parsed.get("period_start"),
             period_end=parsed.get("period_end"),
             submit_datetime=parsed.get("submit_datetime"),
+            current_report_reason=parsed.get("current_report_reason"),
             parent_doc_id=parsed.get("parent_doc_id"),
         )
