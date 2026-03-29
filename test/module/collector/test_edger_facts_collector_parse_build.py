@@ -27,9 +27,13 @@ class TestEdgerFactsCollector_ParseBuild:
         meta = {
             "cik": "0001652044",
             "company_name": "Alphabet Inc.",
-            "sic_code": "7370",
+            "sic": "7370",
+            "sic_description": "Services",
+            "filer_category": "Large accelerated filer",
             "state_of_incorporation": "DE",
             "fiscal_year_end": "12-31",
+            "tickers": ["GOOGL", "GOOG"],
+            "exchanges": ["Nasdaq"],
             "format": "json",
             "primary_name": "CIK0001652044-companyfacts.json",
         }
@@ -39,3 +43,5 @@ class TestEdgerFactsCollector_ParseBuild:
         assert filing.cik == "0001652044"
         assert filing.company_name == "Alphabet Inc."
         assert filing.format == "json"
+        assert filing.tickers_key == "GOOG|GOOGL"
+        assert filing.exchanges_key == "Nasdaq"

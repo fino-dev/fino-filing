@@ -8,6 +8,7 @@ from typing import Any
 
 from fino_filing.collector.base import Parsed
 from fino_filing.filing.filing_edger import EDGARCompanyFactsFiling, EDGARFiling
+from fino_filing.util.delimited_symbols import normalize_delimited_multivalue
 
 
 def _pad_cik(cik: str) -> str:
@@ -62,6 +63,12 @@ def _build_edgar_company_facts_filing(
     """Company Facts JSON 用: Parsed と content から EDGARCompanyFactsFiling を組み立てる。"""
     checksum = hashlib.sha256(content).hexdigest()
     created_at = datetime.now()
+    raw_tickers = parsed.get("tickers")
+    raw_exchanges = parsed.get("exchanges")
+    tickers_seq = raw_tickers if isinstance(raw_tickers, list) else []
+    exchanges_seq = raw_exchanges if isinstance(raw_exchanges, list) else []
+    tickers_strs = [str(x) for x in tickers_seq]
+    exchanges_strs = [str(x) for x in exchanges_seq]
     return EDGARCompanyFactsFiling(
         source="EDGAR",
         name=primary_name,
@@ -70,9 +77,13 @@ def _build_edgar_company_facts_filing(
         is_zip=False,
         cik=parsed.get("cik", ""),
         company_name=parsed.get("company_name", ""),
-        sic_code=parsed.get("sic_code", ""),
+        sic=parsed.get("sic", ""),
+        sic_description=parsed.get("sic_description", ""),
+        filer_category=parsed.get("filer_category", ""),
         state_of_incorporation=parsed.get("state_of_incorporation", ""),
         fiscal_year_end=parsed.get("fiscal_year_end", ""),
+        tickers_key=normalize_delimited_multivalue(tickers_strs),
+        exchanges_key=normalize_delimited_multivalue(exchanges_strs),
         created_at=created_at,
     )
 
@@ -96,12 +107,18 @@ def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
 
 def _parse_company_facts_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
     """Company Facts: RawDocument.meta から EDGARCompanyFactsFiling 用 Parsed を組み立てる。"""
+    tickers = meta.get("tickers")
+    exchanges = meta.get("exchanges")
     return {
         "cik": meta.get("cik", ""),
         "company_name": meta.get("company_name", ""),
-        "sic_code": meta.get("sic_code", ""),
+        "sic": meta.get("sic") or meta.get("sic_code", ""),
+        "sic_description": meta.get("sic_description", ""),
+        "filer_category": meta.get("filer_category", ""),
         "state_of_incorporation": meta.get("state_of_incorporation", ""),
         "fiscal_year_end": meta.get("fiscal_year_end", ""),
         "format": meta.get("format", "json"),
         "primary_name": meta.get("primary_name", ""),
+        "tickers": tickers if isinstance(tickers, list) else [],
+        "exchanges": exchanges if isinstance(exchanges, list) else [],
     }
