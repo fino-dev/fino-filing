@@ -57,6 +57,7 @@ class EDINETFiling(Filing):
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
     jcn: Annotated[str, Field(description="JCN(法人番号)")]
     filer_name: Annotated[str, Field(description="Filer Name(提出者名)")]
+    fund_code: Annotated[str, Field(description="Fund Code(ファンドコード)")]
     ordinance_code: Annotated[str, Field(description="Ordinance Code(府令コード)")]
     form_code: Annotated[str, Field(description="Form Code(様式コード)")]
     doc_type_code: Annotated[str, Field(description="Doc Type Code(書類種別コード)")]
