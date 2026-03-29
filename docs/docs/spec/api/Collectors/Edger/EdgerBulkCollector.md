@@ -5,7 +5,7 @@ title: EdgerBulkCollector
 
 # EdgerBulkCollector
 
-SEC Bulk データを一括取得して Collection に保存する。`BaseCollector` を継承。**現状はスタブ**で、`fetch_documents` は何も yield しない。
+SEC Bulk データを一括取得して Collection に保存する。`BaseCollector` を継承。**現状はスタブ**で、`_fetch_documents` は何も yield しない。
 
 ## 想定仕様（将来実装）
 
@@ -29,15 +29,15 @@ EdgerBulkCollector(
 ### collect
 
 ```python
-collect(**criteria: Any) -> list[tuple[Filing, str]]
+collect(**criteria: Any) -> list[tuple[EDGARFiling, str]]
 ```
 
 `BaseCollector` のテンプレートメソッド。収集条件は `criteria` で渡す（将来: `date_from`, `date_to`, `cik_list`, `limit` 等）。
 
-### fetch_documents
+### _fetch_documents
 
 ```python
-fetch_documents(
+_fetch_documents(
     *,
     date_from: str | None = None,
     date_to: str | None = None,
@@ -49,18 +49,18 @@ fetch_documents(
 
 **現状**: 空イテレータを返す。上記パラメータは将来の Bulk 実装用に予約。
 
-### parse_response
+### _parse_response
 
 ```python
-parse_response(raw: RawDocument) -> Parsed
+_parse_response(meta: Meta) -> Parsed
 ```
 
-`raw.meta` を EDGARFiling 用の Parsed 辞書に正規化する。Bulk 由来の `meta` も同じ Parsed 形に揃える。
+`meta` を `EDGARFiling` 用の Parsed 辞書に正規化する。Bulk 由来の `meta` も提出行ベースの Parsed 形に揃える。
 
-### build_filing
+### _build_filing
 
 ```python
-build_filing(parsed: Parsed, raw: RawDocument) -> EDGARFiling
+_build_filing(parsed: Parsed, content: bytes) -> EDGARFiling
 ```
 
-Parsed と `raw.content` から `EDGARFiling` を生成する。
+Parsed と `content` から `EDGARFiling` を生成する。
