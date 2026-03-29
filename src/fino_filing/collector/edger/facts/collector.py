@@ -6,10 +6,14 @@ import json
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
-from fino_filing.filing.filing_edger import EDGARFiling
+from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
+from fino_filing.filing.filing_edger import EDGARCompanyFactsFiling
 
-from .._helpers import _build_edgar_filing, _parse_meta_to_parsed
+from .._helpers import (
+    _build_edgar_company_facts_filing,
+    _pad_cik,
+    _parse_company_facts_meta_to_parsed,
+)
 from ..client import EdgerClient
 from ..config import EdgerConfig
 
@@ -29,9 +33,9 @@ class EdgerFactsCollector(BaseCollector):
         *,
         cik_list: list[str] | None = None,
         limit: int | None = None,
-    ) -> Iterator[tuple[EDGARFiling, str]]:
+    ) -> Iterator[tuple[EDGARCompanyFactsFiling, str]]:
         yield from cast(
-            Iterator[tuple[EDGARFiling, str]],
+            Iterator[tuple[EDGARCompanyFactsFiling, str]],
             super().iter_collect(
                 cik_list=cik_list,
                 limit=limit,
@@ -44,7 +48,7 @@ class EdgerFactsCollector(BaseCollector):
         *,
         cik_list: list[str] | None = None,
         limit: int | None = None,
-    ) -> list[tuple[EDGARFiling, str]]:
+    ) -> list[tuple[EDGARCompanyFactsFiling, str]]:
         return list(
             self.iter_collect(
                 cik_list=cik_list,
@@ -52,6 +56,7 @@ class EdgerFactsCollector(BaseCollector):
             )
         )
 
+    @override
     def _fetch_documents(
         self,
         *,
@@ -61,6 +66,7 @@ class EdgerFactsCollector(BaseCollector):
         if not cik_list:
             return
         for cik in cik_list:
+            cik_pad = _pad_cik(cik)
             submissions = self._client.get_submissions(cik)
             if not submissions:
                 continue
@@ -79,11 +85,7 @@ class EdgerFactsCollector(BaseCollector):
 
             meta: dict[str, Any] = {
                 "cik": cik_pad,
-                "accession_number": f"facts-{cik_pad}",
                 "company_name": company_name,
-                "form_type": "companyfacts",
-                "filing_date": None,
-                "period_of_report": None,
                 "sic_code": sic or sic_desc,
                 "state_of_incorporation": state,
                 "fiscal_year_end": fye,
@@ -93,11 +95,15 @@ class EdgerFactsCollector(BaseCollector):
             }
             yield RawDocument(content=content, meta=meta)
 
-    def _parse_response(self, raw: RawDocument) -> Parsed:
-        return _parse_meta_to_parsed(raw.meta)
+    @override
+    def _parse_response(self, meta: Meta) -> Parsed:
+        return _parse_company_facts_meta_to_parsed(meta)
 
-    def _build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
+    @override
+    def _build_filing(
+        self, parsed: Parsed, content: bytes
+    ) -> EDGARCompanyFactsFiling:
         primary_name = (
-            parsed.get("primary_name") or f"{parsed.get('cik', '')}-companyfacts.json"
+            parsed.get("primary_name") or f"CIK{parsed.get('cik', '')}-companyfacts.json"
         )
-        return _build_edgar_filing(parsed, raw.content, primary_name)
+        return _build_edgar_company_facts_filing(parsed, content, primary_name)
