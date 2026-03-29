@@ -61,7 +61,7 @@ class EdgerFactsCollector(BaseCollector):
             )
         )
 
-    def fetch_documents(
+    def _fetch_documents(
         self,
         *,
         cik_list: list[str] | None = None,
@@ -105,11 +105,11 @@ class EdgerFactsCollector(BaseCollector):
             }
             yield RawDocument(content=content, meta=meta)
 
-    def parse_response(self, raw: RawDocument) -> Parsed:
+    def _parse_response(self, raw: RawDocument) -> Parsed:
         """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
         return _parse_meta_to_parsed(raw.meta)
 
-    def build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
+    def _build_filing(self, parsed: Parsed, raw: RawDocument) -> EDGARFiling:
         """Parsed と content から EDGARFiling を生成する。"""
         primary_name = (
             parsed.get("primary_name") or f"{parsed.get('cik', '')}-companyfacts.json"
