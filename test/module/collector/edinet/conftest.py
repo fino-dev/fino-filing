@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Any
 
 import pytest
@@ -17,18 +16,19 @@ def sample_edinet_raw_document() -> RawDocument:
     content = b"%PDF-1.4 dummy edinet document"
     meta = {
         "doc_id": "S100ABCD1234567890",
-        "edinet_code": "E12345",
-        "sec_code": "12345",
-        "jcn": "1234567890123",
-        "filer_name": "株式会社テスト",
-        "ordinance_code": "010",
-        "form_code": "030000",
-        "doc_type_code": "120",
-        "doc_description": "有価証券報告書",
-        "period_start": datetime(2023, 4, 1),
-        "period_end": datetime(2024, 3, 31),
-        "submit_datetime": datetime(2024, 6, 28, 10, 0, 0),
-        "parent_doc_id": None,
+        "document_download_type": 1,
+        "edinetCode": "E12345",
+        "secCode": "12345",
+        "JCN": "1234567890123",
+        "filerName": "株式会社テスト",
+        "ordinanceCode": "010",
+        "formCode": "030000",
+        "docTypeCode": "120",
+        "docDescription": "有価証券報告書",
+        "periodStart": "2023-04-01",
+        "periodEnd": "2024-03-31",
+        "submitDateTime": "2024-06-28 10:00",
+        "parentDocID": None,
     }
     return RawDocument(content=content, meta=meta)
 

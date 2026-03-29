@@ -12,6 +12,10 @@ from typing import Any
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
 from fino_filing.collector.edinet.config import EdinetConfig
+from fino_filing.collector.edinet.enum import (
+    EDINET_DOCUMENT_DOWNLOAD_TYPE,
+    EDINET_DOCUMENT_LIST_TYPE,
+)
 from fino_filing.util._date import date_to_str
 
 logger = logging.getLogger(__name__)
@@ -30,19 +34,27 @@ class EdinetClient:
             HttpClientConfig.from_dict(asdict(config))
         )
 
-    def get_document_list(self, date: date, type: int = 1) -> dict[str, Any]:
+    def get_document_list(
+        self,
+        date: date,
+        type: EDINET_DOCUMENT_LIST_TYPE = EDINET_DOCUMENT_LIST_TYPE.METADATA,
+    ) -> dict[str, Any]:
         params: dict[str, str | int] = {
             "Subscription-Key": self._credential,
             "date": date_to_str(date),
-            "type": type,
+            "type": type.value,
         }
         url = f"{self._EDINET_API_BASE}/documents.json"
         return self._http_client.get(url, params=params)
 
-    def get_document(self, doc_id: str, type: int = 1) -> bytes:
+    def get_document(
+        self,
+        doc_id: str,
+        type: EDINET_DOCUMENT_DOWNLOAD_TYPE = EDINET_DOCUMENT_DOWNLOAD_TYPE.XBRL,
+    ) -> bytes:
         params: dict[str, str | int] = {
             "Subscription-Key": self._credential,
-            "type": type,
+            "type": type.value,
         }
         url = f"{self._EDINET_API_BASE}/documents/{doc_id}"
         return self._http_client.get_raw(url, params=params)

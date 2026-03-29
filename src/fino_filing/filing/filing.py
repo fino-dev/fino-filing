@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Annotated, Any, Self
 
 from fino_filing.filing.error import (
@@ -252,8 +252,8 @@ class Filing(metaclass=FilingMeta):
         result: dict[str, Any] = {}
 
         for key, value in self._data.items():
-            # datetime → ISO文字列変換
-            if isinstance(value, datetime):
+            # datetime / date → ISO文字列変換
+            if isinstance(value, datetime) or isinstance(value, date):
                 result[key] = value.isoformat()
             else:
                 result[key] = value
@@ -265,17 +265,22 @@ class Filing(metaclass=FilingMeta):
         """
         辞書から復元
         """
-        # datetime復元: すべてのdatetime型フィールドを自動変換
+        # datetime / date 復元: 該当型フィールドの文字列を自動変換
         data_copy = data.copy()
         fields: dict[str, Field] = getattr(cls, "_fields", {})
 
         for field_name, field in fields.items():
-            if (
-                field_name in data_copy
-                and field._field_type is datetime
-                and isinstance(data_copy[field_name], str)
+            if field_name not in data_copy or not isinstance(
+                data_copy[field_name], str
             ):
+                continue
+            ft = field._field_type
+            if ft is datetime:
                 data_copy[field_name] = datetime.fromisoformat(data_copy[field_name])
+            elif ft is date:
+                data_copy[field_name] = datetime.fromisoformat(
+                    data_copy[field_name]
+                ).date()
 
         return cls(**data_copy)
 
