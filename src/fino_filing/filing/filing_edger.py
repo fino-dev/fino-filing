@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
+from fino_filing.util.edger import pad_cik
 
 
 class EDGARFiling(Filing):
@@ -39,6 +40,10 @@ class EDGARCompanyFactsFiling(Filing):
     source = "EDGAR"
     format = "json"
     is_zip = False
+
+    @staticmethod
+    def build_default_name(cik: str) -> str:
+        return f"CIK{pad_cik(cik)}-companyfacts.json"
 
     edgar_resource_kind: Annotated[
         str,

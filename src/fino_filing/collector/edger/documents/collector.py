@@ -10,9 +10,9 @@ from fino_filing.filing.filing_edger import EDGARFiling
 
 from .._helpers import (
     _build_edgar_filing,
-    _pad_cik,
     _parse_edgar_date,
     _parse_meta_to_parsed,
+    pad_cik,
 )
 from ..client import EdgerClient
 from ..config import EdgerConfig
@@ -77,7 +77,7 @@ class EdgerDocumentsCollector(BaseCollector):
         if not cik_list:
             return
         for cik in cik_list:
-            cik_pad = _pad_cik(cik)
+            cik_pad = pad_cik(cik)
             submissions = self._client.get_submissions(cik)
             if not submissions:
                 continue
