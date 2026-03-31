@@ -63,6 +63,7 @@ class EDINETFiling(Filing):
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]
     jcn: Annotated[str, Field(description="JCN(法人番号)")]
     filer_name: Annotated[str, Field(description="Filer Name(提出者名)")]
+    fund_code: Annotated[str, Field(description="Fund Code(ファンドコード)")]
     ordinance_code: Annotated[str, Field(description="Ordinance Code(府令コード)")]
     form_code: Annotated[str, Field(description="Form Code(様式コード)")]
     doc_type_code: Annotated[str, Field(description="Doc Type Code(書類種別コード)")]
@@ -70,6 +71,9 @@ class EDINETFiling(Filing):
     period_start: Annotated[date, Field(description="Period Start(期間開始)")]
     period_end: Annotated[date, Field(description="Period End(期間終了)")]
     submit_datetime: Annotated[datetime, Field(description="Submit Datetime(提出日時)")]
+    current_report_reason: Annotated[
+        str, Field(description="Current Report Reason(臨報提出事由)")
+    ]
     parent_doc_id: Annotated[
         str | None, Field(description="Parent Doc ID(親書類管理番号)")
     ] = None
