@@ -8,21 +8,17 @@ from typing import Any
 
 from fino_filing.collector.base import Parsed
 from fino_filing.filing.filing_edger import EDGARFiling
-
-
-def _pad_cik(cik: str) -> str:
-    """pad cik to 10 digits"""
-    return cik.zfill(10)
+from fino_filing.util.edger import pad_cik
 
 
 def _build_recent_submissions_json_file_name(cik: str) -> str:
     """Build submissions json name"""
-    return f"CIK{_pad_cik(cik)}-submissions.json"
+    return f"CIK{pad_cik(cik)}-submissions.json"
 
 
 def _build_company_facts_json_file_name(cik: str) -> str:
     """Build company facts json name"""
-    return f"CIK{_pad_cik(cik)}-companyfacts.json"
+    return f"CIK{pad_cik(cik)}-companyfacts.json"
 
 
 def _parse_edgar_date(s: str | None) -> datetime | None:

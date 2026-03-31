@@ -10,7 +10,7 @@ from dataclasses import asdict
 from typing import Any, Literal
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
-from fino_filing.collector.edger._helpers import _accession_to_dir, _pad_cik
+from fino_filing.collector.edger._helpers import _accession_to_dir, pad_cik
 from fino_filing.collector.edger.config import EdgerConfig
 
 logger = logging.getLogger(__name__)
@@ -27,19 +27,19 @@ class EdgerClient:
 
     def get_submissions(self, cik: str) -> dict[str, Any]:
         """Fetch Submissions History from SEC Submissions API"""
-        cik_pad = _pad_cik(cik)
+        cik_pad = pad_cik(cik)
         url = f"{self._SEC_API_BASE}/submissions/CIK{cik_pad}.json"
         return self._http_client.get(url, headers=self._headers)
 
     def get_company_facts(self, cik: str) -> dict[str, Any]:
         """Fetch XBRL Company Facts from SEC XBRL CompanyFacts API"""
-        cik_pad = _pad_cik(cik)
+        cik_pad = pad_cik(cik)
         url = f"{self._SEC_API_BASE}/api/xbrl/companyfacts/CIK{cik_pad}.json"
         return self._http_client.get(url, headers=self._headers)
 
     def get_filing_document(self, cik: str, accession: str) -> bytes:
         """Fetch Filing Document (bytes) from SEC Archives"""
-        cik_pad = _pad_cik(cik)
+        cik_pad = pad_cik(cik)
         acc_dir = _accession_to_dir(accession)
         primary_name = f"{accession}-index.htm"
 
