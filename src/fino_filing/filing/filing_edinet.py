@@ -35,7 +35,7 @@ class EDINETFiling(Filing):
     source = "EDINET"
 
     @staticmethod
-    def build_name(
+    def build_default_name(
         doc_id: str | None, doc_description: str | None, format: str | None
     ) -> str:
         base_parts = [part for part in (doc_id, doc_description) if part]
