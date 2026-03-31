@@ -20,10 +20,14 @@ class EdgerClient:
     _SEC_API_BASE = "https://data.sec.gov"
     _ARCHIVES_BASE = "https://www.sec.gov/Archives/edgar"
 
-    def __init__(self, config: EdgerConfig) -> None:
+    def __init__(
+        self, config: EdgerConfig, *, _http_client: HttpClient | None = None
+    ) -> None:
         self._config = config
         self._headers = {"User-Agent": config.user_agent_email}
-        self._http_client = HttpClient(HttpClientConfig.from_dict(asdict(config)))
+        self._http_client = _http_client or HttpClient(
+            HttpClientConfig.from_dict(asdict(config))
+        )
 
     def get_submissions(self, cik: str) -> dict[str, Any]:
         """Fetch Submissions History from SEC Submissions API"""
