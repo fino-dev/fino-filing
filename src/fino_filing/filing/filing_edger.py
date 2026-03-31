@@ -29,12 +29,7 @@ class EDGARFiling(Filing):
 
 class EDGARCompanyFactsFiling(Filing):
     """
-    SEC Company Facts API（/api/xbrl/companyfacts/CIKxxx.json）のスナップショット1件用。
-
-    Submissions 由来の会社メタのみ共有し、accession / form / 提出日は持たない。
-
-    tickers_key / exchanges_key は Submissions の tickers / exchanges を正規化した検索用列
-    （例: ``AAPL|MSFT``）。Catalog 検索では ``Field(...).contains("AAPL|MSFT")`` のように指定する。
+    EDGAR Company Facts Filing
     """
 
     source = "EDGAR"
