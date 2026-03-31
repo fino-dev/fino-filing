@@ -21,11 +21,6 @@ def _build_company_facts_json_file_name(cik: str) -> str:
     return f"CIK{pad_cik(cik)}-companyfacts.json"
 
 
-def _pad_cik(cik: str) -> str:
-    """pad cik to 10 digits"""
-    return cik.zfill(10)
-
-
 def _parse_edgar_date(s: str | None) -> datetime | None:
     """YYYY-MM-DD または None を datetime に変換する。"""
     if not s:
