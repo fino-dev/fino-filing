@@ -6,9 +6,6 @@ from fino_filing import EdgerClient, EdgerConfig
 client = EdgerClient(EdgerConfig(user_agent_email="odukaki@gmail.com"))
 print(json.dumps(client.get_submissions("0000320193"), indent=4))
 
-import json
-
-from fino_filing import EdgerClient, EdgerConfig
 
 client = EdgerClient(EdgerConfig(user_agent_email="odukaki@gmail.com"))
 
