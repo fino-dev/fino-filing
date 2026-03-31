@@ -1,14 +1,12 @@
 """Collector テスト用 fixtures"""
 
 import tempfile
-from datetime import datetime
 from pathlib import Path
 from typing import Iterator
 
 import pytest
 
 from fino_filing import Catalog, Collection, LocalStorage
-from fino_filing.collector.base import RawDocument
 from fino_filing.collector.edger import EdgerConfig
 
 
