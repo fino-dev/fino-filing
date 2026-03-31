@@ -35,7 +35,7 @@ class EDINETFiling(Filing):
     source = "EDINET"
 
     @staticmethod
-    def build_name(
+    def build_default_name(
         doc_id: str | None, doc_description: str | None, format: str | None
     ) -> str:
         base_parts = [part for part in (doc_id, doc_description) if part]
@@ -51,7 +51,13 @@ class EDINETFiling(Filing):
 
     # use doc_id as identifier field
     doc_id: Annotated[
-        str, Field(identifier=True, required=True, description="Doc ID(書類管理番号)")
+        str,
+        Field(
+            indexed=True,
+            identifier=True,
+            required=True,
+            description="Doc ID(書類管理番号)",
+        ),
     ]
     edinet_code: Annotated[str, Field(description="EDINET CODE(EDINETコード)")]
     sec_code: Annotated[str, Field(description="SEC CODE(証券コード)")]

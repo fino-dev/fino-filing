@@ -5,7 +5,7 @@ title: EDGARFiling
 
 # EDGARFiling
 
-Built-in Filing subclass for EDGAR (SEC) documents. Registered on `default_resolver` for Catalog restore. Used by `EdgerSecApi` and `EdgerBulkData`.
+Built-in Filing subclass for **one SEC filing** (Submissions filing row + Archives document), e.g. index.htm. Registered on `default_resolver` for Catalog restore. Used by `EdgerDocumentsCollector` and `EdgerBulkCollector` (when meta maps to a submission row). Company Facts JSON uses **`EDGARCompanyFactsFiling`** instead.
 
 ## Fixed field
 
@@ -17,7 +17,7 @@ Built-in Filing subclass for EDGAR (SEC) documents. Registered on `default_resol
 |-------|------|-------------|
 | `cik` | str | Central Index Key |
 | `accession_number` | str | Accession number |
-| `company_name` | str | Company name |
+| `filer_name` | str | Company name |
 | `form_type` | str | Form type (e.g. 10-K, 10-Q) |
 | `filing_date` | datetime | Filing date |
 | `period_of_report` | datetime | Period of report |

@@ -191,7 +191,10 @@ class TestEdinetCollector:
             collection, _ = temp_collection
             collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
             parsed = collector._parse_response(
-                edinet_document_list_response_type2_5_items["results"][0]
+                RawDocument(
+                    content=b"%PDF-1.4 dummy",
+                    meta=edinet_document_list_response_type2_5_items["results"][0],
+                )
             )
             assert parsed["doc_id"] == "S100VIZF"
             assert parsed["edinet_code"] == "E06264"
@@ -226,7 +229,10 @@ class TestEdinetCollector:
             collection, _ = temp_collection
             collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
             parsed = collector._parse_response(
-                edinet_document_list_response_type2_5_items["results"][0]
+                RawDocument(
+                    content=b"%PDF-1.4 dummy",
+                    meta=edinet_document_list_response_type2_5_items["results"][0],
+                )
             )
             parsed["_document_download_type"] = EDINET_DOCUMENT_DOWNLOAD_TYPE.PDF
             before = datetime.now()
@@ -234,7 +240,7 @@ class TestEdinetCollector:
             after = datetime.now()
             assert isinstance(filing, EDINETFiling)
             assert filing.source == "EDINET"
-            assert filing.name == EDINETFiling.build_name(
+            assert filing.name == EDINETFiling.build_default_name(
                 doc_id="S100VIZF",
                 doc_description="有価証券届出書（内国投資信託受益証券）",
                 format="pdf",

@@ -28,7 +28,7 @@
 #         parsed = bulk.parse_response(sample_raw_document)
 #         assert parsed["cik"] == "0000320193"
 #         assert parsed["accession_number"] == "0000320193-23-000106"
-#         assert parsed["company_name"] == "Apple Inc."
+#         assert parsed["filer_name"] == "Apple Inc."
 #         assert parsed["form_type"] == "10-K"
 
 #     def test_build_filing_produces_edgar_filing(

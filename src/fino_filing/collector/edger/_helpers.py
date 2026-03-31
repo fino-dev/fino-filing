@@ -8,6 +8,17 @@ from typing import Any
 
 from fino_filing.collector.base import Parsed
 from fino_filing.filing.filing_edger import EDGARFiling
+from fino_filing.util.edger import pad_cik
+
+
+def _build_recent_submissions_json_file_name(cik: str) -> str:
+    """Build submissions json name"""
+    return f"CIK{pad_cik(cik)}-submissions.json"
+
+
+def _build_company_facts_json_file_name(cik: str) -> str:
+    """Build company facts json name"""
+    return f"CIK{pad_cik(cik)}-companyfacts.json"
 
 
 def _pad_cik(cik: str) -> str:
@@ -33,7 +44,7 @@ def _accession_to_dir(accession: str) -> str:
 def _build_edgar_filing(
     parsed: Parsed, content: bytes, primary_name: str
 ) -> EDGARFiling:
-    """Parsed と content から EDGARFiling を組み立てる。3 Collector で共有する。"""
+    """提出書類用: Parsed と content から EDGARFiling を組み立てる。"""
     checksum = hashlib.sha256(content).hexdigest()
     filing_date = parsed.get("filing_date")
     created_at = filing_date if isinstance(filing_date, datetime) else datetime.now()
@@ -45,7 +56,7 @@ def _build_edgar_filing(
         is_zip=False,
         cik=parsed.get("cik", ""),
         accession_number=parsed.get("accession_number", ""),
-        company_name=parsed.get("company_name", ""),
+        filer_name=parsed.get("filer_name", ""),
         form_type=parsed.get("form_type", ""),
         filing_date=parsed.get("filing_date") or created_at,
         period_of_report=parsed.get("period_of_report") or created_at,
@@ -57,11 +68,11 @@ def _build_edgar_filing(
 
 
 def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
-    """RawDocument.meta から EDGARFiling 用 Parsed を組み立てる。3 Collector で共有する。"""
+    """提出書類: RawDocument.meta から EDGARFiling 用 Parsed を組み立てる。"""
     return {
         "cik": meta.get("cik", ""),
         "accession_number": meta.get("accession_number", ""),
-        "company_name": meta.get("company_name", ""),
+        "filer_name": meta.get("filer_name", ""),
         "form_type": meta.get("form_type", ""),
         "filing_date": meta.get("filing_date"),
         "period_of_report": meta.get("period_of_report"),

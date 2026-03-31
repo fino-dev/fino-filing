@@ -2,7 +2,14 @@
 
 import pytest
 
-from fino_filing import EDINETFiling, Filing, FilingResolver, default_resolver
+from fino_filing import (
+    EDGARCompanyFactsFiling,
+    EDGARFiling,
+    EDINETFiling,
+    Filing,
+    FilingResolver,
+    default_resolver,
+)
 from fino_filing.collection.filing_resolver import register_filing_class
 
 
@@ -41,12 +48,19 @@ class TestFilingResolver_Register_Resolve:
 @pytest.mark.module
 @pytest.mark.collection
 class TestDefaultResolver:
-    """default_resolver. 観点: 正常系（EDINETFiling / EDGARFiling は __init__.py で登録済み）"""
+    """default_resolver. 観点: 正常系（組み込み Filing は __init__.py で登録済み）"""
 
     def test_default_resolver_resolves_edinet(self) -> None:
         """default_resolver で EDINETFiling を resolve できる"""
         name = f"{EDINETFiling.__module__}.{EDINETFiling.__qualname__}"
         assert default_resolver.resolve(name) is EDINETFiling
+
+    def test_default_resolver_resolves_edgar_and_company_facts(self) -> None:
+        """default_resolver で EDGARFiling / EDGARCompanyFactsFiling を resolve できる"""
+        edgar_name = f"{EDGARFiling.__module__}.{EDGARFiling.__qualname__}"
+        facts_name = f"{EDGARCompanyFactsFiling.__module__}.{EDGARCompanyFactsFiling.__qualname__}"
+        assert default_resolver.resolve(edgar_name) is EDGARFiling
+        assert default_resolver.resolve(facts_name) is EDGARCompanyFactsFiling
 
 
 @pytest.mark.module

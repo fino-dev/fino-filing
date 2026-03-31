@@ -54,4 +54,4 @@ All filings have these fields. Required unless noted.
 
 You can define your own Filing type by subclassing `Filing` and declaring additional fields with `Annotated[str, Field(...)]` (or other types). The metaclass handles schema registration, identity, and validation. Register your subclass on a `FilingResolver` (e.g. used by Catalog) so instances can be restored from storage.
 
-By default, the package provides two built-in subclasses that follow this pattern: **EDINETFiling** (source `"EDINET"`) and **EDGARFiling** (source `"EDGAR"`). They add source-specific fields (e.g. `doc_id`, `edinet_code` for EDINET; `cik`, `accession_number`, `form_type` for EDGAR) and are registered on the default resolver for Catalog restore.
+By default, the package provides built-in subclasses that follow this pattern: **EDINETFiling** (source `"EDINET"`); **EDGARFiling** (source `"EDGAR"`, one submission filing); **EDGARCompanyFactsFiling** (source `"EDGAR"`, Company Facts JSON). They add source-specific fields and are registered on the default resolver for Catalog restore.

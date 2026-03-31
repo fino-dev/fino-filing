@@ -29,7 +29,7 @@ client = EdinetClient(ff.EdinetConfig(api_key=os.getenv("EDINET_API_KEY") or "")
 # print(filings["results"][10]["submitDateTime"])
 
 filings = client.get_document_list(
-    date(2025, 4, 1), type=EDINET_DOCUMENT_LIST_TYPE.METADATA
+    date(2025, 4, 1), type=EDINET_DOCUMENT_LIST_TYPE.METADATA_AND_LIST
 )
 
 print(json.dumps(filings, indent=4))
