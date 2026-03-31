@@ -177,7 +177,7 @@ class EdinetCollector(BaseCollector):
 
         return EDINETFiling(
             # ID will be automatically generated from identifier fields
-            name=EDINETFiling.build_name(
+            name=EDINETFiling.build_default_name(
                 doc_id=doc_id,
                 doc_description=parsed.get("doc_description"),
                 format=format,

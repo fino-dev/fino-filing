@@ -232,7 +232,7 @@ class TestEdinetCollector:
             after = datetime.now()
             assert isinstance(filing, EDINETFiling)
             assert filing.source == "EDINET"
-            assert filing.name == EDINETFiling.build_name(
+            assert filing.name == EDINETFiling.build_default_name(
                 doc_id="S100VIZF",
                 doc_description="有価証券届出書（内国投資信託受益証券）",
                 format="pdf",
