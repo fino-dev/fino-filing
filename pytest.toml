@@ -13,6 +13,7 @@ markers = [
     "core: core tests",
     "edger: EDGAR related tests",
     "edinet: EDINET related tests",
+    "util: utility tests",
 ]
 
 [tool.coverage.run]
@@ -29,4 +30,3 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
 ]
-

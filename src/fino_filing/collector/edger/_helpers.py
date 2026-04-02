@@ -21,6 +21,7 @@ def _build_company_facts_json_file_name(cik: str) -> str:
     return f"CIK{pad_cik(cik)}-companyfacts.json"
 
 
+# TODO: Collector refactorで不要であれば消す。テストみ作成
 def _parse_edgar_date(s: str | None) -> datetime | None:
     """YYYY-MM-DD または None を datetime に変換する。"""
     if not s:
@@ -31,11 +32,13 @@ def _parse_edgar_date(s: str | None) -> datetime | None:
         return None
 
 
+# TODO: Collector refactorで不要であれば消す。テストみ作成
 def _accession_to_dir(accession: str) -> str:
     """accession (0001104659-25-006631) を Archives ディレクトリ名 (000110465925006631) に変換する。"""
     return accession.replace("-", "")
 
 
+# TODO: Collector refactorで不要であれば消す。テストみ作成
 def _build_edgar_filing(
     parsed: Parsed, content: bytes, primary_name: str
 ) -> EDGARFiling:
@@ -62,6 +65,7 @@ def _build_edgar_filing(
     )
 
 
+# TODO: Collector refactorで不要であれば消す。テストみ作成
 def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
     """提出書類: RawDocument.meta から EDGARFiling 用 Parsed を組み立てる。"""
     return {
