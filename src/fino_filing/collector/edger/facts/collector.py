@@ -101,7 +101,7 @@ class EdgerFactsCollector(BaseCollector):
             content = json.dumps(facts, ensure_ascii=False).encode()
 
             meta: dict[str, Any] = {
-                "cik": cik,
+                "cik": submissions.get("cik"),
                 "entityType": submissions.get("entityType"),
                 "name": submissions.get("name"),
                 "sic": submissions.get("sic"),
