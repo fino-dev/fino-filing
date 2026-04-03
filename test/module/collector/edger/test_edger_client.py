@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
+from fino_filing.collector.error import HttpNotFoundError
 from fino_filing.collector.edger import EdgerClient, EdgerConfig
 
 
@@ -137,6 +138,62 @@ class TestEdgerClient:
             assert http_client_mock.get_raw.call_args[1]["headers"] == {
                 "User-Agent": "docs@example.com",
             }
+
+    class TestGetArchivesFile:
+        """TestEdgerClient.GetArchivesFile Test"""
+
+        def test_get_archives_file_url_headers(self) -> None:
+            """get_archives_file が任意ファイル名で Archives URL を組み立てる"""
+            http_client_mock = MagicMock()
+            http_client_mock.get_raw.return_value = b"<html>body</html>"
+
+            config = EdgerConfig(user_agent_email="arc@example.com")
+            client = EdgerClient(config=config, _http_client=http_client_mock)
+
+            result = client.get_archives_file(
+                "320193", "0000320193-23-000106", "aapl-20230930.htm"
+            )
+
+            http_client_mock.get_raw.assert_called_once()
+            assert result == b"<html>body</html>"
+            assert http_client_mock.get_raw.call_args[0][0] == (
+                "https://www.sec.gov/Archives/edgar/data/"
+                "0000320193/000032019323000106/aapl-20230930.htm"
+            )
+            assert http_client_mock.get_raw.call_args[1]["headers"] == {
+                "User-Agent": "arc@example.com",
+            }
+
+    class TestGetFilingIndexJson:
+        """TestEdgerClient.GetFilingIndexJson Test"""
+
+        def test_get_filing_index_json_success(self) -> None:
+            """get_filing_index_json が data.sec.gov の index.json を JSON で返す"""
+            http_client_mock = MagicMock()
+            payload = {"directory": {"item": [{"name": "x.htm"}]}}
+            http_client_mock.get.return_value = payload
+
+            config = EdgerConfig(user_agent_email="idx@example.com")
+            client = EdgerClient(config=config, _http_client=http_client_mock)
+
+            result = client.get_filing_index_json("320193", "0000320193-23-000106")
+
+            http_client_mock.get.assert_called_once()
+            assert result == payload
+            assert http_client_mock.get.call_args[0][0] == (
+                "https://data.sec.gov/Archives/edgar/data/"
+                "0000320193/000032019323000106/0000320193-23-000106-index.json"
+            )
+
+        def test_get_filing_index_json_returns_none_on_404(self) -> None:
+            """404 のとき None を返す"""
+            http_client_mock = MagicMock()
+            http_client_mock.get.side_effect = HttpNotFoundError("https://data.sec.gov/x")
+
+            config = EdgerConfig(user_agent_email="idx2@example.com")
+            client = EdgerClient(config=config, _http_client=http_client_mock)
+
+            assert client.get_filing_index_json("320193", "0000320193-23-000106") is None
 
     class TestGetBulk:
         """TestEdgerClient.GetBulk Test"""

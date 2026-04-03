@@ -24,11 +24,11 @@ EdgerConfig(
 ## 使用例
 
 ```python
-from fino_filing import EdgerConfig, EdgerDocumentsCollector
+from fino_filing import EdgerArchivesCollector, EdgerConfig
 from fino_filing.collection import Collection
 
 config = EdgerConfig(user_agent_email="your@email.com")
 coll = Collection("/path/to/root")
-collector = EdgerDocumentsCollector(coll, config)
+collector = EdgerArchivesCollector(coll, config)
 collector.collect(cik_list=["320193"], limit_per_company=2)
 ```

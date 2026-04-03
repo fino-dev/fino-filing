@@ -32,7 +32,6 @@ def _parse_edgar_date(s: str | None) -> datetime | None:
         return None
 
 
-# TODO: Collector refactorで不要であれば消す。テストみ作成
 def _accession_to_dir(accession: str) -> str:
     """accession (0001104659-25-006631) を Archives ディレクトリ名 (000110465925006631) に変換する。"""
     return accession.replace("-", "")

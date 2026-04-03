@@ -16,7 +16,7 @@
 - **BaseCollector**: 収集の共通フロー（fetch → parse → build_filing → add_to_collection）を定義するテンプレート
 - **EdinetCollector**: EDINET 用。XBRL そのまま取得 → Collection → Arelle modeling → DB のパイプラインに対応
 - **EdgerFactsCollector**: ファクト・概念など**構造化データ（JSON）**を取得。`client.get_company_facts()` / `get_submissions()` 等を呼び出す
-- **EdgerDocumentsCollector**: **提出書類（htm / iXBRL）**を取得。`client.get_filing_document()` を呼び出す
+- **EdgerArchivesCollector**: **Archives 上の提出ファイル**を取得。`fetch_mode` で `filing_index`（`-index.htm`）/ `primary`（Submissions の primary + `index.json` フォールバック）/ `xbrl_bundle`（XBRL 関連の複数ファイル）を選択。`EdgerDocumentsCollector` は互換用（既定 `filing_index`）。
 - **EdgerBulkCollector**: **一括取得**。`client.get_bulk()` を呼び出す
 
 ### 単一 EdgerClient の方針
@@ -32,7 +32,7 @@
 | Collector | 用途 | 使用する EdgerClient メソッド（例） |
 | --------- | ---- | ---------------------------------- |
 | **EdgerFactsCollector** | ファクト・概念など構造化データを取る | `get_submissions`, `get_company_facts` |
-| **EdgerDocumentsCollector** | 提出書類（ドキュメント）を取る | `get_filing_document` |
+| **EdgerArchivesCollector** | Archives の提出ファイルを取る | `get_archives_file`, `get_filing_index_json`, `get_filing_document` |
 | **EdgerBulkCollector** | 一括取得 | `get_bulk` |
 
 ---
@@ -66,7 +66,7 @@ EdgerClient に必要な設定は最小限に抑える。
 | BaseCollector | 共通フロー、Collection への add、テンプレートメソッドの定義 |
 | EdinetCollector | Edinet のオーケストレーション、EDINET 用の fetch/parse/build_filing |
 | EdgerFactsCollector | EdgerClient の facts 系メソッドを呼び出し、構造化データを Collection に保存する |
-| EdgerDocumentsCollector | EdgerClient の document 系メソッドを呼び出し、提出書類を Collection に保存する |
+| EdgerArchivesCollector | EdgerClient の Archives 系メソッドで提出ファイルを Collection に保存する |
 | EdgerBulkCollector | EdgerClient の bulk 系メソッドを呼び出し、一括データを Collection に保存する |
 | Edinet | EDINET の config・API・形式・EDINETFiling への to_filing |
 | EdgerClient | EDGAR 全エンドポイント対応の共通 HTTP クライアント。CIK 解決・レート制限・リトライを内部管理 |

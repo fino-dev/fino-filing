@@ -14,7 +14,7 @@ High-level architecture of fino-filing. The implementation follows these boundar
 | **Storage**    | Persist and load content by path                                    | `Storage` (Protocol), `LocalStorage`                                                                       |
 | **Locator**    | Resolve Filing → storage path (Strategy)                            | `Locator`                                                                                                  |
 | **Filing**     | Document model; Field/Expr for schema and query                     | `Filing`, `Field`, `Expr`, `EDINETFiling`, `EDGARFiling`                                                   |
-| **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgerFactsCollector`, `EdgerDocumentsCollector`, `EdgerBulkCollector` |
+| **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgerFactsCollector`, `EdgerArchivesCollector`, `EdgerDocumentsCollector`, `EdgerBulkCollector` |
 
 ## Patterns in use
 
@@ -34,5 +34,5 @@ It describes Collection, Catalog, Storage, Locator, Filing, Field, Expr, Collect
 
 ## Further design docs
 
-- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edger は EdgerFactsCollector / EdgerDocumentsCollector / EdgerBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edger.py`。
+- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edger は EdgerFactsCollector / EdgerArchivesCollector（＋互換 EdgerDocumentsCollector）/ EdgerBulkCollector。実装は `src/fino_filing/collector/base.py`, `collector/edger/`。
 - Field/DSL and DuckDB: see `filing/field.py` and `expr.py`; Catalog builds SQL from Expr.

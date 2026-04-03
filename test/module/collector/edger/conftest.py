@@ -222,6 +222,6 @@ def sample_raw_document() -> RawDocument:
         "fiscal_year_end": "09-30",
         "format": "htm",
         "primary_name": "0000320193-23-000106-index.htm",
-        "_origin": "documents",
+        "_origin": "archives",
     }
     return RawDocument(content=content, meta=meta)

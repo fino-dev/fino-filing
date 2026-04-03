@@ -169,10 +169,10 @@ package "Fino Filing" {
       # build_filing(parsed) : Filing
     }
 
-    class EdgerDocumentsCollector {
+    class EdgerArchivesCollector {
       - client : EdgerClient
       --
-      用途: 提出書類(htm/iXBRL)
+      用途: Archives提出ファイル(index/primary/XBRL bundle)
       # fetch_documents() : list[RawDocument]
       # parse_response(raw) : Parsed
       # build_filing(parsed) : EDGARFiling
@@ -208,7 +208,9 @@ package "Fino Filing" {
       レート制限・リトライを内部管理
       + get_submissions(cik: str) : dict
       + get_company_facts(cik: str) : dict
+      + get_archives_file(cik, accession, file_name) : bytes
       + get_filing_document(cik, accession) : bytes
+      + get_filing_index_json(cik, accession) : dict | None
       + get_bulk(url: str) : bytes
     }
 
@@ -220,12 +222,12 @@ package "Fino Filing" {
 
     BaseCollector <|-- EdinetCollector : extends
     BaseCollector <|-- EdgerFactsCollector : extends
-    BaseCollector <|-- EdgerDocumentsCollector : extends
+    BaseCollector <|-- EdgerArchivesCollector : extends
     BaseCollector <|-- EdgerBulkCollector : extends
     BaseCollector o-- Collection : collection
     EdinetCollector o-- EdinetClient : client
     EdgerFactsCollector o-- EdgerClient : client
-    EdgerDocumentsCollector o-- EdgerClient : client
+    EdgerArchivesCollector o-- EdgerClient : client
     EdgerBulkCollector o-- EdgerClient : client
     EdinetClient o-- EdinetConfig : config
     EdgerClient o-- EdgerConfig : config

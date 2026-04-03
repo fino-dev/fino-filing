@@ -9,6 +9,8 @@ from .collection.storage import Storage
 from .collection.storages import LocalStorage
 from .collector.base import BaseCollector, Parsed, RawDocument
 from .collector.edger import (
+    EdgerArchivesCollector,
+    EdgerArchivesFetchMode,
     EdgerBulkCollector,
     EdgerClient,
     EdgerConfig,
@@ -34,6 +36,8 @@ __all__ = [
     "EDGARCompanyFactsFiling",
     "EDGARFiling",
     "EDINETFiling",
+    "EdgerArchivesCollector",
+    "EdgerArchivesFetchMode",
     "EdgerBulkCollector",
     "EdgerClient",
     "EdgerConfig",

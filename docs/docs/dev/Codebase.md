@@ -41,7 +41,7 @@ src/fino_filing/
         ├── client.py
         ├── config.py
         ├── _helpers.py
-        ├── documents/  # 提出書類 → EDGARFiling
+        ├── archives/   # Archives 提出ファイル → EDGARFiling
         │   └── collector.py
         ├── facts/      # Company Facts → EDGARCompanyFactsFiling
         │   └── collector.py
