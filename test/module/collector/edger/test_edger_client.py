@@ -188,12 +188,16 @@ class TestEdgerClient:
         def test_get_filing_index_json_returns_none_on_404(self) -> None:
             """404 のとき None を返す"""
             http_client_mock = MagicMock()
-            http_client_mock.get.side_effect = HttpNotFoundError("https://data.sec.gov/x")
+            http_client_mock.get.side_effect = HttpNotFoundError(
+                "https://data.sec.gov/x"
+            )
 
             config = EdgerConfig(user_agent_email="idx2@example.com")
             client = EdgerClient(config=config, _http_client=http_client_mock)
 
-            assert client.get_filing_index_json("320193", "0000320193-23-000106") is None
+            assert (
+                client.get_filing_index_json("320193", "0000320193-23-000106") is None
+            )
 
     class TestGetBulk:
         """TestEdgerClient.GetBulk Test"""

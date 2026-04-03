@@ -1,4 +1,8 @@
-from .collector import EdgerArchivesCollector, EdgerArchivesFetchMode, EdgerDocumentsCollector
+from .collector import (
+    EdgerArchivesCollector,
+    EdgerArchivesFetchMode,
+    EdgerDocumentsCollector,
+)
 
 __all__ = [
     "EdgerArchivesCollector",

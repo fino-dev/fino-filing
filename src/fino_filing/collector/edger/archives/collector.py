@@ -189,7 +189,9 @@ class EdgerArchivesCollector(BaseCollector):
                     if raw:
                         yield raw
                 elif mode == "xbrl_bundle":
-                    yield from self._iter_xbrl_bundle_rows(cik_pad, accession, base_meta)
+                    yield from self._iter_xbrl_bundle_rows(
+                        cik_pad, accession, base_meta
+                    )
                 else:
                     logger.warning("Unknown archives fetch_mode %r; skipping", mode)
 
@@ -235,9 +237,7 @@ class EdgerArchivesCollector(BaseCollector):
             items = directory_items_from_index_json(index_data)
             picked = pick_main_document_from_index(items, form_type)
             if picked:
-                content = _safe_archives_bytes(
-                    self._client, cik_pad, accession, picked
-                )
+                content = _safe_archives_bytes(self._client, cik_pad, accession, picked)
                 if content:
                     meta = {
                         **base_meta,
@@ -262,9 +262,7 @@ class EdgerArchivesCollector(BaseCollector):
                 accession,
             )
             return
-        names = list_xbrl_bundle_file_names(
-            directory_items_from_index_json(index_data)
-        )
+        names = list_xbrl_bundle_file_names(directory_items_from_index_json(index_data))
         if not names:
             logger.debug(
                 "Empty XBRL bundle file list for CIK %s accession %s",
@@ -273,9 +271,7 @@ class EdgerArchivesCollector(BaseCollector):
             )
             return
         for file_name in names:
-            content = _safe_archives_bytes(
-                self._client, cik_pad, accession, file_name
-            )
+            content = _safe_archives_bytes(self._client, cik_pad, accession, file_name)
             if not content:
                 continue
             meta = {

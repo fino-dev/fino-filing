@@ -168,9 +168,7 @@ class TestEdgerArchivesCollector:
                 },
             }
 
-            def archives_side_effect(
-                _cik: str, _acc: str, name: str
-            ) -> bytes:
+            def archives_side_effect(_cik: str, _acc: str, name: str) -> bytes:
                 if name == "missing.htm":
                     raise HttpNotFoundError("https://example/missing.htm")
                 if name == "story.htm":
@@ -228,9 +226,7 @@ class TestEdgerArchivesCollector:
                 },
             }
 
-            def archives_side_effect(
-                _cik: str, _acc: str, name: str
-            ) -> bytes:
+            def archives_side_effect(_cik: str, _acc: str, name: str) -> bytes:
                 if name == "gone.htm":
                     raise HttpNotFoundError("https://example/gone.htm")
                 if name == f"{acc}-index.htm":
@@ -290,9 +286,7 @@ class TestEdgerArchivesCollector:
                 }
             }
 
-            def archives_side_effect(
-                _cik: str, _acc: str, name: str
-            ) -> bytes:
+            def archives_side_effect(_cik: str, _acc: str, name: str) -> bytes:
                 return name.encode()
 
             mock_client.get_archives_file.side_effect = archives_side_effect

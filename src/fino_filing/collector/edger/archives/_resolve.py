@@ -36,7 +36,9 @@ def list_xbrl_bundle_file_names(items: list[dict[str, Any]]) -> list[str]:
     return sorted(set(names))
 
 
-def pick_main_document_from_index(items: list[dict[str, Any]], form_type: str) -> str | None:
+def pick_main_document_from_index(
+    items: list[dict[str, Any]], form_type: str
+) -> str | None:
     """
     Choose a main filing body from ``-index.json`` rows when Submissions ``primaryDocument`` fails.
 
@@ -44,9 +46,7 @@ def pick_main_document_from_index(items: list[dict[str, Any]], form_type: str) -
     then XML, then plain text.
     """
     names = [
-        row["name"]
-        for row in items
-        if isinstance(row.get("name"), str) and row["name"]
+        row["name"] for row in items if isinstance(row.get("name"), str) and row["name"]
     ]
     if not names:
         return None
