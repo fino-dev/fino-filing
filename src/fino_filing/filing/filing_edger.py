@@ -6,7 +6,7 @@ from fino_filing.filing.filing import Filing
 from fino_filing.util.edger import pad_cik
 
 
-class EDGARFiling(Filing):
+class EDGARArchiveFiling(Filing):
     """
     EDGAR 提出書類1件（Submissions の filing 行＋Archives 実体）用テンプレート。
 
@@ -16,10 +16,22 @@ class EDGARFiling(Filing):
 
     source = "EDGAR"
 
-    cik: Annotated[str, Field(description="CIK")]
-    accession_number: Annotated[str, Field(description="Accession Number")]
+    edger_resource_kind: Annotated[
+        str, Field(indexed=True, description="EDGER Resource Kind")
+    ] = "archives-index"
+    cik: Annotated[
+        str, Field(indexed=True, identifier=True, required=True, description="CIK")
+    ]
+    accession_number: Annotated[
+        str,
+        Field(
+            indexed=True, identifier=True, required=True, description="Accession Number"
+        ),
+    ]
     filer_name: Annotated[str, Field(description="Company Name")]
-    form_type: Annotated[str, Field(description="Form Type")]
+    form_type: Annotated[
+        str, Field(description="Form Type")
+    ]  # @see https://www.sec.gov/submit-filings/forms-index
     filing_date: Annotated[datetime, Field(description="Filing Date")]
     period_of_report: Annotated[datetime, Field(description="Period of Report")]
     sic_code: Annotated[str, Field(description="SIC Code")]
