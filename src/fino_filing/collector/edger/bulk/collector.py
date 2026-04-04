@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
-from fino_filing.filing.filing_edger import EDGARFiling
+from fino_filing.filing.filing_edger import EDGARBulkFiling
 
-from .._helpers import _build_edgar_filing, _parse_meta_to_parsed
+from .._helpers import _parse_meta_to_parsed
 from ..client import EdgerClient
 from ..config import EdgerConfig
 
@@ -35,10 +36,10 @@ class EdgerBulkCollector(BaseCollector):
         cik_list: list[str] | None = None,
         limit: int | None = None,
         **kwargs: Any,
-    ) -> Iterator[tuple[EDGARFiling, str]]:
-        """1 件ずつ Collection に追加し、(EDGARFiling, path) を yield する。"""
+    ) -> Iterator[tuple[EDGARBulkFiling, str]]:
+        """1 件ずつ Collection に追加し、(EDGARBulkFiling, path) を yield する。"""
         yield from cast(
-            Iterator[tuple[EDGARFiling, str]],
+            Iterator[tuple[EDGARBulkFiling, str]],
             super().iter_collect(
                 date_from=date_from,
                 date_to=date_to,
@@ -57,8 +58,8 @@ class EdgerBulkCollector(BaseCollector):
         cik_list: list[str] | None = None,
         limit: int | None = None,
         **kwargs: Any,
-    ) -> list[tuple[EDGARFiling, str]]:
-        """収集フローを実行し、EDGARFiling と保存パスのリストを返す。"""
+    ) -> list[tuple[EDGARBulkFiling, str]]:
+        """収集フローを実行し、EDGARBulkFiling と保存パスのリストを返す。"""
         return list(
             self.iter_collect(
                 date_from=date_from,
@@ -84,13 +85,20 @@ class EdgerBulkCollector(BaseCollector):
 
     @override
     def _parse_response(self, meta: Meta) -> Parsed:
-        """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
+        """RawDocument の meta を EDGARBulkFiling 用の Parsed に正規化する。"""
         return _parse_meta_to_parsed(meta)
 
     @override
-    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARFiling:
-        """Parsed と content から EDGARFiling を生成する。"""
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARBulkFiling:
+        """Parsed と content から EDGARBulkFiling を生成する。"""
         primary_name = parsed.get("primary_name") or (
             parsed.get("accession_number", "") + "-index.htm"
         )
-        return _build_edgar_filing(parsed, content, primary_name)
+        return EDGARBulkFiling(
+            source="EDGAR",
+            name=primary_name,
+            checksum=hashlib.sha256(content).hexdigest(),
+            format="zip",
+            is_zip=True,
+            type=parsed.get("type", ""),
+        )

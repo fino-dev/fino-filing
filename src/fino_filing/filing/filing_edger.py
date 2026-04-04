@@ -8,17 +8,18 @@ from fino_filing.util.edger import pad_cik
 
 class EDGARArchiveFiling(Filing):
     """
-    EDGAR 提出書類1件（Submissions の filing 行＋Archives 実体）用テンプレート。
-
-    Company Facts API や Bulk 全体 ZIP など、提出 accession と1対1にならないアーティファクトは
-    EDGARCompanyFactsFiling 等の別サブクラスを使う。
+    EDGAR Archive Filing
     """
 
     source = "EDGAR"
 
+    @staticmethod
+    def build_default_name(cik: str, accession: str) -> str:
+        return f"CIK{pad_cik(cik)}-{accession}-index.htm"
+
     edger_resource_kind: Annotated[
         str, Field(indexed=True, description="EDGER Resource Kind")
-    ] = "archives-index"
+    ] = "archive-index"
     cik: Annotated[
         str, Field(indexed=True, identifier=True, required=True, description="CIK")
     ]
@@ -80,4 +81,25 @@ class EDGARCompanyFactsFiling(Filing):
             indexed=True,
             description="Pipe-delimited sorted exchanges(e.g. Nasdaq|NYSE)",
         ),
+    ]
+
+
+class EDGARBulkFiling(Filing):
+    """
+    EDGAR Bulk Filing
+    """
+
+    source = "EDGAR"
+    format = "zip"
+    is_zip = True
+
+    @staticmethod
+    def build_default_name(type: str) -> str:
+        return f"bulk-{type}.zip"
+
+    edger_resource_kind: Annotated[
+        str, Field(indexed=True, description="EDGER Resource Kind")
+    ] = "bulk"
+    type: Annotated[
+        str, Field(indexed=True, identifier=True, required=True, description="Type")
     ]
