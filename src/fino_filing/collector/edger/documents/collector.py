@@ -6,7 +6,7 @@ from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
-from fino_filing.filing.filing_edger import EDGARFiling
+from fino_filing.filing.filing_edger import EDGARArchiveFiling
 
 from .._helpers import (
     _build_edgar_filing,
@@ -20,10 +20,7 @@ from ..config import EdgerConfig
 
 class EdgerDocumentsCollector(BaseCollector):
     """
-    SEC Archives から提出書類（htm / iXBRL）を収集して Collection に保存する。
-
-    用途: 提出書類（ドキュメント）そのものを取得して Collection に保存する。
-    収集条件: collect(cik_list=[...], limit_per_company=N) で渡す。
+    EdgerDocumentsCollector for SEC Archives Filings or Documents
     """
 
     def __init__(self, collection: Collection, config: EdgerConfig) -> None:
@@ -35,12 +32,12 @@ class EdgerDocumentsCollector(BaseCollector):
         self,
         *,
         cik_list: list[str] | None = None,
+        form_type: list[str] | None = None,
         limit_per_company: int | None = None,
         **kwargs: Any,
-    ) -> Iterator[tuple[EDGARFiling, str]]:
-        """1 件ずつ Collection に追加し、(EDGARFiling, path) を yield する。"""
+    ) -> Iterator[tuple[EDGARArchiveFiling, str]]:
         yield from cast(
-            Iterator[tuple[EDGARFiling, str]],
+            Iterator[tuple[EDGARArchiveFiling, str]],
             super().iter_collect(
                 cik_list=cik_list,
                 limit_per_company=limit_per_company,
@@ -53,10 +50,10 @@ class EdgerDocumentsCollector(BaseCollector):
         self,
         *,
         cik_list: list[str] | None = None,
+        form_type: list[str] | None = None,
         limit_per_company: int | None = None,
         **kwargs: Any,
-    ) -> list[tuple[EDGARFiling, str]]:
-        """収集フローを実行し、EDGARFiling と保存パスのリストを返す。"""
+    ) -> list[tuple[EDGARArchiveFiling, str]]:
         return list(
             self.iter_collect(
                 cik_list=cik_list,
@@ -73,7 +70,6 @@ class EdgerDocumentsCollector(BaseCollector):
         limit_per_company: int | None = None,
         **kwargs: Any,
     ) -> Iterator[RawDocument]:
-        """各 CIK の Submissions API から accession 一覧を取得し、各提出物の index.htm を yield する。"""
         if not cik_list:
             return
         for cik in cik_list:
@@ -138,12 +134,12 @@ class EdgerDocumentsCollector(BaseCollector):
 
     @override
     def _parse_response(self, meta: Meta) -> Parsed:
-        """RawDocument の meta を EDGARFiling 用の Parsed に正規化する。"""
+        """RawDocument の meta を EDGARArchiveFiling 用の Parsed に正規化する。"""
         return _parse_meta_to_parsed(meta)
 
     @override
-    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARFiling:
-        """Parsed と content から EDGARFiling を生成する。"""
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARArchiveFiling:
+        """Parsed と content から EDGARArchiveFiling を生成する。"""
         primary_name = parsed.get("primary_name") or (
             parsed.get("accession_number", "") + "-index.htm"
         )
