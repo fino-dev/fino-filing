@@ -31,11 +31,11 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
-    title: 'EDINET & EDGAR',
+    title: 'EDINET & Edgar',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Built for EDINET and EDGAR; storage and indexing stay under your control.
+        Built for EDINET and Edgar; storage and indexing stay under your control.
       </>
     ),
   },

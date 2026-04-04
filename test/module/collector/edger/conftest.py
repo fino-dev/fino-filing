@@ -208,7 +208,7 @@ def edgar_company_facts_response_apple() -> dict[str, Any]:
 
 @pytest.fixture
 def sample_raw_document() -> RawDocument:
-    """EDGAR 用のサンプル RawDocument（ネットワーク不要でパース・build_filing 検証用）"""
+    """Edgar 用のサンプル RawDocument（ネットワーク不要でパース・build_filing 検証用）"""
     content = b"<html><body>SEC filing index</body></html>"
     meta: dict[str, Any] = {
         "cik": "0000320193",

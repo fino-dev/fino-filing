@@ -23,7 +23,7 @@ EdgarFactsCollector(
 ### collect
 
 ```python
-collect(**criteria: Any) -> list[tuple[EDGARCompanyFactsFiling, str]]
+collect(**criteria: Any) -> list[tuple[EdgarCompanyFactsFiling, str]]
 ```
 
 `BaseCollector` のテンプレートメソッド。`_fetch_documents(**criteria)` を呼び、各 RawDocument を `_parse_response` → `_build_filing` → add_to_collection する。収集条件は `criteria` で渡す（例: `cik_list=`, `limit=`）。
@@ -49,12 +49,12 @@ _fetch_documents(
 _parse_response(meta: Meta) -> Parsed
 ```
 
-`meta` を `EDGARCompanyFactsFiling` 用の Parsed 辞書に正規化する。
+`meta` を `EdgarCompanyFactsFiling` 用の Parsed 辞書に正規化する。
 
 ### _build_filing
 
 ```python
-_build_filing(parsed: Parsed, content: bytes) -> EDGARCompanyFactsFiling
+_build_filing(parsed: Parsed, content: bytes) -> EdgarCompanyFactsFiling
 ```
 
-Parsed と `content` から `EDGARCompanyFactsFiling` を生成する。
+Parsed と `content` から `EdgarCompanyFactsFiling` を生成する。

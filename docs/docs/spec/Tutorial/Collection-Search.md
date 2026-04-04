@@ -24,23 +24,23 @@ Pass an **Expr** as `expr` to return only filings that match that condition. You
 ```python
 from fino_filing import Field
 
-# Only filings whose source is "EDGAR"
-results = collection.search(expr=(Field("source") == "EDGAR"), limit=10)
+# Only filings whose source is "Edgar"
+results = collection.search(expr=(Field("source") == "Edgar"), limit=10)
 ```
 
-Use the same field names as in your Filing class (e.g. for `EDGARFiling`: `source`, `form_type`, `name`).
+Use the same field names as in your Filing class (e.g. for `EdgarFiling`: `source`, `form_type`, `name`).
 
 ## Types of conditions
 
 **Comparison** (`==`, `!=`, `>`, `>=`, `<`, `<=`):
 
 ```python
-Field("source") == "EDGAR"
+Field("source") == "Edgar"
 Field("created_at") >= start_date
 
 # Model-based (when the Filing subclass has a default for that field)
 EDINETFiling.source == "EDINET"
-EDGARFiling.cik == "0001652044"
+EdgarFiling.cik == "0001652044"
 ```
 
 **String** (contains / startswith / endswith):
@@ -54,7 +54,7 @@ Field("name").endswith(".xml")
 **Set** (IN / NOT IN):
 
 ```python
-Field("source").in_(["EDGAR", "EDINET"])
+Field("source").in_(["Edgar", "EDINET"])
 Field("form_type").not_in(["OTHER"])
 ```
 
@@ -80,12 +80,12 @@ Combine multiple conditions into **one Expr** and pass it to `search`.
 - **NOT**: `~`
 
 ```python
-# source is EDGAR and name contains "10-K"
-expr = (Field("source") == "EDGAR") & (Field("name").contains("10-K"))
+# source is Edgar and name contains "10-K"
+expr = (Field("source") == "Edgar") & (Field("name").contains("10-K"))
 results = collection.search(expr=expr, limit=10)
 
-# source is EDGAR or EDINET
-expr = (Field("source") == "EDGAR") | (Field("source") == "EDINET")
+# source is Edgar or EDINET
+expr = (Field("source") == "Edgar") | (Field("source") == "EDINET")
 results = collection.search(expr=expr, limit=10)
 ```
 
@@ -94,7 +94,7 @@ results = collection.search(expr=expr, limit=10)
 Pass the same `expr` to `count` to get the number of matching filings.
 
 ```python
-n = collection.count(expr=(Field("source") == "EDGAR"))
+n = collection.count(expr=(Field("source") == "Edgar"))
 ```
 
 ## See also

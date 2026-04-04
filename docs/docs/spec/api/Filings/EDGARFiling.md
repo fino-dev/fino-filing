@@ -1,15 +1,15 @@
 ---
 sidebar_position: 5
-title: EDGARFiling
+title: EdgarFiling
 ---
 
-# EDGARFiling
+# EdgarFiling
 
-Built-in Filing subclass for **one SEC filing** (Submissions filing row + Archives document), e.g. index.htm. Registered on `default_resolver` for Catalog restore. Used by `EdgarDocumentsCollector` and `EdgarBulkCollector` (when meta maps to a submission row). Company Facts JSON uses **`EDGARCompanyFactsFiling`** instead.
+Built-in Filing subclass for **one SEC filing** (Submissions filing row + Archives document), e.g. index.htm. Registered on `default_resolver` for Catalog restore. Used by `EdgarDocumentsCollector` and `EdgarBulkCollector` (when meta maps to a submission row). Company Facts JSON uses **`EdgarCompanyFactsFiling`** instead.
 
 ## Fixed field
 
-- **source**: Always `"EDGAR"` (class attribute).
+- **source**: Always `"Edgar"` (class attribute).
 
 ## Additional fields
 

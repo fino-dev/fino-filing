@@ -20,25 +20,25 @@ from .filing.expr import Expr
 from .filing.field import Field
 from .filing.filing import Filing
 from .filing.filing_edgar import (
-    EDGARArchiveFiling,
-    EDGARBulkFiling,
-    EDGARCompanyFactsFiling,
+    EdgarArchiveFiling,
+    EdgarBulkFiling,
+    EdgarCompanyFactsFiling,
 )
 from .filing.filing_edinet import EDINETFiling
 
 # 組み込み Filing サブクラスを default_resolver に明示登録
 default_resolver.register(EDINETFiling)
-default_resolver.register(EDGARArchiveFiling)
-default_resolver.register(EDGARBulkFiling)
-default_resolver.register(EDGARCompanyFactsFiling)
+default_resolver.register(EdgarArchiveFiling)
+default_resolver.register(EdgarBulkFiling)
+default_resolver.register(EdgarCompanyFactsFiling)
 
 __all__ = [
     "BaseCollector",
     "Catalog",
     "Collection",
-    "EDGARCompanyFactsFiling",
-    "EDGARArchiveFiling",
-    "EDGARBulkFiling",
+    "EdgarCompanyFactsFiling",
+    "EdgarArchiveFiling",
+    "EdgarBulkFiling",
     "EDINETFiling",
     "EdgarBulkCollector",
     "EdgarClient",

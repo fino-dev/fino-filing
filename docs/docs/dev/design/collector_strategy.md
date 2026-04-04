@@ -5,7 +5,7 @@
 - **開示ソースごとに適切な形式**でドキュメントを取得し、Collection に保存する
 - 共通フローは BaseCollector に集約し、具体は各 Collector で実装する
 - ユーザーは **用途別の Collector を選ぶだけ**でよく、内部クライアントの切り替えを意識しなくてよい
-- EDGAR の **全エンドポイントは単一の EdgarClient** が担い、各 Collector がメソッド呼び出しを切り替えて用途に応じた収集を行う
+- Edgar の **全エンドポイントは単一の EdgarClient** が担い、各 Collector がメソッド呼び出しを切り替えて用途に応じた収集を行う
 
 ---
 
@@ -27,7 +27,7 @@
 - エンドポイントごとにメソッドを用意し（`get_submissions` / `get_company_facts` / `get_filing_document` / `get_bulk`）、Collector 側がどのメソッドを呼ぶかで用途を切り替える
 - レート制限・リトライ・User-Agent ヘッダーの組み立ても EdgarClient が内部管理する
 
-### 用途別命名（EDGAR）
+### 用途別命名（Edgar）
 
 | Collector | 用途 | 使用する EdgarClient メソッド（例） |
 | --------- | ---- | ---------------------------------- |
@@ -45,7 +45,7 @@ EdgarClient に必要な設定は最小限に抑える。
 | -------- | -------- | ---- |
 | `user_agent_email` | ユーザー指定（必須） | SEC は識別用メールアドレスを User-Agent に含めることを要求するため、ユーザーごとに inject する |
 | `timeout` | ユーザー指定（任意・デフォルト有） | ネットワーク環境に応じてユーザーが調整できるよう残す |
-| API ベース URL / レート制限設定 | package 側デフォルト | EDGAR の仕様に準拠する固定値のため package で管理し、ユーザーに露出しない |
+| API ベース URL / レート制限設定 | package 側デフォルト | Edgar の仕様に準拠する固定値のため package で管理し、ユーザーに露出しない |
 
 ---
 
@@ -69,7 +69,7 @@ EdgarClient に必要な設定は最小限に抑える。
 | EdgarDocumentsCollector | EdgarClient の document 系メソッドを呼び出し、提出書類を Collection に保存する |
 | EdgarBulkCollector | EdgarClient の bulk 系メソッドを呼び出し、一括データを Collection に保存する |
 | Edinet | EDINET の config・API・形式・EDINETFiling への to_filing |
-| EdgarClient | EDGAR 全エンドポイント対応の共通 HTTP クライアント。CIK 解決・レート制限・リトライを内部管理 |
+| EdgarClient | Edgar 全エンドポイント対応の共通 HTTP クライアント。CIK 解決・レート制限・リトライを内部管理 |
 | EdinetConfig | EDINET の設定（api_base, timeout） |
 | EdgarConfig | ユーザー固有設定のみ（user_agent_email, timeout）。API URL 等は package デフォルト |
 | Collection | 保存・検索の窓口（既存 Facade） |
@@ -81,16 +81,16 @@ EdgarClient に必要な設定は最小限に抑える。
 | 用途 | 流れ |
 | ---- | ---- |
 | EDINET | ダウンロード（XBRL）→ Collection → Arelle modeling → DB |
-| EDGAR Facts | JSON API → Collection → （Arelle 不要）→ 正規化 → DB |
-| EDGAR Documents | htm/iXBRL → Collection → Arelle 等 → DB |
-| EDGAR Bulk | Bulk → Collection → 形式に応じた処理 → DB |
+| Edgar Facts | JSON API → Collection → （Arelle 不要）→ 正規化 → DB |
+| Edgar Documents | htm/iXBRL → Collection → Arelle 等 → DB |
+| Edgar Bulk | Bulk → Collection → 形式に応じた処理 → DB |
 
 ---
 
 ## 6. 設計原則まとめ
 
 - 共通フローは BaseCollector（Template Method）に集約する
-- EDGAR の HTTP 処理は **EdgarClient に一元化**。CIK 解決・accession 取得などの前段処理も EdgarClient が担う
+- Edgar の HTTP 処理は **EdgarClient に一元化**。CIK 解決・accession 取得などの前段処理も EdgarClient が担う
 - ユーザーは**用途別の Collector を選ぶだけ**。Collector 側でメソッドを切り替えるため、ユーザーにクライアントの違いを意識させない
 - EdgarConfig は**ユーザー固有設定のみ**（`user_agent_email` 必須）。API ベース URL やレート制限は package 管理とする
 - 既存の Collection / Filing 境界はそのまま利用する

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from fino_filing.collector.edgar import EdgarConfig, EdgarFactsCollector
 
-from fino_filing import EDGARCompanyFactsFiling
+from fino_filing import EdgarCompanyFactsFiling
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import RawDocument
 from fino_filing.collector.error import (
@@ -175,7 +175,7 @@ class TestEdgarFactsCollector:
             edgar_submissions_response_apple: dict[str, Any],
             edgar_company_facts_response_apple: dict[str, Any],
         ) -> None:
-            """EdgarFactsCollector._build_filing が EDGARCompanyFactsFiling を組み立てる"""
+            """EdgarFactsCollector._build_filing が EdgarCompanyFactsFiling を組み立てる"""
             collection, _ = temp_collection
             collector = EdgarFactsCollector(collection=collection, config=edgar_config)
 
@@ -195,9 +195,9 @@ class TestEdgarFactsCollector:
                 )
             )
             filing = collector._build_filing(parsed, rawDocument.content)
-            assert isinstance(filing, EDGARCompanyFactsFiling)
-            assert filing.source == "EDGAR"
-            assert filing.name == EDGARCompanyFactsFiling.build_default_name(
+            assert isinstance(filing, EdgarCompanyFactsFiling)
+            assert filing.source == "Edgar"
+            assert filing.name == EdgarCompanyFactsFiling.build_default_name(
                 "0000320193"
             )
             assert filing.checksum == sha256_checksum(rawDocument.content)

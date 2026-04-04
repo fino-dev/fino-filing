@@ -7,19 +7,19 @@ from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 
 
-class EDGARArchiveFiling(Filing):
+class EdgarArchiveFiling(Filing):
     """
-    EDGAR Archive Filing
+    Edgar Archive Filing
     """
 
-    source = "EDGAR"
+    source = "Edgar"
 
     @staticmethod
     def build_default_name(cik: str, accession: str) -> str:
         return f"CIK{pad_cik(cik)}-{accession}-index.htm"
 
     edgar_resource_kind: Annotated[
-        str, Field(indexed=True, description="EDGAR Resource Kind")
+        str, Field(indexed=True, description="Edgar Resource Kind")
     ] = "archive-index"
     cik: Annotated[
         str, Field(indexed=True, identifier=True, required=True, description="CIK")
@@ -41,12 +41,12 @@ class EDGARArchiveFiling(Filing):
     fiscal_year_end: Annotated[str, Field(description="Fiscal Year End")]
 
 
-class EDGARCompanyFactsFiling(Filing):
+class EdgarCompanyFactsFiling(Filing):
     """
-    EDGAR Company Facts Filing
+    Edgar Company Facts Filing
     """
 
-    source = "EDGAR"
+    source = "Edgar"
     format = "json"
     is_zip = False
 
@@ -56,7 +56,7 @@ class EDGARCompanyFactsFiling(Filing):
 
     edgar_resource_kind: Annotated[
         str,
-        Field(indexed=True, description="EDGAR Resource Kind"),
+        Field(indexed=True, description="Edgar Resource Kind"),
     ] = "companyfacts"
 
     cik: Annotated[
@@ -85,12 +85,12 @@ class EDGARCompanyFactsFiling(Filing):
     ]
 
 
-class EDGARBulkFiling(Filing):
+class EdgarBulkFiling(Filing):
     """
-    EDGAR Bulk Filing
+    Edgar Bulk Filing
     """
 
-    source = "EDGAR"
+    source = "Edgar"
     format = "zip"
     is_zip = True
 
@@ -99,7 +99,7 @@ class EDGARBulkFiling(Filing):
         return f"bulk-{type}.zip"
 
     edgar_resource_kind: Annotated[
-        str, Field(indexed=True, description="EDGAR Resource Kind")
+        str, Field(indexed=True, description="Edgar Resource Kind")
     ] = "bulk"
     type: Annotated[
         str, Field(indexed=True, identifier=True, required=True, description="Type")

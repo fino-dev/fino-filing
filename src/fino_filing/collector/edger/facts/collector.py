@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any, Iterator, cast, override
 
-from fino_filing.filing.filing_edgar import EDGARCompanyFactsFiling
+from fino_filing.filing.filing_edgar import EdgarCompanyFactsFiling
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
@@ -38,19 +38,19 @@ class EdgarFactsCollector(BaseCollector):
         *,
         cik_list: list[str] | None = None,
         limit: int | None = None,
-    ) -> Iterator[tuple[EDGARCompanyFactsFiling, str]]:
+    ) -> Iterator[tuple[EdgarCompanyFactsFiling, str]]:
         """
-        Iterates over the Edgar company facts. yields tuples of (EDGARCompanyFactsFiling, path).
+        Iterates over the Edgar company facts. yields tuples of (EdgarCompanyFactsFiling, path).
 
         Args:
             cik_list: The list of CIKs to collect.
             limit: The maximum number of filings to collect.
 
         Yields:
-            tuple[EDGARCompanyFactsFiling, str]: A tuple containing the EDGARCompanyFactsFiling and the path.
+            tuple[EdgarCompanyFactsFiling, str]: A tuple containing the EdgarCompanyFactsFiling and the path.
         """
         yield from cast(
-            Iterator[tuple[EDGARCompanyFactsFiling, str]],
+            Iterator[tuple[EdgarCompanyFactsFiling, str]],
             super().iter_collect(
                 cik_list=cik_list,
                 limit=limit,
@@ -63,7 +63,7 @@ class EdgarFactsCollector(BaseCollector):
         *,
         cik_list: list[str] | None = None,
         limit: int | None = None,
-    ) -> list[tuple[EDGARCompanyFactsFiling, str]]:
+    ) -> list[tuple[EdgarCompanyFactsFiling, str]]:
         """
         Collects Edgar company facts within the given CIK list.
 
@@ -72,7 +72,7 @@ class EdgarFactsCollector(BaseCollector):
             limit: The maximum number of filings to collect.
 
         Returns:
-            list[tuple[EDGARCompanyFactsFiling, str]]: A list of tuples containing the EDGARCompanyFactsFiling and the filing path.
+            list[tuple[EdgarCompanyFactsFiling, str]]: A list of tuples containing the EdgarCompanyFactsFiling and the filing path.
         """
         return list(
             self.iter_collect(
@@ -132,14 +132,14 @@ class EdgarFactsCollector(BaseCollector):
         }
 
     @override
-    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARCompanyFactsFiling:
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EdgarCompanyFactsFiling:
         cik = parsed.get("cik")
         if not cik:
             raise CollectorParseResponseValidationError("cik")
 
         name = _build_company_facts_json_file_name(cik)
         checksum = sha256_checksum(content)
-        return EDGARCompanyFactsFiling(
+        return EdgarCompanyFactsFiling(
             # source, format, is_zip are default defined
             # ID will be automatically generated from identifier fields
             name=name,

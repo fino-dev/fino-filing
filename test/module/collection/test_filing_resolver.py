@@ -3,8 +3,8 @@
 import pytest
 
 from fino_filing import (
-    EDGARCompanyFactsFiling,
-    EDGARFiling,
+    EdgarCompanyFactsFiling,
+    EdgarFiling,
     EDINETFiling,
     Filing,
     FilingResolver,
@@ -56,11 +56,11 @@ class TestDefaultResolver:
         assert default_resolver.resolve(name) is EDINETFiling
 
     def test_default_resolver_resolves_edgar_and_company_facts(self) -> None:
-        """default_resolver で EDGARFiling / EDGARCompanyFactsFiling を resolve できる"""
-        edgar_name = f"{EDGARFiling.__module__}.{EDGARFiling.__qualname__}"
-        facts_name = f"{EDGARCompanyFactsFiling.__module__}.{EDGARCompanyFactsFiling.__qualname__}"
-        assert default_resolver.resolve(edgar_name) is EDGARFiling
-        assert default_resolver.resolve(facts_name) is EDGARCompanyFactsFiling
+        """default_resolver で EdgarFiling / EdgarCompanyFactsFiling を resolve できる"""
+        edgar_name = f"{EdgarFiling.__module__}.{EdgarFiling.__qualname__}"
+        facts_name = f"{EdgarCompanyFactsFiling.__module__}.{EdgarCompanyFactsFiling.__qualname__}"
+        assert default_resolver.resolve(edgar_name) is EdgarFiling
+        assert default_resolver.resolve(facts_name) is EdgarCompanyFactsFiling
 
 
 @pytest.mark.module

@@ -6,7 +6,7 @@ slug: Edgar
 
 # Edgar Abstruction
 
-EDGAR 用 Collector 群。単一の **EdgarClient** と **EdgarConfig** を共有し、用途別に 3 種類の Collector を提供する。
+Edgar 用 Collector 群。単一の **EdgarClient** と **EdgarConfig** を共有し、用途別に 3 種類の Collector を提供する。
 
 ## Collectors
 

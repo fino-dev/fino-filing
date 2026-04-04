@@ -39,7 +39,7 @@
 
 - **実装**: `field.py` を中心（参照オブジェクトのクラス、`Field.__get__` の変更、`_create_expr` 等での value resolve）。必要なら `expr.py` は触らず、value の resolve は Field 内で完結させる。
 - **テスト**:
-  - 既存: `test_search.py` の `Field("source") == EDGARFiling.source`、`test_filing_field.py` の `Filing.source` が Field であること。
+  - 既存: `test_search.py` の `Field("source") == EdgarFiling.source`、`test_filing_field.py` の `Filing.source` が Field であること。
   - 追加: デフォルトありサブクラスでクラスアクセスすると参照オブジェクトが返ること（または少なくとも `EDINETFiling.source == "EDINET"` が Expr になり、search で 1 件取れること）。右辺 `Field("source") == EDINETFiling.source` が従来どおり 1 件返ることを再確認。
 - **シナリオ**: `collect_edgar_facts/test_1.py` と同様に、`EDINETFiling.source == "EDINET"` で search するケースを 1 件追加してもよい。
 

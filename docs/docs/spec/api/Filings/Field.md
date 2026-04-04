@@ -5,7 +5,7 @@ title: Field
 
 # Field
 
-Descriptor and query DSL: defines field metadata and builds `Expr` for Catalog search (e.g. `Field("source") == "EDGAR"`).
+Descriptor and query DSL: defines field metadata and builds `Expr` for Catalog search (e.g. `Field("source") == "Edgar"`).
 
 ## Constructor
 
@@ -44,10 +44,10 @@ Range: `between(lower, upper)`.
 Examples:
 
 ```python
-Field("source") == "EDGAR"
+Field("source") == "Edgar"
 Field("form_type").in_(["10-K", "10-Q"])
 Field("filing_date").between(d1, d2)
-(Field("source") == "EDGAR") & (Field("form_type") == "10-K")
+(Field("source") == "Edgar") & (Field("form_type") == "10-K")
 ```
 
 search/count での利用と・SQL 変換は [Collection Search](/docs/spec/Tutorial/Collection-Search) を参照。

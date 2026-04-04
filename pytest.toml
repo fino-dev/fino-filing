@@ -11,7 +11,7 @@ markers = [
     "filing: filing tests",
     "field: field tests",
     "core: core tests",
-    "edgar: EDGAR related tests",
+    "edgar: Edgar related tests",
     "edinet: EDINET related tests",
     "util: utility tests",
 ]

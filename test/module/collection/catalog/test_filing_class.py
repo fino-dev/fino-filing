@@ -361,11 +361,11 @@ class TestCatalog_Helper_expr_to_inline_sql:
         self, temp_catalog: Catalog
     ) -> None:
         """Field から生成した Expr を _expr_to_inline_sql するとリテラル埋め込み SQL になる"""
-        expr = Field("source") == "EDGAR"
+        expr = Field("source") == "Edgar"
         # Field は indexed でない場合 json_extract(data, '$.source') = ? を生成
         got = Catalog._expr_to_inline_sql(expr)
         assert "?" not in got
-        assert "'EDGAR'" in got
+        assert "'Edgar'" in got
 
     def test_expr_from_field_contains_inline_sql_has_like_and_literal(
         self, temp_catalog: Catalog

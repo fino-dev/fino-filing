@@ -122,13 +122,13 @@ package "Fino Filing" {
       source = "EDINET"
       doc_id, edinet_code, sec_code, jcn, filer_name, ...
     }
-    class EDGARFiling {
+    class EdgarFiling {
       cik, accession_number, filer_name, form_type, ...
     }
 
     Filing --> FilingMeta : metaclass
     Filing <|-- EDINETFiling : extends
-    Filing <|-- EDGARFiling : extends
+    Filing <|-- EdgarFiling : extends
     Filing o-- Field : _fields
     Field 0-- Expr
   }
@@ -175,7 +175,7 @@ package "Fino Filing" {
       用途: 提出書類(htm/iXBRL)
       # fetch_documents() : list[RawDocument]
       # parse_response(raw) : Parsed
-      # build_filing(parsed) : EDGARFiling
+      # build_filing(parsed) : EdgarFiling
     }
 
     class EdgarBulkCollector {
@@ -184,7 +184,7 @@ package "Fino Filing" {
       用途: 一括取得
       # fetch_documents() : list[RawDocument]
       # parse_response(raw) : Parsed
-      # build_filing(parsed) : EDGARFiling
+      # build_filing(parsed) : EdgarFiling
     }
 
     class EdinetClient <<Client>> {
@@ -204,7 +204,7 @@ package "Fino Filing" {
     class EdgarClient <<Client>> {
       - config : EdgarConfig
       --
-      EDGAR 全エンドポイント対応の共通 HTTP クライアント
+      Edgar 全エンドポイント対応の共通 HTTP クライアント
       レート制限・リトライを内部管理
       + get_submissions(cik: str) : dict
       + get_company_facts(cik: str) : dict
