@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from fino_filing.collector.base import Parsed
-from fino_filing.filing.filing_edgar import EDGARArchiveFiling
+from fino_filing.filing.filing_edgar import EdgarArchiveFiling
 from fino_filing.util.edgar import pad_cik
 
 
@@ -41,13 +41,13 @@ def _accession_to_dir(accession: str) -> str:
 # TODO: Collector refactorで不要であれば消す。テストみ作成
 def _build_edgar_filing(
     parsed: Parsed, content: bytes, primary_name: str
-) -> EDGARArchiveFiling:
-    """提出書類用: Parsed と content から EDGARArchiveFiling を組み立てる。"""
+) -> EdgarArchiveFiling:
+    """提出書類用: Parsed と content から EdgarArchiveFiling を組み立てる。"""
     checksum = hashlib.sha256(content).hexdigest()
     filing_date = parsed.get("filing_date")
     created_at = filing_date if isinstance(filing_date, datetime) else datetime.now()
-    return EDGARArchiveFiling(
-        source="EDGAR",
+    return EdgarArchiveFiling(
+        source="Edgar",
         name=primary_name,
         checksum=checksum,
         format=parsed.get("format", "htm"),
@@ -67,7 +67,7 @@ def _build_edgar_filing(
 
 # TODO: Collector refactorで不要であれば消す。テストみ作成
 def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
-    """提出書類: RawDocument.meta から EDGARArchiveFiling 用 Parsed を組み立てる。"""
+    """提出書類: RawDocument.meta から EdgarArchiveFiling 用 Parsed を組み立てる。"""
     return {
         "cik": meta.get("cik", ""),
         "accession_number": meta.get("accession_number", ""),

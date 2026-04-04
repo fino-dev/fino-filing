@@ -31,6 +31,6 @@ Expr(sql: str, params: list[Any]) -> Expr
 | `\|`     | OR     | `expr1 \| expr2` |
 | `~`      | NOT    | `~expr`          |
 
-Users typically build `Expr` via `Field` (e.g. `Field("source") == "EDGAR"`), not by constructing `Expr` directly.
+Users typically build `Expr` via `Field` (e.g. `Field("source") == "Edgar"`), not by constructing `Expr` directly.
 
 検索式の全体仕様・SQL 変換は [Collection Search](/docs/spec/Tutorial/Collection-Search) を参照。

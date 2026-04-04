@@ -59,7 +59,7 @@ class HttpClientConfig:
 
 class HttpClient:
     """
-    HTTP client with rate limiting and error handling for SEC EDGAR API.
+    HTTP client with rate limiting and error handling for SEC Edgar API.
 
     This client handles:
     - Rate limiting to comply with 10 requests per second limit

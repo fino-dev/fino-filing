@@ -24,14 +24,14 @@ It is provided as a library to be used via `import fino_filing` from Python code
 :::warning
 This Package is now developed as hobby project and all functionality is not fixed and stable.
 
-**Current implementation**: Add, search, and retrieve via Collection / Catalog / LocalStorage / Filing (including EDINET and EDGAR extensions) to a local store. API integration (EDINET client, collection) is planned.
+**Current implementation**: Add, search, and retrieve via Collection / Catalog / LocalStorage / Filing (including EDINET and Edgar extensions) to a local store. API integration (EDINET client, collection) is planned.
 :::
 
 ---
 
 ## Goals
 
-- Provide a simple client for the EDINET/EDGAR API (planned)
+- Provide a simple client for the EDINET/Edgar API (planned)
 - Sync document list API results to an internal data store and enable flexible search
 - Allow document collection by company, period, document type, etc.
 - Design so that storage location and structure are under the user’s control

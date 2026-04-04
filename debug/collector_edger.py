@@ -5,7 +5,7 @@ from fino_filing import (
     EdgarConfig,
     EdgarDocumentsCollector,
     EdgarFactsCollector,
-    EDGARFiling,
+    EdgarFiling,
     Field,
 )
 
@@ -31,14 +31,14 @@ print(edgar_facts_collected)
 
 collection = Collection()
 
-filings = collection.search(expr=(Field("source") == "EDGAR"))
+filings = collection.search(expr=(Field("source") == "Edgar"))
 
 print("===================================")
 print(filings)
 
-filings = collection.search(expr=(Field("source") == EDGARFiling.source))
+filings = collection.search(expr=(Field("source") == EdgarFiling.source))
 
 print("===================================")
-print(EDGARFiling.source)
+print(EdgarFiling.source)
 print("===================================")
 print(filings)

@@ -5,7 +5,7 @@ title: EdgarConfig
 
 # EdgarConfig
 
-EDGAR 用のユーザー設定。各 Collector のコンストラクタで渡す。SEC は有効な User-Agent を要求するため、`user_agent_email` は必須。
+Edgar 用のユーザー設定。各 Collector のコンストラクタで渡す。SEC は有効な User-Agent を要求するため、`user_agent_email` は必須。
 
 ## Constructor
 

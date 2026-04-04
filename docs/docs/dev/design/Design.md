@@ -13,7 +13,7 @@ High-level architecture of fino-filing. The implementation follows these boundar
 | **Catalog**    | Index (DuckDB); index/get/search; Filing restore via FilingResolver | `Catalog`, `FilingResolver`                                                                                |
 | **Storage**    | Persist and load content by path                                    | `Storage` (Protocol), `LocalStorage`                                                                       |
 | **Locator**    | Resolve Filing → storage path (Strategy)                            | `Locator`                                                                                                  |
-| **Filing**     | Document model; Field/Expr for schema and query                     | `Filing`, `Field`, `Expr`, `EDINETFiling`, `EDGARFiling`                                                   |
+| **Filing**     | Document model; Field/Expr for schema and query                     | `Filing`, `Field`, `Expr`, `EDINETFiling`, `EdgarFiling`                                                   |
 | **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgarFactsCollector`, `EdgarDocumentsCollector`, `EdgarBulkCollector` |
 
 ## Patterns in use

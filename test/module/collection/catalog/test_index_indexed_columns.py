@@ -13,7 +13,7 @@ from typing import Annotated
 
 import pytest
 
-from fino_filing import Catalog, EDGARCompanyFactsFiling, Field, Filing
+from fino_filing import Catalog, EdgarCompanyFactsFiling, Field, Filing
 
 
 def _table_columns(catalog: Catalog) -> set[str]:
@@ -180,12 +180,12 @@ class TestCatalog_Index_IndexedColumns:
     def test_edgar_company_facts_tickers_key_contains_search(
         self, temp_catalog: Catalog
     ) -> None:
-        """EDGARCompanyFactsFiling の tickers_key を Field(...).contains で検索できる"""
+        """EdgarCompanyFactsFiling の tickers_key を Field(...).contains で検索できる"""
         catalog = temp_catalog
         content = b"{}"
         checksum = hashlib.sha256(content).hexdigest()
         created = datetime(2024, 1, 15, 10, 0, 0)
-        f1 = EDGARCompanyFactsFiling(
+        f1 = EdgarCompanyFactsFiling(
             id="facts_edgar_aa",
             checksum=checksum,
             name="a.json",
@@ -202,9 +202,9 @@ class TestCatalog_Index_IndexedColumns:
             tickers_key="AA|BB",
             exchanges_key="NYSE",
         )
-        f2 = EDGARCompanyFactsFiling(
+        f2 = EdgarCompanyFactsFiling(
             id="facts_edgar_cc",
-            source="EDGAR",
+            source="Edgar",
             checksum=checksum,
             name="b.json",
             is_zip=False,
@@ -230,12 +230,12 @@ class TestCatalog_Index_IndexedColumns:
     def test_edgar_company_facts_edgar_resource_kind_eq_search(
         self, temp_catalog: Catalog
     ) -> None:
-        """EDGARCompanyFactsFiling の edgar_resource_kind（indexed）を等価検索できる"""
+        """EdgarCompanyFactsFiling の edgar_resource_kind（indexed）を等価検索できる"""
         catalog = temp_catalog
         content = b"{}"
         checksum = hashlib.sha256(content).hexdigest()
         created = datetime(2024, 1, 15, 10, 0, 0)
-        f_company = EDGARCompanyFactsFiling(
+        f_company = EdgarCompanyFactsFiling(
             id="facts_kind_cf",
             checksum=checksum,
             name="cf.json",
@@ -252,7 +252,7 @@ class TestCatalog_Index_IndexedColumns:
             tickers_key="ZZ",
             exchanges_key="NYSE",
         )
-        f_other = EDGARCompanyFactsFiling(
+        f_other = EdgarCompanyFactsFiling(
             id="facts_kind_other",
             checksum=checksum,
             name="other.json",

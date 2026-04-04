@@ -1,15 +1,15 @@
 ---
 sidebar_position: 6
-title: EDGARCompanyFactsFiling
+title: EdgarCompanyFactsFiling
 ---
 
-# EDGARCompanyFactsFiling
+# EdgarCompanyFactsFiling
 
 Built-in Filing subclass for **one Company Facts API** response (`/api/xbrl/companyfacts/CIKxxx.json`). Registered on `default_resolver` for Catalog restore. Used by `EdgarFactsCollector`.
 
 ## Fixed field
 
-- **source**: Always `"EDGAR"` (class attribute; same literal as `EDGARFiling` for cross-source queries).
+- **source**: Always `"Edgar"` (class attribute; same literal as `EdgarFiling` for cross-source queries).
 
 ## Additional fields
 

@@ -5,7 +5,7 @@ title: EdgarClient
 
 # EdgarClient
 
-EDGAR 全エンドポイント用の共通 HTTP クライアント。**Collector の内部**で `EdgarConfig` から生成され、直接ユーザーがインスタンス化する必要はない。レート制限（リクエスト間 delay）と 503 リトライを行う。
+Edgar 全エンドポイント用の共通 HTTP クライアント。**Collector の内部**で `EdgarConfig` から生成され、直接ユーザーがインスタンス化する必要はない。レート制限（リクエスト間 delay）と 503 リトライを行う。
 
 ## Constructor
 

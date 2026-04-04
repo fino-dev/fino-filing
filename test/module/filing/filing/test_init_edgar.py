@@ -1,24 +1,24 @@
-"""EDGARFiling の初期化テスト。観点: 正常系"""
+"""EdgarFiling の初期化テスト。観点: 正常系"""
 
 from datetime import datetime
 
 import pytest
 
-from fino_filing import EDGARCompanyFactsFiling, EDGARFiling
+from fino_filing import EdgarCompanyFactsFiling, EdgarFiling
 
 
 @pytest.mark.module
 @pytest.mark.filing
 @pytest.mark.edgar
-class TestFiling_Initialize_EDGAR:
-    """EDGARFiling. 観点: 正常系（初期化）"""
+class TestFiling_Initialize_Edgar:
+    """EdgarFiling. 観点: 正常系（初期化）"""
 
     def test_filing_initialize_edgar_success(self) -> None:
-        """EDGARFiling を必須フィールドで初期化できる"""
+        """EdgarFiling を必須フィールドで初期化できる"""
         datetime_now = datetime.now()
-        edgar_filing = EDGARFiling(
+        edgar_filing = EdgarFiling(
             id="edgar_id",
-            source="EDGAR",
+            source="Edgar",
             checksum="a" * 64,
             name="10-K.xbrl",
             is_zip=False,
@@ -35,7 +35,7 @@ class TestFiling_Initialize_EDGAR:
             fiscal_year_end="12-31",
         )
         assert edgar_filing.id == "edgar_id"
-        assert edgar_filing.source == "EDGAR"
+        assert edgar_filing.source == "Edgar"
         assert edgar_filing.checksum == "a" * 64
         assert edgar_filing.name == "10-K.xbrl"
         assert edgar_filing.cik == "0001234567"
@@ -46,15 +46,15 @@ class TestFiling_Initialize_EDGAR:
 @pytest.mark.module
 @pytest.mark.filing
 @pytest.mark.edgar
-class TestFiling_Initialize_EDGAR_CompanyFacts:
-    """EDGARCompanyFactsFiling. 観点: 正常系（初期化）"""
+class TestFiling_Initialize_Edgar_CompanyFacts:
+    """EdgarCompanyFactsFiling. 観点: 正常系（初期化）"""
 
     def test_filing_initialize_edgar_company_facts_success(self) -> None:
-        """EDGARCompanyFactsFiling を必須フィールドで初期化できる"""
+        """EdgarCompanyFactsFiling を必須フィールドで初期化できる"""
         datetime_now = datetime.now()
-        f = EDGARCompanyFactsFiling(
+        f = EdgarCompanyFactsFiling(
             id="facts_id",
-            source="EDGAR",
+            source="Edgar",
             checksum="b" * 64,
             name="CIK0001652044-companyfacts.json",
             is_zip=False,
@@ -81,9 +81,9 @@ class TestFiling_Initialize_EDGAR_CompanyFacts:
     ) -> None:
         """edgar_resource_kind を明示指定するとその値が使われる"""
         datetime_now = datetime.now()
-        f = EDGARCompanyFactsFiling(
+        f = EdgarCompanyFactsFiling(
             id="facts_kind_override",
-            source="EDGAR",
+            source="Edgar",
             checksum="c" * 64,
             name="x.json",
             is_zip=False,

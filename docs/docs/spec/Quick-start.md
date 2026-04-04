@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Quick Start
 
-This guide walks you through **install** → **fetching documents from EDGAR and saving them locally** → **searching and retrieving** saved documents.
+This guide walks you through **install** → **fetching documents from Edgar and saving them locally** → **searching and retrieving** saved documents.
 
 ---
 
@@ -26,8 +26,8 @@ pip install -e .
 uv pip install -e .
 ```
 
-:::tip About SEC EDGAR
-The EDGAR API **requires a User-Agent header**. This library ships a default in `EdgarConfig`. Override if needed with `EdgarConfig(user_agent="YourApp contact@example.com")`.
+:::tip About SEC Edgar
+The Edgar API **requires a User-Agent header**. This library ships a default in `EdgarConfig`. Override if needed with `EdgarConfig(user_agent="YourApp contact@example.com")`.
 :::
 
 ---
@@ -55,9 +55,9 @@ collection = Collection(storage=storage, catalog=catalog)
 
 ---
 
-## 3. Fetch documents from EDGAR and save
+## 3. Fetch documents from Edgar and save
 
-Use `EdgarCollector` to pull filings from the SEC EDGAR Company Submissions API and add them to your `Collection`. Companies are identified by **CIK** (Central Index Key); e.g. Apple is `320193`.
+Use `EdgarCollector` to pull filings from the SEC Edgar Company Submissions API and add them to your `Collection`. Companies are identified by **CIK** (Central Index Key); e.g. Apple is `320193`.
 
 ```python
 from fino_filing import (
@@ -97,9 +97,9 @@ for filing, path in collected:
 ```python
 from fino_filing import Expr, Field
 
-# e.g. up to 100 filings from EDGAR
+# e.g. up to 100 filings from Edgar
 filings = collection.search(
-    expr=Field("source") == "EDGAR",
+    expr=Field("source") == "Edgar",
     limit=100,
 )
 ```

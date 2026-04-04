@@ -23,7 +23,7 @@ LocalStorage(base_dir: str | Path) -> LocalStorage
 save(content: bytes, storage_key: str | None = None) -> str
 ```
 
-- **storage_key**: Required. Relative path (e.g. `EDGAR/abc123/index.htm`). Must not be absolute, empty, or contain `..`. Parent directories are created as needed.
+- **storage_key**: Required. Relative path (e.g. `Edgar/abc123/index.htm`). Must not be absolute, empty, or contain `..`. Parent directories are created as needed.
 - **Returns**: Absolute path of the saved file.
 - **Raises**: `ValueError` if `storage_key` is missing, absolute, or escapes `base_dir`.
 

@@ -14,7 +14,7 @@ The Scenario test strategy is to comprehensively cover critical use cases, excep
 - **`test/`** — pytest root (`pyproject.toml`: `testpaths = ["test"]`).
 - **`test/module/`** — Unit/integration by layer:
   - `collection/` — Collection, Catalog, Locator, FilingResolver, storages
-  - `filing/` — Filing, Field, Expr, EDINETFiling, EDGARFiling
+  - `filing/` — Filing, Field, Expr, EDINETFiling, EdgarFiling
   - `collector/` — BaseCollector, EdgarCollector, EdgarSecApi, EdgarBulkData
   - `core/` — Core errors
 - **`test/scenario/`** — Scenario-style tests (e.g. collection flow).

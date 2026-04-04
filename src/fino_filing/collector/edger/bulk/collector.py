@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any, Iterator, cast, override
 
-from fino_filing.filing.filing_edgar import EDGARBulkFiling
+from fino_filing.filing.filing_edgar import EdgarBulkFiling
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
@@ -37,10 +37,10 @@ class EdgarBulkCollector(BaseCollector):
         cik_list: list[str] | None = None,
         limit: int | None = None,
         **kwargs: Any,
-    ) -> Iterator[tuple[EDGARBulkFiling, str]]:
-        """1 件ずつ Collection に追加し、(EDGARBulkFiling, path) を yield する。"""
+    ) -> Iterator[tuple[EdgarBulkFiling, str]]:
+        """1 件ずつ Collection に追加し、(EdgarBulkFiling, path) を yield する。"""
         yield from cast(
-            Iterator[tuple[EDGARBulkFiling, str]],
+            Iterator[tuple[EdgarBulkFiling, str]],
             super().iter_collect(
                 date_from=date_from,
                 date_to=date_to,
@@ -59,8 +59,8 @@ class EdgarBulkCollector(BaseCollector):
         cik_list: list[str] | None = None,
         limit: int | None = None,
         **kwargs: Any,
-    ) -> list[tuple[EDGARBulkFiling, str]]:
-        """収集フローを実行し、EDGARBulkFiling と保存パスのリストを返す。"""
+    ) -> list[tuple[EdgarBulkFiling, str]]:
+        """収集フローを実行し、EdgarBulkFiling と保存パスのリストを返す。"""
         return list(
             self.iter_collect(
                 date_from=date_from,
@@ -86,17 +86,17 @@ class EdgarBulkCollector(BaseCollector):
 
     @override
     def _parse_response(self, meta: Meta) -> Parsed:
-        """RawDocument の meta を EDGARBulkFiling 用の Parsed に正規化する。"""
+        """RawDocument の meta を EdgarBulkFiling 用の Parsed に正規化する。"""
         return _parse_meta_to_parsed(meta)
 
     @override
-    def _build_filing(self, parsed: Parsed, content: bytes) -> EDGARBulkFiling:
-        """Parsed と content から EDGARBulkFiling を生成する。"""
+    def _build_filing(self, parsed: Parsed, content: bytes) -> EdgarBulkFiling:
+        """Parsed と content から EdgarBulkFiling を生成する。"""
         primary_name = parsed.get("primary_name") or (
             parsed.get("accession_number", "") + "-index.htm"
         )
-        return EDGARBulkFiling(
-            source="EDGAR",
+        return EdgarBulkFiling(
+            source="Edgar",
             name=primary_name,
             checksum=hashlib.sha256(content).hexdigest(),
             format="zip",
