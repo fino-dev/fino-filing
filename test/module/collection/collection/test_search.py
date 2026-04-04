@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytest
 
-from fino_filing import Catalog, Collection, EdgarFiling, EDINETFiling, Field
+from fino_filing import Catalog, Collection, EdgarArchiveFiling, EDINETFiling, Field
 from fino_filing.collection.error import CatalogExprTypeError
 from fino_filing.collection.storages import LocalStorage
 
@@ -87,7 +87,7 @@ class TestCollection_Search_WithExpr:
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
 
-        edgar_filing = EdgarFiling(
+        edgar_filing = EdgarArchiveFiling(
             id="edgar_1",
             checksum=checksum,
             name="edgar.htm",
@@ -128,7 +128,7 @@ class TestCollection_Search_WithExpr:
         assert len(results) == 1
         assert results[0].id == edgar_filing.id
         assert results[0].source == "Edgar"
-        assert isinstance(results[0], EdgarFiling)
+        assert isinstance(results[0], EdgarArchiveFiling)
 
     def test_search_with_expr_using_filing_class_source_same_as_string(
         self,
@@ -136,11 +136,11 @@ class TestCollection_Search_WithExpr:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """Field('source') == EdgarFiling.source は Field('source') == 'Edgar' と同一挙動（クラス参照でデフォルト値を返す）"""
+        """Field('source') == EdgarArchiveFiling.source は Field('source') == 'Edgar' と同一挙動（クラス参照でデフォルト値を返す）"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
-        edgar_filing = EdgarFiling(
+        edgar_filing = EdgarArchiveFiling(
             id="edgar_1",
             checksum=checksum,
             name="f.htm",
@@ -158,7 +158,7 @@ class TestCollection_Search_WithExpr:
 
         by_string = collection.search(expr=(Field("source") == "Edgar"), limit=10)
         by_class_default = collection.search(
-            expr=(Field("source") == EdgarFiling.source), limit=10
+            expr=(Field("source") == EdgarArchiveFiling.source), limit=10
         )
         assert len(by_string) == 1 and len(by_class_default) == 1
         assert by_string[0].id == by_class_default[0].id
@@ -173,7 +173,7 @@ class TestCollection_Search_WithExpr:
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
-        edgar_filing = EdgarFiling(
+        edgar_filing = EdgarArchiveFiling(
             id="edgar_1",
             checksum=checksum,
             name="edgar.htm",
@@ -268,7 +268,7 @@ class TestCollection_Search_WithExpr:
 
         for i, source in enumerate(["Edgar", "EDINET", "Edgar"]):
             if source == "Edgar":
-                f = EdgarFiling(
+                f = EdgarArchiveFiling(
                     id=f"edgar_{i}",
                     checksum=checksum,
                     name="f.htm",
@@ -325,7 +325,7 @@ class TestCollection_Search_Expr_DSL:
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
 
-        with_10k = EdgarFiling(
+        with_10k = EdgarArchiveFiling(
             id="with_10k",
             checksum=checksum,
             name="annual_10-K_report.htm",
@@ -339,7 +339,7 @@ class TestCollection_Search_Expr_DSL:
             filing_date=datetime_now,
             period_of_report=datetime_now,
         )
-        without_10k = EdgarFiling(
+        without_10k = EdgarArchiveFiling(
             id="without_10k",
             checksum=checksum,
             name="other_report.htm",
@@ -372,7 +372,7 @@ class TestCollection_Search_Expr_DSL:
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
 
-        edgar_filing = EdgarFiling(
+        edgar_filing = EdgarArchiveFiling(
             id="edgar_in",
             checksum=checksum,
             name="e.htm",
@@ -429,7 +429,7 @@ class TestCollection_Search_Expr_DSL:
         inside_ts = base.replace(year=base.year - 1, month=6, day=1)
         outside_ts = base.replace(year=base.year - 2, month=1, day=1)
 
-        filing_inside = EdgarFiling(
+        filing_inside = EdgarArchiveFiling(
             id="inside",
             checksum=checksum,
             name="inside.htm",
@@ -443,7 +443,7 @@ class TestCollection_Search_Expr_DSL:
             filing_date=inside_ts,
             period_of_report=inside_ts,
         )
-        filing_outside = EdgarFiling(
+        filing_outside = EdgarArchiveFiling(
             id="outside",
             checksum=checksum,
             name="outside.htm",
@@ -477,7 +477,7 @@ class TestCollection_Search_Expr_DSL:
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
 
-        k = EdgarFiling(
+        k = EdgarArchiveFiling(
             id="edgar_10k",
             checksum=checksum,
             name="annual_10-K_report.htm",
@@ -491,7 +491,7 @@ class TestCollection_Search_Expr_DSL:
             filing_date=datetime_now,
             period_of_report=datetime_now,
         )
-        q = EdgarFiling(
+        q = EdgarArchiveFiling(
             id="edgar_10q",
             checksum=checksum,
             name="quarterly_10-Q_report.htm",
@@ -527,7 +527,7 @@ class TestCollection_Search_Expr_DSL:
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
 
-        edgar_filing = EdgarFiling(
+        edgar_filing = EdgarArchiveFiling(
             id="edgar_or",
             checksum=checksum,
             name="e.htm",

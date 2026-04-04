@@ -1,22 +1,22 @@
-"""EdgarFiling の初期化テスト。観点: 正常系"""
+"""EdgarArchiveFiling の初期化テスト。観点: 正常系"""
 
 from datetime import datetime
 
 import pytest
 
-from fino_filing import EdgarCompanyFactsFiling, EdgarFiling
+from fino_filing import EdgarArchiveFiling, EdgarCompanyFactsFiling
 
 
 @pytest.mark.module
 @pytest.mark.filing
 @pytest.mark.edgar
 class TestFiling_Initialize_Edgar:
-    """EdgarFiling. 観点: 正常系（初期化）"""
+    """EdgarArchiveFiling. 観点: 正常系（初期化）"""
 
     def test_filing_initialize_edgar_success(self) -> None:
-        """EdgarFiling を必須フィールドで初期化できる"""
+        """EdgarArchiveFiling を必須フィールドで初期化できる"""
         datetime_now = datetime.now()
-        edgar_filing = EdgarFiling(
+        edgar_filing = EdgarArchiveFiling(
             id="edgar_id",
             source="Edgar",
             checksum="a" * 64,
