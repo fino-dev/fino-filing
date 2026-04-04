@@ -14,12 +14,12 @@ High-level architecture of fino-filing. The implementation follows these boundar
 | **Storage**    | Persist and load content by path                                    | `Storage` (Protocol), `LocalStorage`                                                                       |
 | **Locator**    | Resolve Filing → storage path (Strategy)                            | `Locator`                                                                                                  |
 | **Filing**     | Document model; Field/Expr for schema and query                     | `Filing`, `Field`, `Expr`, `EDINETFiling`, `EDGARFiling`                                                   |
-| **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgerFactsCollector`, `EdgerDocumentsCollector`, `EdgerBulkCollector` |
+| **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgarFactsCollector`, `EdgarDocumentsCollector`, `EdgarBulkCollector` |
 
 ## Patterns in use
 
 - **Facade**: `Collection` is the single entry for storage and search.
-- **Strategy**: `Locator` (path resolution); Edger uses separate strategies by usage: Facts (JSON API), Documents (htm/iXBRL), Bulk.
+- **Strategy**: `Locator` (path resolution); Edgar uses separate strategies by usage: Facts (JSON API), Documents (htm/iXBRL), Bulk.
 - **Template Method**: `BaseCollector.collect()` defines the flow; subclasses implement fetch/parse/build_filing.
 - **Adapter**: `Storage` protocol; `LocalStorage` adapts the file system.
 - **Repository**: `Catalog` for index and search.
@@ -34,5 +34,5 @@ It describes Collection, Catalog, Storage, Locator, Filing, Field, Expr, Collect
 
 ## Further design docs
 
-- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edger は EdgerFactsCollector / EdgerDocumentsCollector / EdgerBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edger.py`。
+- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edgar は EdgarFactsCollector / EdgarDocumentsCollector / EdgarBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edgar.py`。
 - Field/DSL and DuckDB: see `filing/field.py` and `expr.py`; Catalog builds SQL from Expr.

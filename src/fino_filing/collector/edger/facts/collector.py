@@ -1,9 +1,11 @@
-"""EdgerFactsCollector: JSON API から構造化データを収集して Collection に保存する。"""
+"""EdgarFactsCollector: JSON API から構造化データを収集して Collection に保存する。"""
 
 from __future__ import annotations
 
 import json
 from typing import Any, Iterator, cast, override
+
+from fino_filing.filing.filing_edgar import EDGARCompanyFactsFiling
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
@@ -11,25 +13,24 @@ from fino_filing.collector.error import (
     CollectorNoContentError,
     CollectorParseResponseValidationError,
 )
-from fino_filing.filing.filing_edger import EDGARCompanyFactsFiling
 from fino_filing.util.content import sha256_checksum
 from fino_filing.util.delimited_symbols import normalize_delimited_multivalue
 
 from .._helpers import (
     _build_company_facts_json_file_name,
 )
-from ..client import EdgerClient
-from ..config import EdgerConfig
+from ..client import EdgarClient
+from ..config import EdgarConfig
 
 
-class EdgerFactsCollector(BaseCollector):
+class EdgarFactsCollector(BaseCollector):
     """
-    Edger Collector for Facts API
+    Edgar Collector for Facts API
     """
 
-    def __init__(self, collection: Collection, config: EdgerConfig) -> None:
+    def __init__(self, collection: Collection, config: EdgarConfig) -> None:
         super().__init__(collection)
-        self._client = EdgerClient(config)
+        self._client = EdgarClient(config)
 
     @override
     def iter_collect(
@@ -39,7 +40,7 @@ class EdgerFactsCollector(BaseCollector):
         limit: int | None = None,
     ) -> Iterator[tuple[EDGARCompanyFactsFiling, str]]:
         """
-        Iterates over the Edger company facts. yields tuples of (EDGARCompanyFactsFiling, path).
+        Iterates over the Edgar company facts. yields tuples of (EDGARCompanyFactsFiling, path).
 
         Args:
             cik_list: The list of CIKs to collect.
@@ -64,7 +65,7 @@ class EdgerFactsCollector(BaseCollector):
         limit: int | None = None,
     ) -> list[tuple[EDGARCompanyFactsFiling, str]]:
         """
-        Collects Edger company facts within the given CIK list.
+        Collects Edgar company facts within the given CIK list.
 
         Args:
             cik_list: The list of CIKs to collect.

@@ -5,14 +5,14 @@ from pathlib import Path
 from typing import Iterator
 
 import pytest
+from fino_filing.collector.edgar import EdgarConfig
 
 from fino_filing import Catalog, Collection, LocalStorage
-from fino_filing.collector.edger import EdgerConfig
 
 
 @pytest.fixture
-def edger_config() -> EdgerConfig:
-    return EdgerConfig(user_agent_email="test@example.com", timeout=5)
+def edgar_config() -> EdgarConfig:
+    return EdgarConfig(user_agent_email="test@example.com", timeout=5)
 
 
 @pytest.fixture

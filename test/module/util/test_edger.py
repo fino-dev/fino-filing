@@ -1,12 +1,11 @@
 import pytest
-
-from fino_filing.util.edger import pad_cik
+from fino_filing.util.edgar import pad_cik
 
 
 @pytest.mark.module
 @pytest.mark.util
-@pytest.mark.edger
-class TestEdgerUtil:
+@pytest.mark.edgar
+class TestEdgarUtil:
     def test_pad_cik(self) -> None:
         assert pad_cik("1234567890") == "1234567890"
         assert pad_cik("123456789") == "0123456789"

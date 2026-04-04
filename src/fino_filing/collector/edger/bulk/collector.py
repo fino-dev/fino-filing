@@ -1,20 +1,21 @@
-"""EdgerBulkCollector: Bulk 一括データを収集して Collection に保存する（スタブ）。"""
+"""EdgarBulkCollector: Bulk 一括データを収集して Collection に保存する（スタブ）。"""
 
 from __future__ import annotations
 
 import hashlib
 from typing import Any, Iterator, cast, override
 
+from fino_filing.filing.filing_edgar import EDGARBulkFiling
+
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
-from fino_filing.filing.filing_edger import EDGARBulkFiling
 
 from .._helpers import _parse_meta_to_parsed
-from ..client import EdgerClient
-from ..config import EdgerConfig
+from ..client import EdgarClient
+from ..config import EdgarConfig
 
 
-class EdgerBulkCollector(BaseCollector):
+class EdgarBulkCollector(BaseCollector):
     """
     SEC Bulk データを一括取得して Collection に保存する。
 
@@ -23,9 +24,9 @@ class EdgerBulkCollector(BaseCollector):
     注意: 現状は未実装のスタブ。
     """
 
-    def __init__(self, collection: Collection, config: EdgerConfig) -> None:
+    def __init__(self, collection: Collection, config: EdgarConfig) -> None:
         super().__init__(collection)
-        self._client = EdgerClient(config)
+        self._client = EdgarClient(config)
 
     @override
     def iter_collect(

@@ -1,4 +1,4 @@
-"""Edger 用共有ヘルパー。Config/Client/Collector から利用する。"""
+"""Edgar 用共有ヘルパー。Config/Client/Collector から利用する。"""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from datetime import datetime
 from typing import Any
 
 from fino_filing.collector.base import Parsed
-from fino_filing.filing.filing_edger import EDGARArchiveFiling
-from fino_filing.util.edger import pad_cik
+from fino_filing.filing.filing_edgar import EDGARArchiveFiling
+from fino_filing.util.edgar import pad_cik
 
 
 def _build_recent_submissions_json_file_name(cik: str) -> str:

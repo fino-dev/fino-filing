@@ -1,28 +1,28 @@
 ---
 sidebar_position: 5
-title: EdgerBulkCollector
+title: EdgarBulkCollector
 ---
 
-# EdgerBulkCollector
+# EdgarBulkCollector
 
 SEC Bulk データを一括取得して Collection に保存する。`BaseCollector` を継承。**現状はスタブ**で、`_fetch_documents` は何も yield しない。
 
 ## 想定仕様（将来実装）
 
-- **データソース**: SEC の daily-index 等。`EdgerClient.get_bulk(url)` で指定 URL から bytes を取得する。
+- **データソース**: SEC の daily-index 等。`EdgarClient.get_bulk(url)` で指定 URL から bytes を取得する。
 - **収集条件**: `date_from` / `date_to` で日付範囲、`cik_list` で CIK フィルタ、`limit` で件数上限を想定。URL は package 側で daily-index の形式に合わせて構築する。
 - **RawDocument の単位**: 一括取得結果（ZIP や TSV 等）を 1 件ずつに分割し、各単位で `RawDocument` を yield する想定。`meta` に `_origin="bulk"` および URL・日付等を格納する。
 
 ## Constructor
 
 ```python
-EdgerBulkCollector(
+EdgarBulkCollector(
     collection: Collection,
-    config: EdgerConfig,
-) -> EdgerBulkCollector
+    config: EdgarConfig,
+) -> EdgarBulkCollector
 ```
 
-内部で `EdgerClient(config)` を生成する。
+内部で `EdgarClient(config)` を生成する。
 
 ## Methods
 

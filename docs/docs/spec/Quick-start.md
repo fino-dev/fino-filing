@@ -27,7 +27,7 @@ uv pip install -e .
 ```
 
 :::tip About SEC EDGAR
-The EDGAR API **requires a User-Agent header**. This library ships a default in `EdgerConfig`. Override if needed with `EdgerConfig(user_agent="YourApp contact@example.com")`.
+The EDGAR API **requires a User-Agent header**. This library ships a default in `EdgarConfig`. Override if needed with `EdgarConfig(user_agent="YourApp contact@example.com")`.
 :::
 
 ---
@@ -57,24 +57,24 @@ collection = Collection(storage=storage, catalog=catalog)
 
 ## 3. Fetch documents from EDGAR and save
 
-Use `EdgerCollector` to pull filings from the SEC EDGAR Company Submissions API and add them to your `Collection`. Companies are identified by **CIK** (Central Index Key); e.g. Apple is `320193`.
+Use `EdgarCollector` to pull filings from the SEC EDGAR Company Submissions API and add them to your `Collection`. Companies are identified by **CIK** (Central Index Key); e.g. Apple is `320193`.
 
 ```python
 from fino_filing import (
     Collection,
-    EdgerBulkData,
-    EdgerCollector,
-    EdgerConfig,
-    EdgerSecApi,
+    EdgarBulkData,
+    EdgarCollector,
+    EdgarConfig,
+    EdgarSecApi,
 )
 
 collection = Collection()
 
-config = EdgerConfig()
-collector = EdgerCollector(
+config = EdgarConfig()
+collector = EdgarCollector(
     collection,
-    EdgerSecApi(config),
-    EdgerBulkData(config),
+    EdgarSecApi(config),
+    EdgarBulkData(config),
     cik_list=["320193"],  # Apple's CIK
 )
 

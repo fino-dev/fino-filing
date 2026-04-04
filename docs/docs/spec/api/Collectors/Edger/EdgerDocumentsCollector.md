@@ -1,22 +1,22 @@
 ---
 sidebar_position: 4
-title: EdgerDocumentsCollector
+title: EdgarDocumentsCollector
 ---
 
-# EdgerDocumentsCollector
+# EdgarDocumentsCollector
 
 SEC Archives から提出書類（htm / iXBRL）を収集して Collection に保存する。`BaseCollector` を継承。
 
 ## Constructor
 
 ```python
-EdgerDocumentsCollector(
+EdgarDocumentsCollector(
     collection: Collection,
-    config: EdgerConfig,
-) -> EdgerDocumentsCollector
+    config: EdgarConfig,
+) -> EdgarDocumentsCollector
 ```
 
-内部で `EdgerClient(config)` を生成する。
+内部で `EdgarClient(config)` を生成する。
 
 ## Methods
 

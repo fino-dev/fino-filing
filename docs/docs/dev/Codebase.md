@@ -31,13 +31,13 @@ src/fino_filing/
 │   ├── meta.py         # FilingMeta implementation
 │   ├── expr.py         # Expr (query expression)
 │   ├── filing_edinet.py  # EDINETFiling
-│   ├── filing_edger.py  # EDGARFiling, EDGARCompanyFactsFiling
+│   ├── filing_edgar.py  # EDGARFiling, EDGARCompanyFactsFiling
 │   └── error.py        # FilingRequiredError, FieldValidationError, ...
 └── collector/           # Collector boundary
     ├── base.py         # BaseCollector, RawDocument, Parsed
     ├── edinet/         # EDINET 提出
     │   └── collector.py
-    └── edger/          # SEC EDGAR（種別ごとサブパッケージ）
+    └── edgar/          # SEC EDGAR（種別ごとサブパッケージ）
         ├── client.py
         ├── config.py
         ├── _helpers.py

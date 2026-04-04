@@ -41,7 +41,7 @@
 - **テスト**:
   - 既存: `test_search.py` の `Field("source") == EDGARFiling.source`、`test_filing_field.py` の `Filing.source` が Field であること。
   - 追加: デフォルトありサブクラスでクラスアクセスすると参照オブジェクトが返ること（または少なくとも `EDINETFiling.source == "EDINET"` が Expr になり、search で 1 件取れること）。右辺 `Field("source") == EDINETFiling.source` が従来どおり 1 件返ることを再確認。
-- **シナリオ**: `collect_edger_facts/test_1.py` と同様に、`EDINETFiling.source == "EDINET"` で search するケースを 1 件追加してもよい。
+- **シナリオ**: `collect_edgar_facts/test_1.py` と同様に、`EDINETFiling.source == "EDINET"` で search するケースを 1 件追加してもよい。
 
 ## ドキュメント
 

@@ -15,7 +15,7 @@ The Scenario test strategy is to comprehensively cover critical use cases, excep
 - **`test/module/`** — Unit/integration by layer:
   - `collection/` — Collection, Catalog, Locator, FilingResolver, storages
   - `filing/` — Filing, Field, Expr, EDINETFiling, EDGARFiling
-  - `collector/` — BaseCollector, EdgerCollector, EdgerSecApi, EdgerBulkData
+  - `collector/` — BaseCollector, EdgarCollector, EdgarSecApi, EdgarBulkData
   - `core/` — Core errors
 - **`test/scenario/`** — Scenario-style tests (e.g. collection flow).
 - **`test/conftest.py`** — Shared fixtures.

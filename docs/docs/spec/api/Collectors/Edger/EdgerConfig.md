@@ -1,19 +1,19 @@
 ---
 sidebar_position: 1
-title: EdgerConfig
+title: EdgarConfig
 ---
 
-# EdgerConfig
+# EdgarConfig
 
 EDGAR 用のユーザー設定。各 Collector のコンストラクタで渡す。SEC は有効な User-Agent を要求するため、`user_agent_email` は必須。
 
 ## Constructor
 
 ```python
-EdgerConfig(
+EdgarConfig(
     user_agent_email: str,
     timeout: int = 30,
-) -> EdgerConfig
+) -> EdgarConfig
 ```
 
 | 引数 | 型 | 既定 | 説明 |
@@ -24,11 +24,11 @@ EdgerConfig(
 ## 使用例
 
 ```python
-from fino_filing import EdgerConfig, EdgerDocumentsCollector
+from fino_filing import EdgarConfig, EdgarDocumentsCollector
 from fino_filing.collection import Collection
 
-config = EdgerConfig(user_agent_email="your@email.com")
+config = EdgarConfig(user_agent_email="your@email.com")
 coll = Collection("/path/to/root")
-collector = EdgerDocumentsCollector(coll, config)
+collector = EdgarDocumentsCollector(coll, config)
 collector.collect(cik_list=["320193"], limit_per_company=2)
 ```

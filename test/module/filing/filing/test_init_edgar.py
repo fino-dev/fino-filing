@@ -9,7 +9,7 @@ from fino_filing import EDGARCompanyFactsFiling, EDGARFiling
 
 @pytest.mark.module
 @pytest.mark.filing
-@pytest.mark.edger
+@pytest.mark.edgar
 class TestFiling_Initialize_EDGAR:
     """EDGARFiling. 観点: 正常系（初期化）"""
 
@@ -45,7 +45,7 @@ class TestFiling_Initialize_EDGAR:
 
 @pytest.mark.module
 @pytest.mark.filing
-@pytest.mark.edger
+@pytest.mark.edgar
 class TestFiling_Initialize_EDGAR_CompanyFacts:
     """EDGARCompanyFactsFiling. 観点: 正常系（初期化）"""
 

@@ -10,18 +10,18 @@ from dataclasses import asdict
 from typing import Any, Literal
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
-from fino_filing.collector.edger._helpers import _accession_to_dir, pad_cik
-from fino_filing.collector.edger.config import EdgerConfig
+from fino_filing.collector.edgar._helpers import _accession_to_dir, pad_cik
+from fino_filing.collector.edgar.config import EdgarConfig
 
 logger = logging.getLogger(__name__)
 
 
-class EdgerClient:
+class EdgarClient:
     _SEC_API_BASE = "https://data.sec.gov"
     _ARCHIVES_BASE = "https://www.sec.gov/Archives/edgar"
 
     def __init__(
-        self, config: EdgerConfig, *, _http_client: HttpClient | None = None
+        self, config: EdgarConfig, *, _http_client: HttpClient | None = None
     ) -> None:
         self._config = config
         self._headers = {"User-Agent": config.user_agent_email}

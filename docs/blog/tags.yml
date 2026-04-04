@@ -28,7 +28,7 @@ edinet:
   permalink: /edinet
   description: EDINET
 
-edger:
-  label: EDGER
-  permalink: /edger
-  description: EDGER
+edgar:
+  label: EDGAR
+  permalink: /edgar
+  description: EDGAR

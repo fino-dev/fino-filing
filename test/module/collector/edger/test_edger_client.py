@@ -1,75 +1,75 @@
-"""EdgerClient の各 get メソッドを検証する（モック利用）"""
+"""EdgarClient の各 get メソッドを検証する（モック利用）"""
 
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+from fino_filing.collector.edgar import EdgarClient, EdgarConfig
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
-from fino_filing.collector.edger import EdgerClient, EdgerConfig
 
 
 @pytest.mark.module
 @pytest.mark.collector
-@pytest.mark.edger
-class TestEdgerClient:
-    """EdgerClient Test"""
+@pytest.mark.edgar
+class TestEdgarClient:
+    """EdgarClient Test"""
 
-    def test_edger_sec_api_base_url(self) -> None:
-        """EdgerClient._SEC_API_BASE が data.sec.gov であることを確認する"""
-        assert EdgerClient._SEC_API_BASE == "https://data.sec.gov"
+    def test_edgar_sec_api_base_url(self) -> None:
+        """EdgarClient._SEC_API_BASE が data.sec.gov であることを確認する"""
+        assert EdgarClient._SEC_API_BASE == "https://data.sec.gov"
 
-    def test_edger_archives_base_url(self) -> None:
-        """EdgerClient._ARCHIVES_BASE が Archives のベース URL であることを確認する"""
-        assert EdgerClient._ARCHIVES_BASE == "https://www.sec.gov/Archives/edgar"
+    def test_edgar_archives_base_url(self) -> None:
+        """EdgarClient._ARCHIVES_BASE が Archives のベース URL であることを確認する"""
+        assert EdgarClient._ARCHIVES_BASE == "https://www.sec.gov/Archives/edgar"
 
     class TestConstruction:
-        """TestEdgerClient.Construction Test"""
+        """TestEdgarClient.Construction Test"""
 
-        def test_edger_client_initialize_with_http_client_configure(self) -> None:
-            """EdgerClient の初期化 config が HttpClient に反映される"""
-            config = EdgerConfig(
+        def test_edgar_client_initialize_with_http_client_configure(self) -> None:
+            """EdgarClient の初期化 config が HttpClient に反映される"""
+            config = EdgarConfig(
                 user_agent_email="test@example.com",
                 rate_limit_delay=100.2,
                 max_retries=100,
                 timeout=100,
             )
-            client = EdgerClient(config=config)
+            client = EdgarClient(config=config)
             assert client._headers == {"User-Agent": "test@example.com"}
             assert client._http_client.rate_limit_delay == 100.2
             assert client._http_client.max_retries == 100
             assert client._http_client.timeout == 100
 
-        def test_edger_client_initialize_with_http_client(self) -> None:
-            """EdgerClient の初期化時に HttpClient を注入できる"""
-            config = EdgerConfig(
+        def test_edgar_client_initialize_with_http_client(self) -> None:
+            """EdgarClient の初期化時に HttpClient を注入できる"""
+            config = EdgarConfig(
                 user_agent_email="test@example.com",
                 rate_limit_delay=100.2,
                 max_retries=100,
                 timeout=100,
             )
             http_client = HttpClient(HttpClientConfig())
-            client = EdgerClient(config=config, _http_client=http_client)
+            client = EdgarClient(config=config, _http_client=http_client)
             assert client._headers == {"User-Agent": "test@example.com"}
             assert client._http_client == http_client
 
     class TestGetSubmissions:
-        """TestEdgerClient.GetSubmissions Test"""
+        """TestEdgarClient.GetSubmissions Test"""
 
         def test_get_submissions_url_headers(
-            self, edger_submissions_response_apple: dict[str, Any]
+            self, edgar_submissions_response_apple: dict[str, Any]
         ) -> None:
             """get_submissions の URL / headers が正しく、モック応答がそのまま返る（Apple 形状スナップショット）"""
             http_client_mock = MagicMock()
-            http_client_mock.get.return_value = edger_submissions_response_apple
+            http_client_mock.get.return_value = edgar_submissions_response_apple
 
-            config = EdgerConfig(user_agent_email="agent@example.com")
-            client = EdgerClient(config=config, _http_client=http_client_mock)
+            config = EdgarConfig(user_agent_email="agent@example.com")
+            client = EdgarClient(config=config, _http_client=http_client_mock)
 
             result = client.get_submissions("320193")
 
             http_client_mock.get.assert_called_once()
-            assert result == edger_submissions_response_apple
+            assert result == edgar_submissions_response_apple
             assert result["cik"] == "0000320193"
             assert result["name"] == "Apple Inc."
             assert result["tickers"] == ["AAPL"]
@@ -84,22 +84,22 @@ class TestEdgerClient:
             }
 
     class TestGetCompanyFacts:
-        """TestEdgerClient.GetCompanyFacts Test"""
+        """TestEdgarClient.GetCompanyFacts Test"""
 
         def test_get_company_facts_url_headers(
-            self, edger_company_facts_response_apple: dict[str, Any]
+            self, edgar_company_facts_response_apple: dict[str, Any]
         ) -> None:
             """get_company_facts の URL / headers が正しく、モック応答がそのまま返る（Apple 形状スナップショット）"""
             http_client_mock = MagicMock()
-            http_client_mock.get.return_value = edger_company_facts_response_apple
+            http_client_mock.get.return_value = edgar_company_facts_response_apple
 
-            config = EdgerConfig(user_agent_email="facts@example.com")
-            client = EdgerClient(config=config, _http_client=http_client_mock)
+            config = EdgarConfig(user_agent_email="facts@example.com")
+            client = EdgarClient(config=config, _http_client=http_client_mock)
 
             result = client.get_company_facts("0000320193")
 
             http_client_mock.get.assert_called_once()
-            assert result == edger_company_facts_response_apple
+            assert result == edgar_company_facts_response_apple
             assert result["cik"] == 320193
             assert result["entityName"] == "Apple Inc."
             shares = result["facts"]["dei"]["EntityCommonStockSharesOutstanding"][
@@ -116,15 +116,15 @@ class TestEdgerClient:
             }
 
     class TestGetFilingDocument:
-        """TestEdgerClient.GetFilingDocument Test"""
+        """TestEdgarClient.GetFilingDocument Test"""
 
         def test_get_filing_document_url_headers(self) -> None:
             """get_filing_document の URL と headers が正しくリクエストされる"""
             http_client_mock = MagicMock()
             http_client_mock.get_raw.return_value = b"<html>index</html>"
 
-            config = EdgerConfig(user_agent_email="docs@example.com")
-            client = EdgerClient(config=config, _http_client=http_client_mock)
+            config = EdgarConfig(user_agent_email="docs@example.com")
+            client = EdgarClient(config=config, _http_client=http_client_mock)
 
             result = client.get_filing_document("320193", "0000320193-23-000106")
 
@@ -139,15 +139,15 @@ class TestEdgerClient:
             }
 
     class TestGetBulk:
-        """TestEdgerClient.GetBulk Test"""
+        """TestEdgarClient.GetBulk Test"""
 
         def test_get_bulk_company_facts_url(self) -> None:
             """get_bulk(company_facts) の URL と headers が正しい"""
             http_client_mock = MagicMock()
             http_client_mock.get_raw.return_value = b"ZIP"
 
-            config = EdgerConfig(user_agent_email="bulk@example.com")
-            client = EdgerClient(config=config, _http_client=http_client_mock)
+            config = EdgarConfig(user_agent_email="bulk@example.com")
+            client = EdgarClient(config=config, _http_client=http_client_mock)
 
             result = client.get_bulk("company_facts")
 
@@ -165,8 +165,8 @@ class TestEdgerClient:
             http_client_mock = MagicMock()
             http_client_mock.get_raw.return_value = b"ZIP"
 
-            config = EdgerConfig(user_agent_email="bulk2@example.com")
-            client = EdgerClient(config=config, _http_client=http_client_mock)
+            config = EdgarConfig(user_agent_email="bulk2@example.com")
+            client = EdgarClient(config=config, _http_client=http_client_mock)
 
             result = client.get_bulk("submissions")
 
