@@ -16,7 +16,7 @@ _ENTITY_COMMON_STOCK_DESC = (
 
 
 @pytest.fixture
-def edger_submissions_response_apple() -> dict[str, Any]:
+def edgar_submissions_response_apple() -> dict[str, Any]:
     """
     SEC Submissions API 相当（Apple Inc. 形状の代表例）。
     filings.recent の並列配列はそれぞれ5件まで。
@@ -134,7 +134,7 @@ def edger_submissions_response_apple() -> dict[str, Any]:
 
 
 @pytest.fixture
-def edger_company_facts_response_apple() -> dict[str, Any]:
+def edgar_company_facts_response_apple() -> dict[str, Any]:
     """
     SEC Company Facts API 相当（Apple Inc. / dei 由来の代表例）。
     EntityCommonStockSharesOutstanding の shares は5件まで。

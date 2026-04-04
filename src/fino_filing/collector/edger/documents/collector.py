@@ -1,12 +1,13 @@
-"""EdgerDocumentsCollector: htm / iXBRL 提出書類を収集して Collection に保存する。"""
+"""EdgarDocumentsCollector: htm / iXBRL 提出書類を収集して Collection に保存する。"""
 
 from __future__ import annotations
 
 from typing import Any, Iterator, cast, override
 
+from fino_filing.filing.filing_edgar import EDGARArchiveFiling
+
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
-from fino_filing.filing.filing_edger import EDGARArchiveFiling
 
 from .._helpers import (
     _build_edgar_filing,
@@ -14,18 +15,18 @@ from .._helpers import (
     _parse_meta_to_parsed,
     pad_cik,
 )
-from ..client import EdgerClient
-from ..config import EdgerConfig
+from ..client import EdgarClient
+from ..config import EdgarConfig
 
 
-class EdgerDocumentsCollector(BaseCollector):
+class EdgarDocumentsCollector(BaseCollector):
     """
-    EdgerDocumentsCollector for SEC Archives Filings or Documents
+    EdgarDocumentsCollector for SEC Archives Filings or Documents
     """
 
-    def __init__(self, collection: Collection, config: EdgerConfig) -> None:
+    def __init__(self, collection: Collection, config: EdgarConfig) -> None:
         super().__init__(collection)
-        self._client = EdgerClient(config)
+        self._client = EdgarClient(config)
 
     @override
     def iter_collect(

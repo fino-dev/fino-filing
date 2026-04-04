@@ -7,26 +7,26 @@ import pytest
 from fino_filing import (
     Collection,
     EDGARCompanyFactsFiling,
-    EdgerConfig,
-    EdgerFactsCollector,
+    EdgarConfig,
+    EdgarFactsCollector,
     Field,
 )
 
 
 @pytest.mark.scenario
-@pytest.mark.edger
+@pytest.mark.edgar
 @pytest.mark.collector
-class TestScenario_CollectEdgerFacts:
-    """Scenario: Collect Edger Facts"""
+class TestScenario_CollectEdgarFacts:
+    """Scenario: Collect Edgar Facts"""
 
-    def test_collect_edger_facts_with_single_cik(
+    def test_collect_edgar_facts_with_single_cik(
         self, temp_collection: Collection
     ) -> None:
         """CIK が 1つ指定して収集できる"""
 
-        collector = EdgerFactsCollector(
+        collector = EdgarFactsCollector(
             collection=temp_collection,
-            config=EdgerConfig(user_agent_email="test@example.com"),
+            config=EdgarConfig(user_agent_email="test@example.com"),
         )
 
         print("===================================")

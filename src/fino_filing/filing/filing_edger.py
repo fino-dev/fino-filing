@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Annotated
 
+from fino_filing.util.edgar import pad_cik
+
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
-from fino_filing.util.edger import pad_cik
 
 
 class EDGARArchiveFiling(Filing):
@@ -17,8 +18,8 @@ class EDGARArchiveFiling(Filing):
     def build_default_name(cik: str, accession: str) -> str:
         return f"CIK{pad_cik(cik)}-{accession}-index.htm"
 
-    edger_resource_kind: Annotated[
-        str, Field(indexed=True, description="EDGER Resource Kind")
+    edgar_resource_kind: Annotated[
+        str, Field(indexed=True, description="EDGAR Resource Kind")
     ] = "archive-index"
     cik: Annotated[
         str, Field(indexed=True, identifier=True, required=True, description="CIK")
@@ -97,8 +98,8 @@ class EDGARBulkFiling(Filing):
     def build_default_name(type: str) -> str:
         return f"bulk-{type}.zip"
 
-    edger_resource_kind: Annotated[
-        str, Field(indexed=True, description="EDGER Resource Kind")
+    edgar_resource_kind: Annotated[
+        str, Field(indexed=True, description="EDGAR Resource Kind")
     ] = "bulk"
     type: Annotated[
         str, Field(indexed=True, identifier=True, required=True, description="Type")

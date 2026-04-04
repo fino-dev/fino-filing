@@ -8,7 +8,7 @@ from fino_filing.collector._http_client import HttpClientConfig
 
 
 @dataclass(kw_only=True)
-class EdgerConfig(HttpClientConfig):
+class EdgarConfig(HttpClientConfig):
     """
     EDGAR 用ユーザー設定。
 

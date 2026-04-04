@@ -5,7 +5,7 @@ title: EDGARCompanyFactsFiling
 
 # EDGARCompanyFactsFiling
 
-Built-in Filing subclass for **one Company Facts API** response (`/api/xbrl/companyfacts/CIKxxx.json`). Registered on `default_resolver` for Catalog restore. Used by `EdgerFactsCollector`.
+Built-in Filing subclass for **one Company Facts API** response (`/api/xbrl/companyfacts/CIKxxx.json`). Registered on `default_resolver` for Catalog restore. Used by `EdgarFactsCollector`.
 
 ## Fixed field
 

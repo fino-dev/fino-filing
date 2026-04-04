@@ -1,16 +1,16 @@
 ---
 sidebar_position: 2
-title: EdgerClient
+title: EdgarClient
 ---
 
-# EdgerClient
+# EdgarClient
 
-EDGAR 全エンドポイント用の共通 HTTP クライアント。**Collector の内部**で `EdgerConfig` から生成され、直接ユーザーがインスタンス化する必要はない。レート制限（リクエスト間 delay）と 503 リトライを行う。
+EDGAR 全エンドポイント用の共通 HTTP クライアント。**Collector の内部**で `EdgarConfig` から生成され、直接ユーザーがインスタンス化する必要はない。レート制限（リクエスト間 delay）と 503 リトライを行う。
 
 ## Constructor
 
 ```python
-EdgerClient(config: EdgerConfig) -> EdgerClient
+EdgarClient(config: EdgarConfig) -> EdgarClient
 ```
 
 ## Methods

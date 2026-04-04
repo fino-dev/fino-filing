@@ -1,22 +1,22 @@
 ---
 sidebar_position: 3
-title: EdgerFactsCollector
+title: EdgarFactsCollector
 ---
 
-# EdgerFactsCollector
+# EdgarFactsCollector
 
 SEC XBRL CompanyFacts API および Submissions API から構造化データ（JSON）を収集して Collection に保存する。`BaseCollector` を継承。
 
 ## Constructor
 
 ```python
-EdgerFactsCollector(
+EdgarFactsCollector(
     collection: Collection,
-    config: EdgerConfig,
-) -> EdgerFactsCollector
+    config: EdgarConfig,
+) -> EdgarFactsCollector
 ```
 
-内部で `EdgerClient(config)` を生成する。クライアントを外から渡さない。
+内部で `EdgarClient(config)` を生成する。クライアントを外から渡さない。
 
 ## Methods
 

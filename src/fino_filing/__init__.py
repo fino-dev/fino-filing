@@ -8,18 +8,18 @@ from .collection.filing_resolver import (
 from .collection.storage import Storage
 from .collection.storages import LocalStorage
 from .collector.base import BaseCollector, Parsed, RawDocument
-from .collector.edger import (
-    EdgerBulkCollector,
-    EdgerClient,
-    EdgerConfig,
-    EdgerDocumentsCollector,
-    EdgerFactsCollector,
+from .collector.edgar import (
+    EdgarBulkCollector,
+    EdgarClient,
+    EdgarConfig,
+    EdgarDocumentsCollector,
+    EdgarFactsCollector,
 )
 from .collector.edinet import EdinetCollector, EdinetConfig
 from .filing.expr import Expr
 from .filing.field import Field
 from .filing.filing import Filing
-from .filing.filing_edger import (
+from .filing.filing_edgar import (
     EDGARArchiveFiling,
     EDGARBulkFiling,
     EDGARCompanyFactsFiling,
@@ -40,11 +40,11 @@ __all__ = [
     "EDGARArchiveFiling",
     "EDGARBulkFiling",
     "EDINETFiling",
-    "EdgerBulkCollector",
-    "EdgerClient",
-    "EdgerConfig",
-    "EdgerDocumentsCollector",
-    "EdgerFactsCollector",
+    "EdgarBulkCollector",
+    "EdgarClient",
+    "EdgarConfig",
+    "EdgarDocumentsCollector",
+    "EdgarFactsCollector",
     "EdinetCollector",
     "EdinetConfig",
     "Expr",
