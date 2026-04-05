@@ -22,7 +22,7 @@ from fino_filing.util.edgar import pad_cik
 
 from .._helper import (
     _filenames_from_sec_index_json,
-    _infer_edgar_format,
+    _infer_edgar_archive_format,
     _parse_edgar_date,
     _parse_edgar_datetime,
     _parse_edgar_flag,
@@ -124,10 +124,14 @@ class EdgarArchiveCollector(BaseCollector):
 
             recent_filings_length = len(recent_filings.get("accessionNumber"))
 
+            take = recent_filings_length
+            if limit_per_company is not None:
+                take = min(max(limit_per_company, 0), recent_filings_length)
+
             accession_numbers = recent_filings["accessionNumber"]
             primary_documents = recent_filings["primaryDocument"]
 
-            for i in range(recent_filings_length):
+            for i in range(take):
                 accession = accession_numbers[i]
                 primary_document = primary_documents[i]
 
@@ -262,10 +266,15 @@ class EdgarArchiveCollector(BaseCollector):
         is_xbrl = parsed.get("is_xbrl")
         is_inline_xbrl = parsed.get("is_inline_xbrl")
         primary_document = parsed.get("primary_document")
-        format = _infer_edgar_format(
-            is_xbrl=is_xbrl,
-            is_inline_xbrl=is_inline_xbrl,
-            primary_document=primary_document,
+        zip_content = is_zip_content(content)
+        filing_format = (
+            "zip"
+            if zip_content
+            else _infer_edgar_archive_format(
+                is_xbrl=is_xbrl,
+                is_inline_xbrl=is_inline_xbrl,
+                primary_document=primary_document,
+            )
         )
 
         return EdgarArchiveFiling(
@@ -274,11 +283,11 @@ class EdgarArchiveCollector(BaseCollector):
                 cik=cik,
                 accession=accession_number,
                 fetch_mode=fetch_mode,
-                format=parsed.get("format", "htm"),
+                format=filing_format,
             ),
             checksum=sha256_checksum(content),
-            format=format,
-            is_zip=is_zip_content(content),
+            format=filing_format,
+            is_zip=zip_content,
             # company meta
             # edgar_resource_kind is default defined
             cik=cik,

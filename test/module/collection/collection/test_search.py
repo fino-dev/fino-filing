@@ -82,7 +82,7 @@ class TestCollection_Search_WithExpr:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """expr=(Field('source') == 'Edgar') で検索すると Edgar のみ返り、Conversion Error が発生しない"""
+        """expr=(Field('source') == 'EDGAR') で検索すると EDGAR のみ返り、Conversion Error が発生しない"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
@@ -124,10 +124,10 @@ class TestCollection_Search_WithExpr:
         collection.add(edgar_filing, content)
         collection.add(edinet_filing, content)
 
-        results = collection.search(expr=(Field("source") == "Edgar"), limit=10)
+        results = collection.search(expr=(Field("source") == "EDGAR"), limit=10)
         assert len(results) == 1
         assert results[0].id == edgar_filing.id
-        assert results[0].source == "Edgar"
+        assert results[0].source == "EDGAR"
         assert isinstance(results[0], EdgarArchiveFiling)
 
     def test_search_with_expr_using_filing_class_source_same_as_string(
@@ -136,7 +136,7 @@ class TestCollection_Search_WithExpr:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """Field('source') == EdgarArchiveFiling.source は Field('source') == 'Edgar' と同一挙動（クラス参照でデフォルト値を返す）"""
+        """Field('source') == EdgarArchiveFiling.source は Field('source') == 'EDGAR' と同一挙動（クラス参照でデフォルト値を返す）"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
@@ -156,7 +156,7 @@ class TestCollection_Search_WithExpr:
         )
         collection.add(edgar_filing, content)
 
-        by_string = collection.search(expr=(Field("source") == "Edgar"), limit=10)
+        by_string = collection.search(expr=(Field("source") == "EDGAR"), limit=10)
         by_class_default = collection.search(
             expr=(Field("source") == EdgarArchiveFiling.source), limit=10
         )
@@ -261,13 +261,13 @@ class TestCollection_Search_WithExpr:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """count(expr=(Field('source') == 'Edgar')) が条件一致件数を返し、Conversion Error が発生しない"""
+        """count(expr=(Field('source') == 'EDGAR')) が条件一致件数を返し、Conversion Error が発生しない"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
 
-        for i, source in enumerate(["Edgar", "EDINET", "Edgar"]):
-            if source == "Edgar":
+        for i, source in enumerate(["EDGAR", "EDINET", "EDGAR"]):
+            if source == "EDGAR":
                 f = EdgarArchiveFiling(
                     id=f"edgar_{i}",
                     checksum=checksum,
@@ -305,7 +305,7 @@ class TestCollection_Search_WithExpr:
                 )
             collection.add(f, content)
 
-        n = temp_catalog.count(expr=(Field("source") == "Edgar"))
+        n = temp_catalog.count(expr=(Field("source") == "EDGAR"))
         assert n == 2
 
 
@@ -367,7 +367,7 @@ class TestCollection_Search_Expr_DSL:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """expr=Field('source').in_(['Edgar']) で source が Edgar の 1 件だけ返る"""
+        """expr=Field('source').in_(['EDGAR']) で source が EDGAR の 1 件だけ返る"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
@@ -409,9 +409,9 @@ class TestCollection_Search_Expr_DSL:
         collection.add(edgar_filing, content)
         collection.add(edinet_filing, content)
 
-        results = collection.search(expr=Field("source").in_(["Edgar"]), limit=10)
+        results = collection.search(expr=Field("source").in_(["EDGAR"]), limit=10)
         assert len(results) == 1
-        assert results[0].source == "Edgar"
+        assert results[0].source == "EDGAR"
         assert results[0].id == "edgar_in"
 
     def test_search_with_expr_between_returns_filings_in_range(
@@ -472,7 +472,7 @@ class TestCollection_Search_Expr_DSL:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """(Field('source') == 'Edgar') & (Field('name').contains('10-K')) で両方一致するものだけ返る"""
+        """(Field('source') == 'EDGAR') & (Field('name').contains('10-K')) で両方一致するものだけ返る"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
@@ -509,7 +509,7 @@ class TestCollection_Search_Expr_DSL:
         collection.add(q, content)
 
         results = collection.search(
-            expr=(Field("source") == "Edgar") & (Field("name").contains("10-K")),
+            expr=(Field("source") == "EDGAR") & (Field("name").contains("10-K")),
             limit=10,
         )
         assert len(results) == 1
@@ -522,7 +522,7 @@ class TestCollection_Search_Expr_DSL:
         temp_catalog: Catalog,
         datetime_now: datetime,
     ) -> None:
-        """(Field('source') == 'Edgar') | (Field('source') == 'EDINET') で両方の source が返る"""
+        """(Field('source') == 'EDGAR') | (Field('source') == 'EDINET') で両方の source が返る"""
         content = b"content"
         checksum = hashlib.sha256(content).hexdigest()
         collection = Collection(storage=temp_storage, catalog=temp_catalog)
@@ -565,9 +565,9 @@ class TestCollection_Search_Expr_DSL:
         collection.add(edinet_filing, content)
 
         results = collection.search(
-            expr=(Field("source") == "Edgar") | (Field("source") == "EDINET"),
+            expr=(Field("source") == "EDGAR") | (Field("source") == "EDINET"),
             limit=10,
         )
         assert len(results) == 2
         sources = {f.source for f in results}
-        assert sources == {"Edgar", "EDINET"}
+        assert sources == {"EDGAR", "EDINET"}
