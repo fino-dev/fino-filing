@@ -4,9 +4,9 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from fino_filing.collector.edgar import EdgarClient, EdgarConfig
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
+from fino_filing.collector.edgar import EdgarClient, EdgarConfig
 
 
 @pytest.mark.module
@@ -54,7 +54,7 @@ class TestEdgarClient:
             assert client._http_client == http_client
 
     class TestGetSubmissions:
-        """TestEdgarClient.GetSubmissions Test"""
+        """TestEdgarClient.get_submissions Test"""
 
         def test_get_submissions_url_headers(
             self, edgar_submissions_response_apple: dict[str, Any]
@@ -84,7 +84,7 @@ class TestEdgarClient:
             }
 
     class TestGetCompanyFacts:
-        """TestEdgarClient.GetCompanyFacts Test"""
+        """TestEdgarClient.get_company_facts Test"""
 
         def test_get_company_facts_url_headers(
             self, edgar_company_facts_response_apple: dict[str, Any]
@@ -115,31 +115,35 @@ class TestEdgarClient:
                 "User-Agent": "facts@example.com",
             }
 
-    class TestGetFilingDocument:
-        """TestEdgarClient.GetFilingDocument Test"""
+    class TestGetArchivesFile:
+        """
+        TestEdgarClient.get_archives_file
+        TestEdgarClient.try_get_filing_index_json
+        """
 
-        def test_get_filing_document_url_headers(self) -> None:
-            """get_filing_document の URL と headers が正しくリクエストされる"""
+        def test_get_filing_get_archives_file(self) -> None:
+            """get_archives_file の URL と headers が正しくリクエストされる"""
             http_client_mock = MagicMock()
             http_client_mock.get_raw.return_value = b"<html>index</html>"
 
             config = EdgarConfig(user_agent_email="docs@example.com")
             client = EdgarClient(config=config, _http_client=http_client_mock)
 
-            result = client.get_filing_document("320193", "0000320193-23-000106")
+            result = client.get_archives_file(
+                "320193", "0000320193-23-000106", "0000320193-23-000106-index.htm"
+            )
 
             http_client_mock.get_raw.assert_called_once()
             assert result == b"<html>index</html>"
             assert http_client_mock.get_raw.call_args[0][0] == (
-                "https://www.sec.gov/Archives/edgar/data/"
-                "0000320193/000032019323000106/0000320193-23-000106-index.htm"
+                "https://www.sec.gov/Archives/edgar/data/0000320193/000032019323000106/0000320193-23-000106-index.htm"
             )
             assert http_client_mock.get_raw.call_args[1]["headers"] == {
                 "User-Agent": "docs@example.com",
             }
 
-        def test_get_archives_file_url_encodes_path_segments(self) -> None:
-            """get_archives_file がサブディレクトリ付き相対パスをセグメントごとに URL エンコードする"""
+        def test_get_filings_try_get_filing_index_json(self) -> None:
+            """try_get_filing_index_json で index.json が存在する場合、それを返す"""
             http_client_mock = MagicMock()
             http_client_mock.get_raw.return_value = b"xml"
 
@@ -149,28 +153,27 @@ class TestEdgarClient:
             result = client.get_archives_file(
                 "320193",
                 "0000320193-23-000106",
-                "xslF345X05/wk-form4_1.xml",
+                "index.json",
             )
 
             assert result == b"xml"
             http_client_mock.get_raw.assert_called_once()
             assert http_client_mock.get_raw.call_args[0][0] == (
-                "https://www.sec.gov/Archives/edgar/data/"
-                "0000320193/000032019323000106/xslF345X05/wk-form4_1.xml"
+                "https://www.sec.gov/Archives/edgar/data/0000320193/000032019323000106/index.json"
             )
 
     class TestGetBulk:
         """TestEdgarClient.GetBulk Test"""
 
         def test_get_bulk_company_facts_url(self) -> None:
-            """get_bulk(company_facts) の URL と headers が正しい"""
+            """get_bulk(companyfacts) の URL と headers が正しい"""
             http_client_mock = MagicMock()
             http_client_mock.get_raw.return_value = b"ZIP"
 
             config = EdgarConfig(user_agent_email="bulk@example.com")
             client = EdgarClient(config=config, _http_client=http_client_mock)
 
-            result = client.get_bulk("company_facts")
+            result = client.get_bulk("companyfacts")
 
             http_client_mock.get_raw.assert_called_once()
             assert result == b"ZIP"
@@ -194,8 +197,7 @@ class TestEdgarClient:
             http_client_mock.get_raw.assert_called_once()
             assert result == b"ZIP"
             assert http_client_mock.get_raw.call_args[0][0] == (
-                "https://www.sec.gov/Archives/edgar/"
-                "daily-index/bulkdata/submissions.zip"
+                "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip"
             )
             assert http_client_mock.get_raw.call_args[1]["headers"] == {
                 "User-Agent": "bulk2@example.com",
