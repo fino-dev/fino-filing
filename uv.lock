@@ -340,6 +340,7 @@ name = "fino-filing"
 source = { editable = "." }
 dependencies = [
     { name = "duckdb" },
+    { name = "requests" },
 ]
 
 [package.dev-dependencies]
@@ -364,7 +365,10 @@ typing = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "duckdb", specifier = ">=1.4.4" }]
+requires-dist = [
+    { name = "duckdb", specifier = ">=1.4.4" },
+    { name = "requests", specifier = ">=2.32.5" },
+]
 
 [package.metadata.requires-dev]
 dev = [
