@@ -36,7 +36,10 @@ class EDINETFiling(Filing):
 
     @staticmethod
     def build_default_name(
-        doc_id: str | None, doc_description: str | None, format: str | None
+        doc_id: str | None,
+        doc_description: str | None,
+        format: str | None,
+        is_zip: bool,
     ) -> str:
         base_parts = [part for part in (doc_id, doc_description) if part]
 
@@ -45,8 +48,10 @@ class EDINETFiling(Filing):
 
         base = "_".join(base_parts)
 
-        if format:
-            return f"{base}_{format}"
+        if is_zip:
+            return f"{base}.zip"
+        elif format:
+            return f"{base}.{format}"
         return base
 
     # use doc_id as identifier field
