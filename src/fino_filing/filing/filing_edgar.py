@@ -62,7 +62,7 @@ class EdgarArchiveFiling(Filing):
     acceptance_date_time: Annotated[datetime, Field(description="Acceptance Date Time")]
     act: Annotated[str, Field(description="Act")]
     form: Annotated[str, Field(description="Form")]
-    items: Annotated[list[str], Field(description="Items")]
+    items: Annotated[str, Field(description="Items")]
     core_type: Annotated[str, Field(description="Core Type")]
     is_xbrl: Annotated[bool, Field(description="Is XBRL")]
     is_inline_xbrl: Annotated[bool, Field(description="Is Inline XBRL")]
