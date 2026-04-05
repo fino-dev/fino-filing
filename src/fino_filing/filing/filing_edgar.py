@@ -122,16 +122,19 @@ class EdgarBulkFiling(Filing):
     """
 
     source = "EDGAR"
-    format = "zip"
+    format = "json"
     is_zip = True
 
     @staticmethod
-    def build_default_name(type: str) -> str:
-        return f"bulk-{type}.zip"
+    def build_default_name(bulk_type: str, bulk_date: date) -> str:
+        return f"bulk-{bulk_type}-{bulk_date.strftime('%Y%m%d')}.zip"
 
     edgar_resource_kind: Annotated[
         str, Field(indexed=True, description="Edgar Resource Kind")
     ] = "bulk"
-    type: Annotated[
+    bulk_type: Annotated[
         str, Field(indexed=True, identifier=True, required=True, description="Type")
+    ]
+    bulk_date: Annotated[
+        date, Field(indexed=True, identifier=True, required=True, description="Date")
     ]

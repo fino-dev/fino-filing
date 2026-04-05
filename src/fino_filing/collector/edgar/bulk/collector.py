@@ -2,26 +2,23 @@
 
 from __future__ import annotations
 
-import hashlib
-from typing import Any, Iterator, cast, override
-
-from fino_filing.filing.filing_edgar import EdgarBulkFiling
+from datetime import date
+from typing import Iterator, Literal, cast, override
 
 from fino_filing.collection.collection import Collection
-from fino_filing.collector.base import BaseCollector, Meta, Parsed, RawDocument
+from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
+from fino_filing.collector.edgar.bulk.enum import EdgarBulkType
+from fino_filing.collector.error import CollectorParseResponseValidationError
+from fino_filing.filing.filing_edgar import EdgarBulkFiling
+from fino_filing.util.content import sha256_checksum
 
-from .._helpers import _parse_meta_to_parsed
 from ..client import EdgarClient
 from ..config import EdgarConfig
 
 
 class EdgarBulkCollector(BaseCollector):
     """
-    SEC Bulk データを一括取得して Collection に保存する。
-
-    用途: Bulk 用 URL から一括取得して Collection に保存する。
-    収集条件: collect(date_from=..., date_to=..., cik_list=..., limit=N) で渡す。
-    注意: 現状は未実装のスタブ。
+    EdgarBulkCollector for SEC Bulk data
     """
 
     def __init__(self, collection: Collection, config: EdgarConfig) -> None:
@@ -32,21 +29,12 @@ class EdgarBulkCollector(BaseCollector):
     def iter_collect(
         self,
         *,
-        date_from: str | None = None,
-        date_to: str | None = None,
-        cik_list: list[str] | None = None,
-        limit: int | None = None,
-        **kwargs: Any,
+        bulk_type: EdgarBulkType = EdgarBulkType.COMPANY_FACTS,
     ) -> Iterator[tuple[EdgarBulkFiling, str]]:
-        """1 件ずつ Collection に追加し、(EdgarBulkFiling, path) を yield する。"""
         yield from cast(
             Iterator[tuple[EdgarBulkFiling, str]],
             super().iter_collect(
-                date_from=date_from,
-                date_to=date_to,
-                cik_list=cik_list,
-                limit=limit,
-                **kwargs,
+                bulk_type=bulk_type,
             ),
         )
 
@@ -54,20 +42,11 @@ class EdgarBulkCollector(BaseCollector):
     def collect(
         self,
         *,
-        date_from: str | None = None,
-        date_to: str | None = None,
-        cik_list: list[str] | None = None,
-        limit: int | None = None,
-        **kwargs: Any,
+        bulk_type: EdgarBulkType = EdgarBulkType.COMPANY_FACTS,
     ) -> list[tuple[EdgarBulkFiling, str]]:
-        """収集フローを実行し、EdgarBulkFiling と保存パスのリストを返す。"""
         return list(
             self.iter_collect(
-                date_from=date_from,
-                date_to=date_to,
-                cik_list=cik_list,
-                limit=limit,
-                **kwargs,
+                bulk_type=bulk_type,
             )
         )
 
@@ -75,31 +54,40 @@ class EdgarBulkCollector(BaseCollector):
     def _fetch_documents(
         self,
         *,
-        date_from: str | None = None,
-        date_to: str | None = None,
-        cik_list: list[str] | None = None,
-        limit: int | None = None,
-        **kwargs: Any,
+        bulk_type: EdgarBulkType = EdgarBulkType.COMPANY_FACTS,
     ) -> Iterator[RawDocument]:
-        """Bulk データを取得して RawDocument を yield する。TODO: 実装。"""
-        yield from ()
+        target: Literal["companyfacts", "submissions"]
+        if bulk_type == EdgarBulkType.COMPANY_FACTS:
+            target = "companyfacts"
+        elif bulk_type == EdgarBulkType.SUBMISSIONS:
+            target = "submissions"
+        content = self._client.get_bulk(target)
+        yield RawDocument(
+            content=content, meta={"bulk_type": bulk_type, "bulk_date": date.today()}
+        )
 
     @override
-    def _parse_response(self, meta: Meta) -> Parsed:
-        """RawDocument の meta を EdgarBulkFiling 用の Parsed に正規化する。"""
-        return _parse_meta_to_parsed(meta)
+    def _parse_response(self, raw: RawDocument) -> Parsed:
+        meta = raw.meta
+        return {
+            "bulk_type": meta.get("bulk_type"),
+            "bulk_date": meta.get("bulk_date"),
+        }
 
     @override
     def _build_filing(self, parsed: Parsed, content: bytes) -> EdgarBulkFiling:
-        """Parsed と content から EdgarBulkFiling を生成する。"""
-        primary_name = parsed.get("primary_name") or (
-            parsed.get("accession_number", "") + "-index.htm"
-        )
+        bulk_type = parsed.get("bulk_type")
+        if not bulk_type:
+            raise CollectorParseResponseValidationError("bulk_type")
+        bulk_date = parsed.get("bulk_date")
+        if not bulk_date:
+            raise CollectorParseResponseValidationError("bulk_date")
         return EdgarBulkFiling(
             source="Edgar",
-            name=primary_name,
-            checksum=hashlib.sha256(content).hexdigest(),
-            format="zip",
-            is_zip=True,
-            type=parsed.get("type", ""),
+            name=EdgarBulkFiling.build_default_name(
+                bulk_type=bulk_type, bulk_date=bulk_date
+            ),
+            checksum=sha256_checksum(content),
+            bulk_type=bulk_type,
+            bulk_date=bulk_date,
         )
