@@ -5,57 +5,33 @@ title: EdgarArchiveCollector
 
 # EdgarArchiveCollector
 
-SEC Archives から提出書類（htm / iXBRL）を収集して Collection に保存する。`BaseCollector` を継承。
+Submissions の `recent` 提出を走査し、Archives からドキュメントを取得して `EdgarArchiveFiling` として保存する。
 
 ## Constructor
 
 ```python
-EdgarArchiveCollector(
-    collection: Collection,
-    config: EdgarConfig,
-) -> EdgarArchiveCollector
+EdgarArchiveCollector(collection: Collection, config: EdgarConfig) -> EdgarArchiveCollector
 ```
 
-内部で `EdgarClient(config)` を生成する。
-
-## Methods
-
-### collect
+## collect / iter_collect（キーワード引数）
 
 ```python
-collect(**criteria: Any) -> list[tuple[EdgarFiling, str]]
-```
-
-`BaseCollector` のテンプレートメソッド。収集条件は `criteria` で渡す（例: `cik_list=`, `limit_per_company=`）。
-
-### _fetch_documents
-
-```python
-_fetch_documents(
+collect(
     *,
     cik_list: list[str] | None = None,
+    form_type_list: list[str] | None = None,
     limit_per_company: int | None = None,
-    **kwargs: Any,
-) -> Iterator[RawDocument]
+    fetch_mode: EdgarDocumentsFetchMode = EdgarDocumentsFetchMode.PRIMARY_ONLY,
+) -> list[tuple[EdgarArchiveFiling, str]]
 ```
 
-- 各 CIK で Submissions API から accession 一覧を取得し、各提出物の index ページ（htm）を取得する。
-- **cik_list**: CIK のリスト。`None` または空なら何も yield しない。
-- **limit_per_company**: 1 企業あたりの提出件数上限。
-- **Yields**: `RawDocument`。`content` は HTML bytes、`meta` に `_origin="documents"` 等を格納。
+- **cik_list**: 必須相当。空または `None` のときは何も収集しない。  
+- **form_type_list**: 指定時は該当フォームのみ。  
+- **limit_per_company**: CIK あたりの提出件数上限。  
+- **fetch_mode**: `PRIMARY_ONLY`（代表ドキュメント中心）/ `FULL`（index.json に基づくフル ZIP 等）。
 
-### _parse_response
+戻り値は `(EdgarArchiveFiling, 保存絶対パス)`。
 
-```python
-_parse_response(meta: Meta) -> Parsed
-```
+## 内部フロー（概要）
 
-`meta` を `EdgarFiling` 用の Parsed 辞書に正規化する。
-
-### _build_filing
-
-```python
-_build_filing(parsed: Parsed, content: bytes) -> EdgarFiling
-```
-
-Parsed と `content` から `EdgarFiling` を生成する。
+各 CIK で Submissions を取得 → `recent` を検証・パース → Archives API でファイル取得 → `RawDocument` → `_parse_response` / `_build_filing`。

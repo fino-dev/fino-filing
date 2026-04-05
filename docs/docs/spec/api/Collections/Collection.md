@@ -17,7 +17,7 @@ Collection(
 ) -> Collection
 ```
 
-If `storage` or `catalog` is `None`, default is `.fino/collection` under CWD: `LocalStorage(default_dir)` and `Catalog(default_dir / "index.db")`. `locator` defaults to `Locator()` (path pattern: `{source}/{id}{suffix}`).
+If `storage` or `catalog` is `None`, default is `.fino/collection` under CWD: `LocalStorage(default_dir)` and `Catalog(default_dir / "index.db")`. `locator` defaults to `Locator()`（相対パス: `{source}/{id}` + 拡張子は `format` / `is_zip` から決定）。
 
 ## Methods
 
@@ -76,4 +76,4 @@ search(
 ) -> list[Filing]
 ```
 
-Delegates to Catalog. `expr` is the WHERE condition; `order_by` can be a core/indexed column or a key in `data` (JSON). Returns list of Filing instances.
+Catalog に委譲。`expr` に Python の `bool` を渡すと `CatalogExprTypeError`。`order_by` はコア列・インデックス列、または `data` JSON 内キー。戻り値は `Filing` のリスト。

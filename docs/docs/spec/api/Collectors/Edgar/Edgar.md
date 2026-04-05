@@ -4,23 +4,16 @@ title: Edgar
 slug: Edgar
 ---
 
-# Edgar Abstruction
+# Edgar（SEC）
 
-Edgar 用 Collector 群。単一の **EdgarClient** と **EdgarConfig** を共有し、用途別に 3 種類の Collector を提供する。
+共有の **EdgarConfig** / **EdgarClient** と、用途別 Collector 3 種類。
 
 ## Collectors
 
-| クラス                      | 用途                                                   |
-| --------------------------- | ------------------------------------------------------ |
-| **EdgarFactsCollector**     | JSON CompanyFacts / Submissions から構造化データを収集 |
-| **EdgarArchiveCollector** | 提出書類（htm / iXBRL）を収集                          |
-| **EdgarBulkCollector**      | Bulk 一括データ用（現状スタブ）                        |
+| クラス | 生成する Filing | 役割 |
+| ------ | --------------- | ---- |
+| **EdgarFactsCollector** | `EdgarCompanyFactsFiling` | Submissions メタ + Company Facts JSON |
+| **EdgarArchiveCollector** | `EdgarArchiveFiling` | Archives から提出パッケージ（primary / full） |
+| **EdgarBulkCollector** | `EdgarBulkFiling` | `companyfacts.zip` または `submissions.zip` |
 
-## Components
-
-| クラス          | 用途                                              |
-| --------------- | ------------------------------------------------- |
-| **EdgarConfig** | ユーザー設定（User-Agent 用メール・タイムアウト） |
-| **EdgarClient** | 共通 HTTP クライアント（Collector の内部で使用）  |
-
-各 Collector は `BaseCollector` を継承し、`collect(**criteria)` で収集条件（`cik_list`, `limit_per_company` 等）を渡す。コンストラクタは `(collection, config)` のみで、内部で `EdgarClient(config)` を生成する。
+コンストラクタはいずれも `(collection: Collection, config: EdgarConfig)`。内部で `EdgarClient(config)` を生成する。
