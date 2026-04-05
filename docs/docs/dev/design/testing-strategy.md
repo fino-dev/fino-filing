@@ -16,6 +16,7 @@ title: Testing strategy
 ## Fixture sharing
 
 - `test/conftest.py` uses `pytest_plugins` to load `module.collector.conftest` (e.g. `edgar_config`), `module.collector.edgar.conftest`, and `module.collector.edinet.conftest`, so scenario and collector tests share the same JSON payloads without duplication. Root `temp_collection` remains a plain `Collection`; `test/module/collector/conftest.py` still overrides it with `(Collection, Path)` under `test/module/collector/`.
+- Custom `Filing` types used in scenarios live under `test/scenario/support/` so DuckDB `_filing_class` can resolve them via normal imports (`scenario.support.*` with `test/` on `sys.path`).
 
 ## Optional live network
 
