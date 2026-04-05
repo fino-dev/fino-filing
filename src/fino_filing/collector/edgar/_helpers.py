@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import re
-import zipfile
 from datetime import datetime
-from io import BytesIO
 from typing import Any
 
 from fino_filing.collector.base import Parsed
@@ -33,15 +30,9 @@ def _parse_edgar_date(s: str | None) -> datetime | None:
         return None
 
 
-# TODO: Collector refactorで不要であれば消す。テストみ作成
 def _accession_to_dir(accession: str) -> str:
-    """accession (0001104659-25-006631) を Archives ディレクトリ名 (000110465925006631) に変換する。"""
+    """accession_number to Archives directory name"""
     return accession.replace("-", "")
-
-
-_INDEX_HTM_ARCHIVE_HREF_RE = re.compile(
-    r'(?:/ix\?doc=)?/Archives/edgar/data/\d+/\d+/([^"&#]+)'
-)
 
 
 def _format_from_primary_filename(name: str) -> str:
@@ -53,7 +44,7 @@ def _format_from_primary_filename(name: str) -> str:
 
 
 def _filenames_from_sec_index_json(raw: dict[str, Any]) -> list[str]:
-    """SEC filing の index.json（directory.item）から文書ファイル名（相対パス）を列挙する。"""
+    """Get filenames relative path from SEC index.json"""
     directory = raw.get("directory")
     if not isinstance(directory, dict):
         return []
@@ -74,32 +65,6 @@ def _filenames_from_sec_index_json(raw: dict[str, Any]) -> list[str]:
         if isinstance(name, str) and name.strip():
             out.append(name.strip())
     return out
-
-
-def _filenames_from_sec_index_htm(html: bytes) -> list[str]:
-    """index.htm 内の /Archives/edgar/data/... リンクから文書相対パスを列挙する（index.json 不在時のフォールバック）。"""
-    text = html.decode("utf-8", errors="replace")
-    matches = _INDEX_HTM_ARCHIVE_HREF_RE.findall(text)
-    seen: set[str] = set()
-    out: list[str] = []
-    for raw_name in matches:
-        name = raw_name.replace("&amp;", "&").strip()
-        if "?" in name:
-            name = name.split("?", 1)[0].strip()
-        if not name or name in seen:
-            continue
-        seen.add(name)
-        out.append(name)
-    return out
-
-
-def _filing_entries_zip_bytes(entries: dict[str, bytes]) -> bytes:
-    """提出フォルダ相当の複数ファイルを 1 つの ZIP にまとめる。"""
-    buf = BytesIO()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for path, data in entries.items():
-            zf.writestr(path, data)
-    return buf.getvalue()
 
 
 def _parse_meta_to_parsed(meta: dict[str, Any]) -> Parsed:
