@@ -244,6 +244,7 @@ class TestEdinetCollector:
                 doc_id="S100VIZF",
                 doc_description="有価証券届出書（内国投資信託受益証券）",
                 format="pdf",
+                is_zip=False,
             )
             assert filing.checksum == sha256_checksum(b"%PDF-1.4 dummy")
             assert filing.format == "pdf"
