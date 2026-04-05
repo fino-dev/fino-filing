@@ -75,8 +75,7 @@ class TestScenario_ManualEdinetAddSearchGet:
 
         # Expr 結合の例（シナリオとして1本に含める）
         combined = temp_collection.search(
-            expr=(Field("source") == "EDINET")
-            & (Field("doc_id") == "S100SCENARIO"),
+            expr=(Field("source") == "EDINET") & (Field("doc_id") == "S100SCENARIO"),
             limit=10,
         )
         assert len(combined) == 1
