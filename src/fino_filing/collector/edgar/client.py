@@ -48,6 +48,7 @@ class EdgarClient:
 
     # Archives
     def _archives_file_url(self, cik_pad: str, acc_dir: str, relative_path: str) -> str:
+        """Build the URL for a single file under the SEC Archives"""
         # URL encode the relative path
         rel = relative_path.lstrip("/")
         segments = rel.split("/")
@@ -55,7 +56,7 @@ class EdgarClient:
         return f"{self._ARCHIVES_BASE}/data/{cik_pad}/{acc_dir}/{encoded}"
 
     def get_archives_file(self, cik: str, accession: str, relative_path: str) -> bytes:
-        """Fetch a single file under the filing directory on SEC Archives (relative_path may include subdirs)."""
+        """Fetch a single file under the filing directory on SEC Archives (relative_path includes subdirs)."""
         cik_pad = pad_cik(cik)
         acc_dir = _accession_to_dir(accession)
         url = self._archives_file_url(cik_pad, acc_dir, relative_path)
