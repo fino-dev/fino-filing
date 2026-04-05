@@ -1,4 +1,5 @@
 import pytest
+
 from fino_filing.util.edgar import pad_cik
 
 

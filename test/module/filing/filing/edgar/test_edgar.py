@@ -142,8 +142,9 @@ class TestEdgarFiling:
                     "0001234567-24-000001",
                     EdgarDocumentsFetchMode.PRIMARY_ONLY,
                     "xbrl",
+                    False,
                 )
-                == "CIK0001234567_0001234567-24-000001_primary_xbrl"
+                == "CIK0001234567_0001234567-24-000001_primary.xbrl"
             )
 
         def test_filing_default_name_full_success(self) -> None:
@@ -154,8 +155,9 @@ class TestEdgarFiling:
                     "0001234567-24-000001",
                     EdgarDocumentsFetchMode.FULL,
                     "xbrl",
+                    True,
                 )
-                == "CIK0001234567_0001234567-24-000001_full_xbrl"
+                == "CIK0001234567_0001234567-24-000001_full.zip"
             )
 
     class TestEdgarBulkFiling:
