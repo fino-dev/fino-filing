@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated
 
-from fino_filing.collector.edgar.documents.enum import EdgarDocumentsFetchMode
+from fino_filing.collector.edgar.archive.enum import EdgarDocumentsFetchMode
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 from fino_filing.util.edgar import pad_cik

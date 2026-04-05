@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Any, TypedDict
 
-from fino_filing.collector.edgar.documents.constants import (
+from fino_filing.collector.edgar.archive.constants import (
     EDGAR_SUBMISSIONS_RECENT_PROPERTIES,
 )
 from fino_filing.collector.error import CollectorParseResponseValidationError
