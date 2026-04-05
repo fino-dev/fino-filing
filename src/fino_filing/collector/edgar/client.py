@@ -47,6 +47,7 @@ class EdgarClient:
 
     # Archives
     def _archives_file_url(self, cik_pad: str, acc_dir: str, relative_path: str) -> str:
+        # URL encode the relative path
         rel = relative_path.lstrip("/")
         segments = rel.split("/")
         encoded = "/".join(quote(seg, safe="") for seg in segments)
@@ -70,10 +71,6 @@ class EdgarClient:
             return self._http_client.get(url, headers=self._headers)
         except HttpNotFoundError:
             return None
-
-    def get_filing_index_htm(self, cik: str, accession: str) -> bytes:
-        """Fetch the standard EDGAR filing index.htm for the accession directory."""
-        return self.get_archives_file(cik, accession, f"{accession}-index.htm")
 
     # Bulk
     def get_bulk(self, type: Literal["company_facts", "submissions"]) -> bytes:

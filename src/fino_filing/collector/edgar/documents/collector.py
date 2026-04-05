@@ -13,16 +13,14 @@ from fino_filing.collector.edgar.documents.enum import EdgarDocumentsFetchMode
 from fino_filing.collector.error import (
     CollectorInvalidFetchModeError,
     CollectorNoContentError,
+    CollectorParseResponseValidationError,
     HttpNotFoundError,
 )
 from fino_filing.filing.filing_edgar import EdgarArchiveFiling
-from fino_filing.util.content import sha256_checksum
+from fino_filing.util.content import build_zip_bytes, find_zip, sha256_checksum
 
 from .._helpers import (
-    _filenames_from_sec_index_htm,
     _filenames_from_sec_index_json,
-    _filing_entries_zip_bytes,
-    _parse_edgar_date,
     pad_cik,
 )
 from ..client import EdgarClient
@@ -120,14 +118,16 @@ class EdgarDocumentsCollector(BaseCollector):
 
             recent_filings_length = len(recent_filings.get("accessionNumber"))
 
+            accession_numbers = recent_filings["accessionNumber"]
+            primary_documents = recent_filings["primaryDocument"]
+
             for i in range(recent_filings_length):
-                accession_numbers = recent_filings["accessionNumber"]
-                primary_documents = recent_filings["primaryDocument"]
+                accession = accession_numbers[i]
+                primary_document = primary_documents[i]
 
+                meta: dict[str, Any]
+                content: bytes
                 if fetch_mode == "primary_only":
-                    accession = accession_numbers[i]
-                    primary_document = primary_documents[i]
-
                     if not primary_document:
                         raise CollectorNoContentError(
                             f"submissions.filings.recent: {cik_pad} {accession} {primary_document}"
@@ -136,68 +136,59 @@ class EdgarDocumentsCollector(BaseCollector):
                     content = self._client.get_archives_file(
                         cik_pad, accession, primary_document
                     )
-
                     if not content:
-                        raise CollectorNoContentError(accession)
+                        raise CollectorNoContentError(
+                            f"primary_only: {cik_pad} {accession} {primary_document}"
+                        )
 
-                    # formatを拡張子から求めているが後のbuild字でよくね
-                    # fmt = _format_from_primary_filename(primary_rel)
-                    meta: dict[str, Any] = {
-                        **company_meta,
-                        "accessionNumber": accession,
-                        "filingDate": recent_filings["filingDate"][i],
-                        "reportDate": recent_filings["reportDate"][i],
-                        "acceptanceDateTime": recent_filings["acceptanceDateTime"][i],
-                        "act": recent_filings["act"][i],
-                        "form": recent_filings["form"][i],
-                        "items": recent_filings["items"][i],
-                        "core_type": recent_filings["core_type"][i],
-                        "isXBRL": recent_filings["isXBRL"][i],
-                        "isInlineXBRL": recent_filings["isInlineXBRL"][i],
-                        "primaryDocument": primary_document,
-                        "primaryDocDescription": recent_filings[
-                            "primaryDocDescription"
-                        ][i],
-                        "_fetch_mode": fetch_mode,
-                    }
-                    yield RawDocument(content=content, meta=meta)
                 elif fetch_mode == "full":
-                    content, meta = self._fetch_full_filing_as_zip(
+                    content = self._fetch_full_filing_as_zip(
                         cik_pad=cik_pad,
                         accession=accession,
-                        filer_name=filer_name,
-                        form=form,
-                        filing_date_s=filing_date_s,
-                        report_date_s=report_date_s,
-                        sic_or_desc=sic or sic_desc,
-                        state=state,
-                        fye=fye,
                     )
-                    yield RawDocument(content=content, meta=meta)
+
                 else:
                     raise CollectorInvalidFetchModeError(fetch_mode.value)
 
+                meta = {
+                    **company_meta,
+                    "accessionNumber": accession,
+                    "filingDate": recent_filings["filingDate"][i],
+                    "reportDate": recent_filings["reportDate"][i],
+                    "acceptanceDateTime": recent_filings["acceptanceDateTime"][i],
+                    "act": recent_filings["act"][i],
+                    "form": recent_filings["form"][i],
+                    "items": recent_filings["items"][i],
+                    "core_type": recent_filings["core_type"][i],
+                    "isXBRL": recent_filings["isXBRL"][i],
+                    "isInlineXBRL": recent_filings["isInlineXBRL"][i],
+                    "primaryDocument": primary_document,
+                    "primaryDocDescription": recent_filings["primaryDocDescription"][i],
+                    "_fetch_mode": fetch_mode,
+                }
+                yield RawDocument(content=content, meta=meta)
+
     def _fetch_full_filing_as_zip(
         self,
-        *,
         cik_pad: str,
         accession: str,
-        filer_name: str,
-        form: str,
-        filing_date_s: str,
-        report_date_s: str,
-        sic_or_desc: str,
-        state: str,
-        fye: str,
-    ) -> tuple[bytes, dict[str, Any]]:
+    ) -> bytes:
         index_obj = self._client.try_get_filing_index_json(cik_pad, accession)
-        if index_obj is not None:
-            names = _filenames_from_sec_index_json(index_obj)
-        else:
-            html = self._client.get_filing_index_htm(cik_pad, accession)
-            names = _filenames_from_sec_index_htm(html)
+        if not index_obj:
+            raise CollectorNoContentError(f"{cik_pad} {accession} index.json")
+
+        names = _filenames_from_sec_index_json(index_obj)
+
         if not names:
-            raise CollectorNoContentError(accession)
+            raise CollectorNoContentError(
+                f"{cik_pad} {accession} index.json directory.item"
+            )
+
+        # If zip file is found, return the zip bytes
+        if zip_name := find_zip(file_names=names):
+            zip_bytes = self._client.get_archives_file(cik_pad, accession, zip_name)
+            return zip_bytes
+
         entries: dict[str, bytes] = {}
         for name in names:
             try:
@@ -209,26 +200,12 @@ class EdgarDocumentsCollector(BaseCollector):
                     name,
                 )
         if not entries:
-            raise CollectorNoContentError(accession)
-        zip_bytes = _filing_entries_zip_bytes(entries)
-        zip_name = f"CIK{cik_pad}-{accession}-filing.zip"
-        meta: dict[str, Any] = {
-            "cik": cik_pad,
-            "accession_number": accession,
-            "filer_name": filer_name,
-            "form_type": form,
-            "filing_date": _parse_edgar_date(filing_date_s),
-            "period_of_report": _parse_edgar_date(report_date_s),
-            "sic_code": sic_or_desc,
-            "state_of_incorporation": state,
-            "fiscal_year_end": fye,
-            "format": "zip",
-            "primary_name": zip_name,
-            "is_zip": True,
-            "_origin": "documents",
-            "_fetch_mode": "full",
-        }
-        return zip_bytes, meta
+            raise CollectorParseResponseValidationError(
+                f"{cik_pad} {accession} no documents found"
+            )
+
+        zip_bytes = build_zip_bytes(entries)
+        return zip_bytes
 
     @override
     def _parse_response(self, raw: RawDocument) -> Parsed:
