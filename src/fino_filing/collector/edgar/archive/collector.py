@@ -22,16 +22,14 @@ from fino_filing.util.edgar import pad_cik
 
 from .._helper import (
     _filenames_from_sec_index_json,
-)
-from ..client import EdgarClient
-from ..config import EdgarConfig
-from ._helper import (
     _infer_edgar_format,
     _parse_edgar_date,
     _parse_edgar_datetime,
     _parse_edgar_flag,
     _verify_and_parse_edgar_submissions_recent_filings,
 )
+from ..client import EdgarClient
+from ..config import EdgarConfig
 from .enum import EdgarDocumentsFetchMode
 
 logger = logging.getLogger(__name__)
