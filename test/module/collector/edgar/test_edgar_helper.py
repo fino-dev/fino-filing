@@ -54,9 +54,12 @@ class TestEdgarHelper:
             """parse_edgar_flag が正常に動作する"""
             assert not _parse_edgar_flag("0")
             assert _parse_edgar_flag("1")
+            assert not _parse_edgar_flag(0)
+            assert _parse_edgar_flag(1)
             assert _parse_edgar_flag("") is None
             assert _parse_edgar_flag(None) is None
             assert _parse_edgar_flag("2") is None
+            assert _parse_edgar_flag(2) is None
 
     class TestInferEdgarFormat:
         """_infer_edgar_archive_format"""
