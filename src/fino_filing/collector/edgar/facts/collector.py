@@ -14,9 +14,6 @@ from fino_filing.util.content import sha256_checksum
 from fino_filing.util.delimited_symbols import normalize_delimited_multivalue
 from fino_filing.util.edgar import pad_cik
 
-from .._helpers import (
-    _build_company_facts_json_file_name,
-)
 from ..client import EdgarClient
 from ..config import EdgarConfig
 
@@ -136,13 +133,11 @@ class EdgarFactsCollector(BaseCollector):
         if not cik:
             raise CollectorParseResponseValidationError("cik")
 
-        name = _build_company_facts_json_file_name(cik)
-        checksum = sha256_checksum(content)
         return EdgarCompanyFactsFiling(
             # source, format, is_zip are default defined
-            # ID will be automatically generated from identifier fields
-            name=name,
-            checksum=checksum,
+            # id, created_at will be automatically generated from identifier fields
+            name=EdgarCompanyFactsFiling.build_default_name(cik=cik),
+            checksum=sha256_checksum(content),
             # edgar_resource_kind is default defined
             cik=cik,
             entity_type=parsed.get("entity_type"),

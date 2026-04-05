@@ -14,11 +14,6 @@ def _build_recent_submissions_json_file_name(cik: str) -> str:
     return f"CIK{pad_cik(cik)}-submissions.json"
 
 
-def _build_company_facts_json_file_name(cik: str) -> str:
-    """Build company facts json name"""
-    return f"CIK{pad_cik(cik)}-companyfacts.json"
-
-
 # TODO: Collector refactorで不要であれば消す。テストみ作成
 def _parse_edgar_date(s: str | None) -> datetime | None:
     """YYYY-MM-DD または None を datetime に変換する。"""

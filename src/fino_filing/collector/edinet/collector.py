@@ -165,7 +165,7 @@ class EdinetCollector(BaseCollector):
             "submit_datetime": _parse_edinet_datetime(meta.get("submitDateTime")),
             "current_report_reason": meta.get("currentReportReason"),
             "parent_doc_id": meta.get("parentDocID"),
-            # Additinal field for internal use
+            # additional meta
             "_document_download_type": meta.get("_document_download_type"),
         }
 
@@ -178,7 +178,7 @@ class EdinetCollector(BaseCollector):
         format = _infer_edinet_format(document_download_type)
 
         return EDINETFiling(
-            # ID will be automatically generated from identifier fields
+            # id, created_at will be automatically generated from identifier fields
             name=EDINETFiling.build_default_name(
                 doc_id=doc_id,
                 doc_description=parsed.get("doc_description"),

@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated
 
+from fino_filing.collector.edgar.documents.enum import EdgarDocumentsFetchMode
 from fino_filing.filing.field import Field
 from fino_filing.filing.filing import Filing
 from fino_filing.util.edgar import pad_cik
@@ -11,11 +12,17 @@ class EdgarArchiveFiling(Filing):
     Edgar Archive Filing
     """
 
-    source = "Edgar"
+    source = "EDGAR"
 
     @staticmethod
-    def build_default_name(cik: str, accession: str) -> str:
-        return f"CIK{pad_cik(cik)}-{accession}-index.htm"
+    def build_default_name(
+        cik: str, accession: str, fetch_mode: EdgarDocumentsFetchMode, format: str
+    ) -> str:
+        suffix = (
+            "primary" if fetch_mode == EdgarDocumentsFetchMode.PRIMARY_ONLY else "full"
+        )
+
+        return f"CIK{pad_cik(cik)}_{accession}_{suffix}_{format}"
 
     edgar_resource_kind: Annotated[
         str, Field(indexed=True, description="Edgar Resource Kind")
@@ -70,7 +77,7 @@ class EdgarCompanyFactsFiling(Filing):
     Edgar Company Facts Filing
     """
 
-    source = "Edgar"
+    source = "EDGAR"
     format = "json"
     is_zip = False
 
@@ -114,7 +121,7 @@ class EdgarBulkFiling(Filing):
     Edgar Bulk Filing
     """
 
-    source = "Edgar"
+    source = "EDGAR"
     format = "zip"
     is_zip = True
 
