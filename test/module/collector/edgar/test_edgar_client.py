@@ -138,6 +138,27 @@ class TestEdgarClient:
                 "User-Agent": "docs@example.com",
             }
 
+        def test_get_archives_file_url_encodes_path_segments(self) -> None:
+            """get_archives_file がサブディレクトリ付き相対パスをセグメントごとに URL エンコードする"""
+            http_client_mock = MagicMock()
+            http_client_mock.get_raw.return_value = b"xml"
+
+            config = EdgarConfig(user_agent_email="docs2@example.com")
+            client = EdgarClient(config=config, _http_client=http_client_mock)
+
+            result = client.get_archives_file(
+                "320193",
+                "0000320193-23-000106",
+                "xslF345X05/wk-form4_1.xml",
+            )
+
+            assert result == b"xml"
+            http_client_mock.get_raw.assert_called_once()
+            assert http_client_mock.get_raw.call_args[0][0] == (
+                "https://www.sec.gov/Archives/edgar/data/"
+                "0000320193/000032019323000106/xslF345X05/wk-form4_1.xml"
+            )
+
     class TestGetBulk:
         """TestEdgarClient.GetBulk Test"""
 
