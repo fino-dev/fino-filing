@@ -176,6 +176,7 @@ class EdinetCollector(BaseCollector):
 
         doc_id = parsed.get("doc_id")
         format = _infer_edinet_format(document_download_type)
+        is_zip = is_zip_content(content)
 
         return EDINETFiling(
             # id, created_at will be automatically generated from identifier fields
@@ -183,10 +184,11 @@ class EdinetCollector(BaseCollector):
                 doc_id=doc_id,
                 doc_description=parsed.get("doc_description"),
                 format=format,
+                is_zip=is_zip,
             ),
             checksum=sha256_checksum(content),
             format=format,
-            is_zip=is_zip_content(content),
+            is_zip=is_zip,
             doc_id=doc_id,
             edinet_code=parsed.get("edinet_code"),
             sec_code=parsed.get("sec_code"),
