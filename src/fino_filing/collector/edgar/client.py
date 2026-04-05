@@ -73,10 +73,10 @@ class EdgarClient:
             return None
 
     # Bulk
-    def get_bulk(self, type: Literal["company_facts", "submissions"]) -> bytes:
+    def get_bulk(self, type: Literal["companyfacts", "submissions"]) -> bytes:
         """Fetch Bulk Data from specified URL"""
 
-        if type == "company_facts":
+        if type == "companyfacts":
             url = f"{self._ARCHIVES_BASE}/daily-index/xbrl/companyfacts.zip"
         elif type == "submissions":
             url = f"{self._ARCHIVES_BASE}/daily-index/bulkdata/submissions.zip"
