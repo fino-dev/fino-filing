@@ -95,7 +95,12 @@ class EdinetCollector(BaseCollector):
             list[tuple[EDINETFiling, str]]: A list of tuples containing the EDINET filing and the filing path.
         """
         return list(
-            self.iter_collect(date_from=date_from, date_to=date_to, limit=limit)
+            self.iter_collect(
+                date_from=date_from,
+                date_to=date_to,
+                document_type=document_type,
+                limit=limit,
+            )
         )
 
     def _fetch_documents(
