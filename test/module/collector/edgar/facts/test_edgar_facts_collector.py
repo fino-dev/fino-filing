@@ -6,11 +6,11 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from fino_filing.collector.edgar import EdgarConfig, EdgarFactsCollector
 
 from fino_filing import EdgarCompanyFactsFiling
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import RawDocument
+from fino_filing.collector.edgar import EdgarConfig, EdgarFactsCollector
 from fino_filing.collector.error import (
     CollectorNoContentError,
     CollectorParseResponseValidationError,
@@ -61,8 +61,8 @@ class TestEdgarFactsCollector:
             )
 
             assert len(results) == 1
-            mock_client.get_submissions.assert_called_once_with("320193")
-            mock_client.get_company_facts.assert_called_once_with("320193")
+            mock_client.get_submissions.assert_called_once_with("0000320193")
+            mock_client.get_company_facts.assert_called_once_with("0000320193")
             assert isinstance(results[0], RawDocument)
             expected_content = json.dumps(
                 edgar_company_facts_response_apple, ensure_ascii=False
@@ -196,7 +196,7 @@ class TestEdgarFactsCollector:
             )
             filing = collector._build_filing(parsed, rawDocument.content)
             assert isinstance(filing, EdgarCompanyFactsFiling)
-            assert filing.source == "Edgar"
+            assert filing.source == "EDGAR"
             assert filing.name == EdgarCompanyFactsFiling.build_default_name(
                 "0000320193"
             )

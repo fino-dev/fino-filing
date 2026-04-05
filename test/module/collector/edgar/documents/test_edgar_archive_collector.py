@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from fino_filing import Collection, EdgarArchiveCollector, EdgarConfig
+from fino_filing.collector.edgar.archive.enum import EdgarDocumentsFetchMode
 from fino_filing.collector.error import CollectorParseResponseValidationError
 
 
@@ -45,7 +46,7 @@ class TestEdgarArchiveCollector:
         out = collector.collect(
             cik_list=["0000320193"],
             limit_per_company=1,
-            fetch_mode="primary_only",
+            fetch_mode=EdgarDocumentsFetchMode.PRIMARY_ONLY,
         )
 
         assert len(out) == 1
@@ -85,7 +86,7 @@ class TestEdgarArchiveCollector:
         out = collector.collect(
             cik_list=["0000320193"],
             limit_per_company=1,
-            fetch_mode="full",
+            fetch_mode=EdgarDocumentsFetchMode.FULL,
         )
 
         assert len(out) == 1
