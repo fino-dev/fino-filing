@@ -7,7 +7,7 @@ High-level mapping only. Detailed behavior remains in `test/module/` and `test/s
 
 | Area | Module tests | Scenario tests |
 |------|----------------|----------------|
-| Collection (add / search / get) | `test/module/collection/` | `test/scenario/collection/` |
+| Collection (add / search / get) | `test/module/collection/` | `test/scenario/collection/` (Expr/custom/relocate 含む) |
 | Filing / Field / Expr | `test/module/filing/` | — |
 | Edgar Facts collector | `test/module/collector/edgar/facts/` | `test/scenario/edgar/test_facts_collect_mocked.py` |
 | Edgar Archive collector | `test/module/collector/edgar/archive/` | `test/scenario/edgar/test_archive_collect_mocked.py` |

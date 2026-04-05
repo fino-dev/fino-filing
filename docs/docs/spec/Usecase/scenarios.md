@@ -43,6 +43,9 @@ Each row maps a user-facing story to a pytest module under `test/scenario/` (no 
 |------------|-----------|
 | Manual EDINET filing: add → search → get / get_content | `test/scenario/collection/test_manual_edinet_add_search_get.py` |
 | Unknown filing id: get returns empty | `test/scenario/collection/test_get_unknown_id.py` |
+| Field/Expr: `in_`, OR, NOT, `contains`, model fields, limit/offset/order | `test/scenario/collection/test_expr_multitype_search.py` |
+| Custom `Filing` subclass (importable module): add → search → get | `test/scenario/collection/test_custom_filing_roundtrip.py` |
+| Copy storage + catalog DB to new paths; reopen `Collection` | `test/scenario/collection/test_relocate_storage_catalog.py` |
 | Edgar Company Facts: collect → get / search | `test/scenario/edgar/test_facts_collect_mocked.py` |
 | Edgar archive primary document: collect → get / search | `test/scenario/edgar/test_archive_collect_mocked.py` |
 | EDINET API path: collect (PDF) → get / search | `test/scenario/edinet/test_collect_mocked.py` |
