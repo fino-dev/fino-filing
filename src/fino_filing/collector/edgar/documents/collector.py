@@ -1,23 +1,31 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
 from fino_filing.collector.edgar.documents._helper import (
+    _infer_edgar_format,
+    _parse_edgar_date,
+    _parse_edgar_datetime,
+    _parse_edgar_flag,
     _verify_and_parse_edgar_submissions_recent_filings,
 )
 from fino_filing.collector.edgar.documents.enum import EdgarDocumentsFetchMode
 from fino_filing.collector.error import (
-    CollectorInvalidFetchModeError,
     CollectorNoContentError,
     CollectorParseResponseValidationError,
     HttpNotFoundError,
 )
 from fino_filing.filing.filing_edgar import EdgarArchiveFiling
-from fino_filing.util.content import build_zip_bytes, find_zip, sha256_checksum
+from fino_filing.util.content import (
+    build_zip_bytes,
+    find_zip,
+    is_zip_content,
+    sha256_checksum,
+)
+from fino_filing.util.delimited_symbols import normalize_delimited_multivalue
 
 from .._helpers import (
     _filenames_from_sec_index_json,
@@ -94,7 +102,7 @@ class EdgarDocumentsCollector(BaseCollector):
                 raise CollectorNoContentError(cik_pad)
 
             company_meta: dict[str, Any] = {
-                "cik": submissions.get("cik"),
+                "cik": cik_pad,
                 "entityType": submissions.get("entityType"),
                 "name": submissions.get("name"),
                 "sic": submissions.get("sic"),
@@ -127,7 +135,7 @@ class EdgarDocumentsCollector(BaseCollector):
 
                 meta: dict[str, Any]
                 content: bytes
-                if fetch_mode == "primary_only":
+                if fetch_mode == EdgarDocumentsFetchMode.PRIMARY_ONLY:
                     if not primary_document:
                         raise CollectorNoContentError(
                             f"submissions.filings.recent: {cik_pad} {accession} {primary_document}"
@@ -141,14 +149,11 @@ class EdgarDocumentsCollector(BaseCollector):
                             f"primary_only: {cik_pad} {accession} {primary_document}"
                         )
 
-                elif fetch_mode == "full":
+                elif fetch_mode == EdgarDocumentsFetchMode.FULL:
                     content = self._fetch_full_filing_as_zip(
                         cik_pad=cik_pad,
                         accession=accession,
                     )
-
-                else:
-                    raise CollectorInvalidFetchModeError(fetch_mode.value)
 
                 meta = {
                     **company_meta,
@@ -173,6 +178,7 @@ class EdgarDocumentsCollector(BaseCollector):
         cik_pad: str,
         accession: str,
     ) -> bytes:
+        """Fetch each filing and build zip bytes if possible"""
         index_obj = self._client.try_get_filing_index_json(cik_pad, accession)
         if not index_obj:
             raise CollectorNoContentError(f"{cik_pad} {accession} index.json")
@@ -211,45 +217,93 @@ class EdgarDocumentsCollector(BaseCollector):
     def _parse_response(self, raw: RawDocument) -> Parsed:
         meta = raw.meta
         return {
-            "cik": meta.get("cik", ""),
-            "accession_number": meta.get("accession_number", ""),
-            "filer_name": meta.get("filer_name", ""),
-            "form_type": meta.get("form_type", ""),
-            "filing_date": meta.get("filing_date"),
-            "period_of_report": meta.get("period_of_report"),
-            "sic_code": meta.get("sic_code", ""),
-            "state_of_incorporation": meta.get("state_of_incorporation", ""),
-            "fiscal_year_end": meta.get("fiscal_year_end", ""),
-            "format": meta.get("format", "htm"),
-            "primary_name": meta.get("primary_name", ""),
-            "is_zip": bool(meta.get("is_zip", False)),
+            # company meta
+            "cik": meta.get("cik"),
+            "entity_type": meta.get("entityType"),
+            "filer_name": meta.get("name"),
+            "sic": meta.get("sic"),
+            "sic_description": meta.get("sicDescription"),
+            "filer_category": meta.get("category"),
+            "fiscal_year_end": meta.get("fiscalYearEnd"),
+            "state_of_incorporation": meta.get("stateOfIncorporation"),
+            "tickers": meta.get("tickers"),
+            "exchanges": meta.get("exchanges"),
+            # filing meta
+            "accession_number": meta.get("accessionNumber"),
+            "filing_date": _parse_edgar_date(meta.get("filingDate")),
+            "report_date": _parse_edgar_date(meta.get("reportDate")),
+            "acceptance_date_time": _parse_edgar_datetime(
+                meta.get("acceptanceDateTime")
+            ),
+            "act": meta.get("act"),
+            "form": meta.get("form"),
+            "items": meta.get("items"),
+            "core_type": meta.get("core_type"),
+            "is_xbrl": _parse_edgar_flag(meta.get("isXBRL")),
+            "is_inline_xbrl": _parse_edgar_flag(meta.get("isInlineXBRL")),
+            "primary_document": meta.get("primaryDocument"),
+            "primary_doc_description": meta.get("primaryDocDescription"),
+            # additional meta
+            "_fetch_mode": meta.get("_fetch_mode"),
         }
 
     @override
     def _build_filing(self, parsed: Parsed, content: bytes) -> EdgarArchiveFiling:
-        primary_name = parsed.get("primary_name") or (
-            str(parsed.get("accession_number", "")) + "-index.htm"
+        cik = parsed.get("cik")
+        if not cik:
+            raise CollectorParseResponseValidationError("cik")
+
+        accession_number = parsed.get("accession_number")
+        if not accession_number:
+            raise CollectorParseResponseValidationError("accession_number")
+
+        fetch_mode = parsed.get("_fetch_mode")
+        if not isinstance(fetch_mode, EdgarDocumentsFetchMode):
+            raise CollectorParseResponseValidationError("fetch_mode")
+
+        is_xbrl = parsed.get("is_xbrl")
+        is_inline_xbrl = parsed.get("is_inline_xbrl")
+        primary_document = parsed.get("primary_document")
+        format = _infer_edgar_format(
+            is_xbrl=is_xbrl,
+            is_inline_xbrl=is_inline_xbrl,
+            primary_document=primary_document,
         )
-        filing_date = parsed.get("filing_date")
-        created_at = (
-            filing_date if isinstance(filing_date, datetime) else datetime.now()
-        )
-        filing_date_effective = parsed.get("filing_date") or created_at
-        period_effective = parsed.get("period_of_report") or created_at
+
         return EdgarArchiveFiling(
-            source="Edgar",
-            name=primary_name,
+            # id, created_at will be automatically generated from identifier fields
+            name=EdgarArchiveFiling.build_default_name(
+                cik=cik,
+                accession=accession_number,
+                fetch_mode=fetch_mode,
+                format=parsed.get("format", "htm"),
+            ),
             checksum=sha256_checksum(content),
-            format=parsed.get("format", "htm"),
-            is_zip=bool(parsed.get("is_zip", False)),
-            cik=parsed.get("cik", ""),
-            accession_number=parsed.get("accession_number", ""),
-            filer_name=parsed.get("filer_name", ""),
-            form_type=parsed.get("form_type", ""),
-            filing_date=filing_date_effective,
-            period_of_report=period_effective,
-            sic_code=parsed.get("sic_code", ""),
-            state_of_incorporation=parsed.get("state_of_incorporation", ""),
-            fiscal_year_end=parsed.get("fiscal_year_end", ""),
-            created_at=created_at,
+            format=format,
+            is_zip=is_zip_content(content),
+            # company meta
+            # edgar_resource_kind is default defined
+            cik=cik,
+            entity_type=parsed.get("entity_type"),
+            filer_name=parsed.get("filer_name"),
+            sic=parsed.get("sic"),
+            sic_description=parsed.get("sic_description"),
+            filer_category=parsed.get("filer_category"),
+            state_of_incorporation=parsed.get("state_of_incorporation"),
+            fiscal_year_end=parsed.get("fiscal_year_end"),
+            tickers_key=normalize_delimited_multivalue(parsed.get("tickers")),
+            exchanges_key=normalize_delimited_multivalue(parsed.get("exchanges")),
+            # filing meta
+            accession_number=accession_number,
+            filing_date=parsed.get("filing_date"),
+            report_date=parsed.get("report_date"),
+            acceptance_date_time=parsed.get("acceptance_date_time"),
+            act=parsed.get("act"),
+            form=parsed.get("form"),
+            items=parsed.get("items"),
+            core_type=parsed.get("core_type"),
+            is_xbrl=is_xbrl,
+            is_inline_xbrl=is_inline_xbrl,
+            primary_document=primary_document,
+            primary_doc_description=parsed.get("primary_doc_description"),
         )

@@ -46,7 +46,7 @@ class EDINETFiling(Filing):
         base = "_".join(base_parts)
 
         if format:
-            return f"{base}.{format}"
+            return f"{base}_{format}"
         return base
 
     # use doc_id as identifier field
