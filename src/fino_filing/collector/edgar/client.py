@@ -11,9 +11,10 @@ from typing import Any, Literal
 from urllib.parse import quote
 
 from fino_filing.collector._http_client import HttpClient, HttpClientConfig
-from fino_filing.collector.edgar._helpers import _accession_to_dir, pad_cik
+from fino_filing.collector.edgar._helper import _accession_to_dir
 from fino_filing.collector.edgar.config import EdgarConfig
 from fino_filing.collector.error import HttpNotFoundError
+from fino_filing.util.edgar import pad_cik
 
 logger = logging.getLogger(__name__)
 

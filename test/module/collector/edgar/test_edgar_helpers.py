@@ -1,11 +1,9 @@
 import pytest
-from fino_filing.collector.edgar._helpers import (
-    _build_company_facts_json_file_name,
+
+from fino_filing.collector.edgar._helper import (
     _build_recent_submissions_json_file_name,
-    _filenames_from_sec_index_htm,
     _filenames_from_sec_index_json,
     _format_from_primary_filename,
-    _filing_entries_zip_bytes,
 )
 
 
@@ -68,9 +66,7 @@ class TestEdgarHelpers:
     class TestFormatAndZip:
         def test_format_from_primary_filename_nested_path(self) -> None:
             """相対パスにサブディレクトリがあっても拡張子を推定する"""
-            assert (
-                _format_from_primary_filename("xslF345X05/wk-form4_1.xml") == "xml"
-            )
+            assert _format_from_primary_filename("xslF345X05/wk-form4_1.xml") == "xml"
 
         def test_filing_entries_zip_bytes_roundtrip(self) -> None:
             """複数エントリを ZIP にまとめられる"""

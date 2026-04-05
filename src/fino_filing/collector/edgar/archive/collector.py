@@ -18,10 +18,10 @@ from fino_filing.util.content import (
     sha256_checksum,
 )
 from fino_filing.util.delimited_symbols import normalize_delimited_multivalue
+from fino_filing.util.edgar import pad_cik
 
-from .._helpers import (
+from .._helper import (
     _filenames_from_sec_index_json,
-    pad_cik,
 )
 from ..client import EdgarClient
 from ..config import EdgarConfig
