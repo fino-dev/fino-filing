@@ -20,6 +20,11 @@ def date_now() -> date:
 
 
 @pytest.fixture
+def sample_content() -> bytes:
+    return b"test content"
+
+
+@pytest.fixture
 def sample_filing() -> tuple[Filing, bytes]:
     """サンプル Filing と content の組。戻り値型: tuple[Filing, bytes]。"""
     content = b"test content"
