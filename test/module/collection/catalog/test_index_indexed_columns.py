@@ -204,7 +204,6 @@ class TestCatalog_Index_IndexedColumns:
         )
         f2 = EdgarCompanyFactsFiling(
             id="facts_edgar_cc",
-            source="Edgar",
             checksum=checksum,
             name="b.json",
             is_zip=False,

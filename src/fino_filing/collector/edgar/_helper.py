@@ -59,7 +59,7 @@ def _parse_edgar_flag(value: str | None) -> bool | None:
     return {"0": False, "1": True}.get(value)
 
 
-def _infer_edgar_format(
+def _infer_edgar_archive_format(
     is_xbrl: bool | None, is_inline_xbrl: bool | None, primary_document: str | None
 ) -> str:
     """

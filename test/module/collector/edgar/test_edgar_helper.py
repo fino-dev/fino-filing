@@ -5,7 +5,7 @@ import pytest
 from fino_filing.collector.edgar._helper import (
     _accession_to_dir,
     _filenames_from_sec_index_json,
-    _infer_edgar_format,
+    _infer_edgar_archive_format,
     _parse_edgar_date,
     _parse_edgar_datetime,
     _parse_edgar_flag,
@@ -59,36 +59,36 @@ class TestEdgarHelper:
             assert _parse_edgar_flag("2") is None
 
     class TestInferEdgarFormat:
-        """_infer_edgar_format"""
+        """_infer_edgar_archive_format"""
 
-        def test_infer_edgar_format_success(self) -> None:
+        def test_infer_edgar_archive_format_success(self) -> None:
             """infer_edgar_format が正常に動作する"""
             assert (
-                _infer_edgar_format(
+                _infer_edgar_archive_format(
                     is_xbrl=True, is_inline_xbrl=False, primary_document=None
                 )
                 == "xbrl"
             )
             assert (
-                _infer_edgar_format(
+                _infer_edgar_archive_format(
                     is_xbrl=False, is_inline_xbrl=True, primary_document=None
                 )
                 == "ixbrl"
             )
             assert (
-                _infer_edgar_format(
+                _infer_edgar_archive_format(
                     is_xbrl=False, is_inline_xbrl=False, primary_document="a.htm"
                 )
                 == "htm"
             )
             assert (
-                _infer_edgar_format(
+                _infer_edgar_archive_format(
                     is_xbrl=False, is_inline_xbrl=False, primary_document="a.xml"
                 )
                 == "xml"
             )
             assert (
-                _infer_edgar_format(
+                _infer_edgar_archive_format(
                     is_xbrl=False, is_inline_xbrl=False, primary_document=None
                 )
                 == "htm"
