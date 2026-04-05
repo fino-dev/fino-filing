@@ -3,22 +3,23 @@ sidebar_position: 5
 title: Test
 ---
 
-## Test Strategy
+## Test strategy
 
-the Test is writtten as one of spec of this package. Therefore, all test case need to define how this pakcage should behaive.
-the Module Test strategy us ti cinorehensively cover all behavior not class construction. and
-The Scenario test strategy is to comprehensively cover critical use cases, exception patterns, and architectural boundaries.
+Tests are part of the package specification: each case documents expected behavior.
 
-## Test Module
+- **Module tests** — Cover behavior per class or API surface (including mocks), not constructors alone.
+- **Scenario tests** — One **independent user story** per module under `test/scenario/` (Collection setup → persist → search/get). They avoid live SEC/EDINET HTTP; slow bulk-style APIs are not exercised here. See [testing-strategy](/docs/dev/design/testing-strategy) and [test-matrix](/docs/dev/design/test-matrix).
 
-- **`test/`** — pytest root (`pyproject.toml`: `testpaths = ["test"]`).
-- **`test/module/`** — Unit/integration by layer:
+## Layout
+
+- **`test/`** — pytest root (`pytest.toml`: `testpaths = ["test"]`).
+- **`test/module/`** — By layer:
   - `collection/` — Collection, Catalog, Locator, FilingResolver, storages
   - `filing/` — Filing, Field, Expr, EDINETFiling, EdgarFiling
-  - `collector/` — BaseCollector, EdgarCollector, EdgarSecApi, EdgarBulkData
+  - `collector/` — BaseCollector, EdinetCollector, EdgarFactsCollector, EdgarArchiveCollector, EdgarBulkCollector, etc.
   - `core/` — Core errors
-- **`test/scenario/`** — Scenario-style tests (e.g. collection flow).
-- **`test/conftest.py`** — Shared fixtures.
+- **`test/scenario/`** — Use-case scenarios (mirrors [Scenarios](/docs/spec/Usecase/scenarios) and [Quick start](/docs/spec/Quick-start) flows where applicable).
+- **`test/conftest.py`** — Shared fixtures and `pytest_plugins` for collector response payloads used by scenarios and module collector tests.
 
 ## Dependencies
 

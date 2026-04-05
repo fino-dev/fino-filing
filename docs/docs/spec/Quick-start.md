@@ -123,6 +123,6 @@ if filing:
 
 ## Next steps
 
-- **Use cases**: See [Scenarios](/docs/spec/Usecase/scenarios) for typical workflows.
+- **Use cases**: See [Scenarios](/docs/spec/Usecase/scenarios) for typical workflows (including which stories have matching tests under `test/scenario/`).
 - **API contract**: Exceptions and return values are described in the [API spec](/docs/spec/intro).
-- **EDINET**: For Japanese filings, use `EDINETFiling` and `collection.add()` manually. An EDINET API Collector is planned.
+- **EDINET**: For Japanese filings, use `EDINETFiling` and `collection.add()` manually, or `EdinetCollector` with your own API key (scenario tests mock the API; see [Scenarios](/docs/spec/Usecase/scenarios)).

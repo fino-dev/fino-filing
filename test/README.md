@@ -4,7 +4,7 @@
 
 - **test/module/** … 単体テストおよび結合テスト（Collection はファサードのため結合テストとしてここに配置）
   - core, filing, field, collection, locator など、公開API に対応したモジュール別
-- **test/scenario/** … シナリオテスト（利用者目線の一連の流れ）。現状はコメントアウトまたは skip あり
+- **test/scenario/** … シナリオテスト（利用者ユースケースごとに独立したファイル。外部API実呼び出しは行わない）
 
 ## 実行方法
 
@@ -16,6 +16,6 @@ pytest
 
 ## どのファイルでどこまで確認しているか
 
-公開API×観点ごとの対応は **docs/design/test-matrix.md** を参照。
+公開API×観点の概要は [test-matrix](/docs/dev/design/test-matrix) を参照。
 
-異常系の仕様は **docs/design/exception-spec.md**、テスト戦略は **docs/design/testing-strategy.md** を参照。
+異常系の仕様は [Exception](/docs/spec/api/Exception)、テスト戦略は [testing-strategy](/docs/dev/design/testing-strategy) を参照。

@@ -14,6 +14,7 @@ markers = [
     "edgar: Edgar related tests",
     "edinet: EDINET related tests",
     "util: utility tests",
+    "network: tests that require live HTTP (not run in default CI scenario job)",
 ]
 
 [tool.coverage.run]
