@@ -50,13 +50,26 @@ def _parse_edgar_datetime(s: str | None) -> datetime | None:
         return None
 
 
-def _parse_edgar_flag(value: str | None) -> bool | None:
+def _parse_edgar_flag(value: str | int | bool | None) -> bool | None:
     """
-    Parse EDGAR flag string to boolean.
+    Parse EDGAR submissions flag to boolean (API may return "0"/"1" or 0/1 in JSON).
     """
-    if not value:
+    if value is None:
         return None
-    return {"0": False, "1": True}.get(value)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        if value == 0:
+            return False
+        if value == 1:
+            return True
+        return None
+    if isinstance(value, str):
+        s = value.strip()
+        if not s:
+            return None
+        return {"0": False, "1": True}.get(s)
+    return None
 
 
 def _infer_edgar_archive_format(
