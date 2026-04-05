@@ -25,6 +25,14 @@ class CollectorLimitValidationError(FinoFilingException, ValueError):
         self.limit = limit
 
 
+class CollectorInvalidFetchModeError(FinoFilingException, ValueError):
+    """Collector Invalid Fetch Mode Error"""
+
+    def __init__(self, fetch_mode: str):
+        super().__init__(f"Invalid fetch mode: {fetch_mode}")
+        self.fetch_mode = fetch_mode
+
+
 class CollectorNoContentError(FinoFilingException, ValueError):
     """Collector No Content Error"""
 

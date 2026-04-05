@@ -1,11 +1,7 @@
-"""EdgarFactsCollector: JSON API から構造化データを収集して Collection に保存する。"""
-
 from __future__ import annotations
 
 import json
 from typing import Any, Iterator, cast, override
-
-from fino_filing.filing.filing_edgar import EdgarCompanyFactsFiling
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
@@ -13,8 +9,10 @@ from fino_filing.collector.error import (
     CollectorNoContentError,
     CollectorParseResponseValidationError,
 )
+from fino_filing.filing.filing_edgar import EdgarCompanyFactsFiling
 from fino_filing.util.content import sha256_checksum
 from fino_filing.util.delimited_symbols import normalize_delimited_multivalue
+from fino_filing.util.edgar import pad_cik
 
 from .._helpers import (
     _build_company_facts_json_file_name,
@@ -91,13 +89,14 @@ class EdgarFactsCollector(BaseCollector):
         if not cik_list:
             return
         for cik in cik_list:
-            submissions = self._client.get_submissions(cik)
+            cik_pad = pad_cik(cik)
+            submissions = self._client.get_submissions(cik_pad)
             if not submissions:
-                raise CollectorNoContentError(cik)
+                raise CollectorNoContentError(cik_pad)
 
-            facts = self._client.get_company_facts(cik)
+            facts = self._client.get_company_facts(cik_pad)
             if not facts:
-                raise CollectorNoContentError(cik)
+                raise CollectorNoContentError(cik_pad)
 
             content = json.dumps(facts, ensure_ascii=False).encode()
 

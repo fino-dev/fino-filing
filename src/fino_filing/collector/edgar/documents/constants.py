@@ -1,0 +1,17 @@
+EDGAR_SUBMISSIONS_RECENT_PROPERTIES = [
+    "accessionNumber",
+    "filingDate",
+    "reportDate",
+    "acceptanceDateTime",
+    "act",
+    "form",
+    # "fileNumber",
+    # "filmNumber",
+    "items",
+    "core_type",
+    # "size",
+    "isXBRL",
+    "isInlineXBRL",
+    "primaryDocument",
+    "primaryDocDescription",
+]
