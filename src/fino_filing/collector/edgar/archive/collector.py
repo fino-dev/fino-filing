@@ -266,10 +266,10 @@ class EdgarArchiveCollector(BaseCollector):
         is_xbrl = parsed.get("is_xbrl")
         is_inline_xbrl = parsed.get("is_inline_xbrl")
         primary_document = parsed.get("primary_document")
-        zip_content = is_zip_content(content)
+        is_zip = is_zip_content(content)
         filing_format = (
             "zip"
-            if zip_content
+            if is_zip
             else _infer_edgar_archive_format(
                 is_xbrl=is_xbrl,
                 is_inline_xbrl=is_inline_xbrl,
@@ -284,10 +284,11 @@ class EdgarArchiveCollector(BaseCollector):
                 accession=accession_number,
                 fetch_mode=fetch_mode,
                 format=filing_format,
+                is_zip=is_zip,
             ),
             checksum=sha256_checksum(content),
             format=filing_format,
-            is_zip=zip_content,
+            is_zip=is_zip,
             # company meta
             # edgar_resource_kind is default defined
             cik=cik,

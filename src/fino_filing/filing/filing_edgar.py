@@ -16,13 +16,19 @@ class EdgarArchiveFiling(Filing):
 
     @staticmethod
     def build_default_name(
-        cik: str, accession: str, fetch_mode: EdgarDocumentsFetchMode, format: str
+        cik: str,
+        accession: str,
+        fetch_mode: EdgarDocumentsFetchMode,
+        format: str,
+        is_zip: bool,
     ) -> str:
-        suffix = (
+        base_suffix = (
             "primary" if fetch_mode == EdgarDocumentsFetchMode.PRIMARY_ONLY else "full"
         )
 
-        return f"CIK{pad_cik(cik)}_{accession}_{suffix}_{format}"
+        extension = "zip" if is_zip else format
+
+        return f"CIK{pad_cik(cik)}_{accession}_{base_suffix}.{extension}"
 
     edgar_resource_kind: Annotated[
         str, Field(indexed=True, description="Edgar Resource Kind")
