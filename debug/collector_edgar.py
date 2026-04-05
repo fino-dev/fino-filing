@@ -2,8 +2,8 @@ import logging
 
 from fino_filing import (
     Collection,
+    EdgarArchiveCollector,
     EdgarConfig,
-    EdgarDocumentsCollector,
     EdgarFactsCollector,
     EdgarFiling,
     Field,
@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 collection = Collection()
 config = EdgarConfig(user_agent_email="odukaki@gmail.com")
 
-collector = EdgarDocumentsCollector(collection=collection, config=config)
+collector = EdgarArchiveCollector(collection=collection, config=config)
 
 # 収集条件は collect() 呼び出し時に渡す
 collected = collector.collect(cik_list=["320193"], limit_per_company=2)

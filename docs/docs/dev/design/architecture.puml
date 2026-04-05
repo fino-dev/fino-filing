@@ -169,7 +169,7 @@ package "Fino Filing" {
       # build_filing(parsed) : Filing
     }
 
-    class EdgarDocumentsCollector {
+    class EdgarArchiveCollector {
       - client : EdgarClient
       --
       用途: 提出書類(htm/iXBRL)
@@ -220,12 +220,12 @@ package "Fino Filing" {
 
     BaseCollector <|-- EdinetCollector : extends
     BaseCollector <|-- EdgarFactsCollector : extends
-    BaseCollector <|-- EdgarDocumentsCollector : extends
+    BaseCollector <|-- EdgarArchiveCollector : extends
     BaseCollector <|-- EdgarBulkCollector : extends
     BaseCollector o-- Collection : collection
     EdinetCollector o-- EdinetClient : client
     EdgarFactsCollector o-- EdgarClient : client
-    EdgarDocumentsCollector o-- EdgarClient : client
+    EdgarArchiveCollector o-- EdgarClient : client
     EdgarBulkCollector o-- EdgarClient : client
     EdinetClient o-- EdinetConfig : config
     EdgarClient o-- EdgarConfig : config

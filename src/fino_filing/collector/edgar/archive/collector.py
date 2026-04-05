@@ -5,14 +5,6 @@ from typing import Any, Iterator, cast, override
 
 from fino_filing.collection.collection import Collection
 from fino_filing.collector.base import BaseCollector, Parsed, RawDocument
-from fino_filing.collector.edgar.documents._helper import (
-    _infer_edgar_format,
-    _parse_edgar_date,
-    _parse_edgar_datetime,
-    _parse_edgar_flag,
-    _verify_and_parse_edgar_submissions_recent_filings,
-)
-from fino_filing.collector.edgar.documents.enum import EdgarDocumentsFetchMode
 from fino_filing.collector.error import (
     CollectorNoContentError,
     CollectorParseResponseValidationError,
@@ -33,13 +25,21 @@ from .._helpers import (
 )
 from ..client import EdgarClient
 from ..config import EdgarConfig
+from ._helper import (
+    _infer_edgar_format,
+    _parse_edgar_date,
+    _parse_edgar_datetime,
+    _parse_edgar_flag,
+    _verify_and_parse_edgar_submissions_recent_filings,
+)
+from .enum import EdgarDocumentsFetchMode
 
 logger = logging.getLogger(__name__)
 
 
-class EdgarDocumentsCollector(BaseCollector):
+class EdgarArchiveCollector(BaseCollector):
     """
-    EdgarDocumentsCollector for SEC Archives Filings or Documents
+    EdgarArchiveCollector for SEC Archives Filings or Documents
     """
 
     def __init__(self, collection: Collection, config: EdgarConfig) -> None:

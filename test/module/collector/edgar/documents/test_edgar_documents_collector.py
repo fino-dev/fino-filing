@@ -6,16 +6,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from fino_filing import Collection, EdgarConfig, EdgarDocumentsCollector
+from fino_filing import Collection, EdgarArchiveCollector, EdgarConfig
 from fino_filing.collector.error import CollectorParseResponseValidationError
 
 
 @pytest.mark.module
 @pytest.mark.collector
 @pytest.mark.edgar
-class TestEdgarDocumentsCollector:
+class TestEdgarArchiveCollector:
     """
-    EdgarDocumentsCollector Test
+    EdgarArchiveCollector Test
     """
 
     def test_collector_initialize_with_config(
@@ -25,7 +25,7 @@ class TestEdgarDocumentsCollector:
     ) -> None:
         """Collector の初期化が config を渡して client に反映される"""
         collection, _ = temp_collection
-        collector = EdgarDocumentsCollector(collection=collection, config=edgar_config)
+        collector = EdgarArchiveCollector(collection=collection, config=edgar_config)
         assert collector._client._headers["User-Agent"] == "test@example.com"
 
     def test_fetch_mode_primary_only_uses_archives_file(
@@ -36,7 +36,7 @@ class TestEdgarDocumentsCollector:
     ) -> None:
         """fetch_mode=primary_only で primaryDocument パスを get_archives_file する"""
         collection, _ = temp_collection
-        collector = EdgarDocumentsCollector(collection=collection, config=edgar_config)
+        collector = EdgarArchiveCollector(collection=collection, config=edgar_config)
         mock_client = MagicMock()
         mock_client.get_submissions.return_value = edgar_submissions_response_apple
         mock_client.get_archives_file.return_value = b"<p>primary</p>"
@@ -64,7 +64,7 @@ class TestEdgarDocumentsCollector:
     ) -> None:
         """fetch_mode=full で index 由来の全ファイルを ZIP にまとめる"""
         collection, _ = temp_collection
-        collector = EdgarDocumentsCollector(collection=collection, config=edgar_config)
+        collector = EdgarArchiveCollector(collection=collection, config=edgar_config)
         mock_client = MagicMock()
         mock_client.get_submissions.return_value = edgar_submissions_response_apple
         mock_client.try_get_filing_index_json.return_value = {
@@ -106,7 +106,7 @@ class TestEdgarDocumentsCollector:
     ) -> None:
         """primary_only で並列配列の長さが揃わないとき検証エラーとする"""
         collection, _ = temp_collection
-        collector = EdgarDocumentsCollector(collection=collection, config=edgar_config)
+        collector = EdgarArchiveCollector(collection=collection, config=edgar_config)
         bad = {**edgar_submissions_response_apple}
         recent = dict(bad["filings"]["recent"])
         recent["primaryDocument"] = recent["primaryDocument"][:-1]

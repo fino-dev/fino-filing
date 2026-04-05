@@ -14,7 +14,7 @@ High-level architecture of fino-filing. The implementation follows these boundar
 | **Storage**    | Persist and load content by path                                    | `Storage` (Protocol), `LocalStorage`                                                                       |
 | **Locator**    | Resolve Filing → storage path (Strategy)                            | `Locator`                                                                                                  |
 | **Filing**     | Document model; Field/Expr for schema and query                     | `Filing`, `Field`, `Expr`, `EDINETFiling`, `EdgarFiling`                                                   |
-| **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgarFactsCollector`, `EdgarDocumentsCollector`, `EdgarBulkCollector` |
+| **Collector**  | Fetch → parse → build_filing → add_to_collection (Template Method)  | `BaseCollector`, `EdinetCollector`, `EdgarFactsCollector`, `EdgarArchiveCollector`, `EdgarBulkCollector` |
 
 ## Patterns in use
 
@@ -34,5 +34,5 @@ It describes Collection, Catalog, Storage, Locator, Filing, Field, Expr, Collect
 
 ## Further design docs
 
-- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edgar は EdgarFactsCollector / EdgarDocumentsCollector / EdgarBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edgar.py`。
+- **Collector boundary (用途別)**: [collector_strategy](/docs/dev/design/collector_strategy). Edgar は EdgarFactsCollector / EdgarArchiveCollector / EdgarBulkCollector の 3 本。実装は `src/fino_filing/collector/base.py`, `edgar.py`。
 - Field/DSL and DuckDB: see `filing/field.py` and `expr.py`; Catalog builds SQL from Expr.
