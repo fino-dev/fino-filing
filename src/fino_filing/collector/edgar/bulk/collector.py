@@ -63,7 +63,8 @@ class EdgarBulkCollector(BaseCollector):
             target = "submissions"
         content = self._client.get_bulk(target)
         yield RawDocument(
-            content=content, meta={"bulk_type": bulk_type, "bulk_date": date.today()}
+            content=content,
+            meta={"bulk_type": bulk_type.value, "bulk_date": date.today()},
         )
 
     @override
@@ -83,7 +84,8 @@ class EdgarBulkCollector(BaseCollector):
         if not bulk_date:
             raise CollectorParseResponseValidationError("bulk_date")
         return EdgarBulkFiling(
-            source="Edgar",
+            # id, created_at will be automatically generated from identifier fields
+            # source, format, is_zip are default defined
             name=EdgarBulkFiling.build_default_name(
                 bulk_type=bulk_type, bulk_date=bulk_date
             ),
