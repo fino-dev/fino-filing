@@ -265,3 +265,35 @@ class TestEdinetCollector:
             assert filing.submit_datetime == datetime(2025, 4, 2, 9, 18)
             assert filing.current_report_reason is None
             assert filing.parent_doc_id is None
+
+    class TestCollect:
+        """EdinetCollector.collect Test"""
+
+        def test_collect_passes_document_type_to_client(
+            self,
+            temp_collection: tuple[Collection, Path],
+            tmp_edinet_config: EdinetConfig,
+            edinet_document_list_response_type2_5_items: dict[str, Any],
+        ) -> None:
+            """collect が document_type を渡し、取得した1件を Collection に保存する"""
+            collection, _ = temp_collection
+            collector = EdinetCollector(collection=collection, config=tmp_edinet_config)
+            mock_client = MagicMock()
+            mock_client.get_document_list.return_value = (
+                edinet_document_list_response_type2_5_items
+            )
+            mock_client.get_document.return_value = b"%PDF-1.4 dummy"
+            collector._client = mock_client
+
+            results = collector.collect(
+                date_from=date(2025, 4, 2),
+                date_to=date(2025, 4, 2),
+                document_type=EDINET_DOCUMENT_DOWNLOAD_TYPE.PDF,
+                limit=1,
+            )
+
+            assert len(results) == 1
+            mock_client.get_document.assert_called_once()
+            call_kw = mock_client.get_document.call_args.kwargs
+            assert call_kw["doc_id"] == "S100VIZF"
+            assert call_kw["type"] == EDINET_DOCUMENT_DOWNLOAD_TYPE.PDF

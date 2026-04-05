@@ -1,4 +1,5 @@
 import hashlib
+import sys
 import tempfile
 from datetime import date, datetime
 from pathlib import Path
@@ -7,6 +8,16 @@ from typing import Iterator
 import pytest
 
 from fino_filing import Catalog, Collection, Filing, LocalStorage
+
+_test_root = Path(__file__).resolve().parent
+if str(_test_root) not in sys.path:
+    sys.path.insert(0, str(_test_root))
+
+pytest_plugins = [
+    "module.collector.conftest",
+    "module.collector.edgar.conftest",
+    "module.collector.edinet.conftest",
+]
 
 
 @pytest.fixture

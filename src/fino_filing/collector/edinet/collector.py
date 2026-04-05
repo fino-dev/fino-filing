@@ -64,6 +64,7 @@ class EdinetCollector(BaseCollector):
             super().iter_collect(
                 date_from=date_from,
                 date_to=date_to,
+                document_type=document_type,
                 limit=limit,
             ),
         )
