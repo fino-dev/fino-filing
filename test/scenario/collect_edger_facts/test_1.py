@@ -29,23 +29,11 @@ class TestScenario_CollectEdgarFacts:
             config=EdgarConfig(user_agent_email="test@example.com"),
         )
 
-        print("===================================")
-        print("Alphabet Inc. (cik: 0001652044)")
-        print("===================================")
-        # 収集可能である
         collected = collector.collect(cik_list=["0001652044"])
-
-        print(f"collected number: {len(collected)}")
-        for filing, path in collected:
-            filing = collected[0][0]
-            path = collected[0][1]
-            print(f"filing: {filing.name}")
-            print(f"path: {path}")
-            print("-----------------------------------")
 
         # 収集結果が 1 件であり、指定のpathに保存されている
         assert len(collected) == 1
-        assert collected[0][0].source == "Edgar"
+        assert collected[0][0].source == "EDGAR"
         path = Path(collected[0][1])
         assert path is not None
         assert path.exists()
@@ -53,7 +41,7 @@ class TestScenario_CollectEdgarFacts:
         # Collectionからgetできる
         filing, content, path = temp_collection.get(collected[0][0].id)
         assert filing is not None
-        assert filing.source == "Edgar"
+        assert filing.source == "EDGAR"
         assert content is not None
 
         assert path is not None
@@ -66,7 +54,7 @@ class TestScenario_CollectEdgarFacts:
         filing = filings[0]
         assert filing is not None
         assert isinstance(filing, EdgarCompanyFactsFiling)
-        assert filing.source == "Edgar"
+        assert filing.source == "EDGAR"
         assert filing.id == collected[0][0].id
         assert filing.name == collected[0][0].name
         assert filing.created_at == collected[0][0].created_at
@@ -79,6 +67,6 @@ class TestScenario_CollectEdgarFacts:
 
         # 左辺でモデルフィールド（デフォルトあり）でも search 可能
         filings = temp_collection.search(
-            expr=(EdgarCompanyFactsFiling.source == "Edgar")
+            expr=(EdgarCompanyFactsFiling.source == "EDGAR")
         )
         assert len(filings) == 1 and filings[0].id == collected[0][0].id
