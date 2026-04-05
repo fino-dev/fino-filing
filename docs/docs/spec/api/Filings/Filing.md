@@ -43,7 +43,7 @@ All filings have these fields. Required unless noted.
 | Field        | Type     | Required | Indexed | Immutable | Description                                                |
 | ------------ | -------- | -------- | ------- | --------- | ---------------------------------------------------------- |
 | `id`         | str      | yes      | yes     | yes       | Filing ID (auto-generated from identity fields if omitted) |
-| `source`     | str      | yes      | yes     | yes       | Data source (e.g. "Edgar", "EDINET")                       |
+| `source`     | str      | yes      | yes     | yes       | Data source（例: `"EDGAR"`, `"EDINET"`）                    |
 | `checksum`   | str      | yes      | yes     | no        | SHA256 hex digest of content                               |
 | `name`       | str      | yes      | yes     | yes       | File name                                                  |
 | `is_zip`     | bool     | yes      | yes     | no        | Whether content is ZIP                                     |
@@ -54,4 +54,4 @@ All filings have these fields. Required unless noted.
 
 You can define your own Filing type by subclassing `Filing` and declaring additional fields with `Annotated[str, Field(...)]` (or other types). The metaclass handles schema registration, identity, and validation. Register your subclass on a `FilingResolver` (e.g. used by Catalog) so instances can be restored from storage.
 
-By default, the package provides built-in subclasses that follow this pattern: **EDINETFiling** (source `"EDINET"`); **EdgarFiling** (source `"Edgar"`, one submission filing); **EdgarCompanyFactsFiling** (source `"Edgar"`, Company Facts JSON). They add source-specific fields and are registered on the default resolver for Catalog restore.
+組み込みサブクラス: **EDINETFiling**（`source="EDINET"`）; **EdgarArchiveFiling** / **EdgarBulkFiling** / **EdgarCompanyFactsFiling**（いずれも `source="EDGAR"`）。いずれも `default_resolver` に登録され、Catalog から復元可能。

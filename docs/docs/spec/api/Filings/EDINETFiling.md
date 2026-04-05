@@ -13,23 +13,15 @@ Built-in Filing subclass for EDINET documents. Registered on `default_resolver` 
 
 ## Additional fields
 
-All are defined with `Field(...)`; none are `indexed` by default in the base definition.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `doc_id` | str | — | Doc ID (書類管理番号) |
-| `edinet_code` | str | — | EDINET code |
-| `sec_code` | str | — | Security code (証券コード) |
-| `jcn` | str | — | Corporate number (法人番号) |
-| `filer_name` | str | — | Filer name (提出者名) |
-| `ordinance_code` | str | — | Ordinance code |
-| `form_code` | str | — | Form code |
-| `doc_type_code` | str | — | Document type code |
-| `doc_description` | str | — | Document description |
-| `period_start` | datetime | — | Period start |
-| `period_end` | datetime | — | Period end |
-| `submit_datetime` | datetime | — | Submit datetime |
-| `parent_doc_id` | str \| None | None | Parent doc ID (optional) |
+| Field | Type | 備考 |
+|-------|------|------|
+| `doc_id` | str | `indexed=True`, `identifier=True`, `required=True` |
+| `edinet_code`, `sec_code`, `jcn`, `filer_name`, `fund_code` | str | |
+| `ordinance_code`, `form_code`, `doc_type_code`, `doc_description` | str | |
+| `period_start`, `period_end` | date | |
+| `submit_datetime` | datetime | |
+| `current_report_reason` | str | |
+| `parent_doc_id` | str \| None | 既定 `None` |
 
 ## Constructor
 

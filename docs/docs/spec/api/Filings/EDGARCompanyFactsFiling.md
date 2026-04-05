@@ -1,28 +1,29 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 title: EdgarCompanyFactsFiling
 ---
 
 # EdgarCompanyFactsFiling
 
-Built-in Filing subclass for **one Company Facts API** response (`/api/xbrl/companyfacts/CIKxxx.json`). Registered on `default_resolver` for Catalog restore. Used by `EdgarFactsCollector`.
+**Company Facts API** の JSON スナップショット 1 件（`/api/xbrl/companyfacts/CIKxxx.json`）。`default_resolver` 登録済み。`EdgarFactsCollector` が生成する。
 
-## Fixed field
+## 固定値
 
-- **source**: Always `"Edgar"` (class attribute; same literal as `EdgarFiling` for cross-source queries).
+- **source**: `"EDGAR"`
+- **edgar_resource_kind**: `"companyfacts"`
+- **format**: `"json"` / **is_zip**: `False`
 
-## Additional fields
+## 追加フィールド（主）
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cik` | str | Central Index Key |
-| `filer_name` | str | Company name (from Submissions API) |
-| `sic_code` | str | SIC code or description |
-| `state_of_incorporation` | str | State of incorporation |
-| `fiscal_year_end` | str | Fiscal year end |
+| Field | 備考 |
+| ----- | ---- |
+| `cik` | `identifier=True` |
+| `entity_type`, `filer_name`, `sic`, `sic_description`, `filer_category` | Submissions メタ |
+| `state_of_incorporation`, `fiscal_year_end` | |
+| `tickers_key`, `exchanges_key` | 正規化済みパイプ区切り |
 
-Submission-specific fields (`accession_number`, `form_type`, `filing_date`, `period_of_report`) are **not** on this type.
+提出 1 件単位の `accession_number` / `form` 等はこの型には含めない。
 
-## Constructor
+## コンストラクタ
 
-Same as base `Filing`: pass core fields and any of the above. `id` and `created_at` may be omitted for auto-generation.
+基底 `Filing` と同様。`id` / `created_at` は省略可。

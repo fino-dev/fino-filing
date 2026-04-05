@@ -1,14 +1,17 @@
 # Filing APIs
 
-The **Filing** boundary provides the document model and the query DSL. It does not depend on Collection, Catalog, or Storage.
+**Filing** は書類モデルと検索 DSL（`Field` / `Expr`）。Collection / Catalog / Storage には依存しない。
 
-## Public classes
+## 公開クラス
 
-| Type                           | Description                                                                                                    |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| [Filing](/docs/spec/api/Filings/Filing)             | Document model with core fields (id, source, checksum, name, is_zip, format, created_at) and extensible schema |
-| [Field](/docs/spec/api/Filings/Field)               | Descriptor and query DSL (e.g. `Field("source") == "Edgar"`)                                                   |
-| [Expr](/docs/spec/api/Filings/Expr)                 | WHERE abstraction (sql + params); supports `&`, `|`, `~`                                                     |
-| [EDINETFiling](/docs/spec/api/Filings/EDINETFiling) | Built-in subclass for EDINET documents                                                                         |
-| [EdgarFiling](/docs/spec/api/Filings/EDGARFiling)   | Built-in subclass for one Edgar submission document (Submissions + Archives)                                  |
-| [EdgarCompanyFactsFiling](/docs/spec/api/Filings/EDGARCompanyFactsFiling) | Built-in subclass for Company Facts API JSON snapshot                                                         |
+| Type | 説明 |
+| ---- | ---- |
+| [Filing](/docs/spec/api/Filings/Filing) | コアフィールド + サブクラスで拡張するスキーマ |
+| [Field](/docs/spec/api/Filings/Field) | 記述子と `Expr` 用 DSL |
+| [Expr](/docs/spec/api/Filings/Expr) | Catalog 検索用 WHERE 抽象 |
+| [EDINETFiling](/docs/spec/api/Filings/EDINETFiling) | EDINET 書類 |
+| [EdgarArchiveFiling](/docs/spec/api/Filings/EdgarArchiveFiling) | SEC Archives 由来の提出単位 |
+| [EdgarBulkFiling](/docs/spec/api/Filings/EdgarBulkFiling) | SEC bulk ZIP |
+| [EdgarCompanyFactsFiling](/docs/spec/api/Filings/EDGARCompanyFactsFiling) | Company Facts JSON |
+
+SEC 系の **source リテラルはすべて `"EDGAR"`**（大文字）。

@@ -38,6 +38,12 @@ Summary of conditions that lead to which exception or return value. Tests align 
 | --------------- | ----------------------------------------------------------------------------------------------------------- | ----- |
 | Non-existent id | `get_filing`: `None`; `get_content`: `None`; `get`: `(None, None, None)` (3rd element is path: str \| None) |       |
 
+## Catalog.search / Catalog.count
+
+| Condition | Result | Notes |
+| --------- | ------ | ----- |
+| `expr` が Python の `bool`（例: `Field("x") == "a" & Field("y") == "b"` の誤った括弧） | `CatalogExprTypeError` | `&` / `\|` の優先順位に注意 |
+
 ## Locator.resolve
 
 | Condition                           | Result                                                      | Notes |

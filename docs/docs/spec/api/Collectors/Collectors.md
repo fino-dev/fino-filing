@@ -1,24 +1,22 @@
 # Collector APIs
 
-The **Collector** boundary fetches documents from external APIs, parses them, builds Filing instances, and adds them to a Collection. It follows a Template Method: `iter_collect()` yields after each fetch → parse → build_filing → add_to_collection; `collect()` is `list(iter_collect(...))`.
+外部 API から取得し、`Filing` を組み立てて `Collection.add` する層。**テンプレートメソッド**: 公開は `iter_collect(**criteria)` / `collect(**criteria)`。サブクラスは `_fetch_documents` / `_parse_response` / `_build_filing` を実装する。
 
-## Public types
+## 公開型（パッケージルートから re-export）
 
-| Type                                | Description                                                                                                                 |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| [BaseCollector](/docs/spec/api/Collectors/Custom/BaseCollector) | Abstract base: `iter_collect()`, `collect()`, `add_to_collection()`; subclasses implement `fetch_documents`, `parse_response`, `build_filing` |
-| RawDocument / Parsed | One fetched document: `content: bytes`, `meta: dict`; Parsed = `dict[str, Any]` before building a Filing (see BaseCollector) |
-| [EdgarConfig](/docs/spec/api/Collectors/Edgar/EdgarConfig)     | Edgar config: timeout, User-Agent                                                                                           |
-| [Edgar](/docs/spec/api/Collectors/Edgar/Edgar)                   | Edgar boundary: client, strategies (Facts, Documents, Bulk)                                                                |
-| [EdgarBulkCollector](/docs/spec/api/Collectors/Edgar/EdgarBulkCollector) | Bulk daily-index strategy                                                                                          |
-| [EdinetConfig](/docs/spec/api/Collectors/Edinet/EdinetConfig)  | EDINET API config: api_key, timeout（api_base は不要）                                                                      |
-| [EdinetCollector](/docs/spec/api/Collectors/Edinet/EdinetCollector) | 書類一覧API・書類取得API で EDINET 書類を取得し EDINETFiling として Collection に追加                                |
+| Type | 説明 |
+| ---- | ---- |
+| [BaseCollector](/docs/spec/api/Collectors/Custom/BaseCollector) | 上記フローの抽象基底 |
+| `RawDocument` / `Parsed` | `RawDocument(content: bytes, meta: dict)`; `Parsed = dict[str, Any]` |
+| [EdgarConfig](/docs/spec/api/Collectors/Edgar/EdgarConfig) / [EdgarClient](/docs/spec/api/Collectors/Edgar/EdgarClient) | SEC 用設定・HTTP クライアント（主に Collector 内部） |
+| [EdgarArchiveCollector](/docs/spec/api/Collectors/Edgar/EdgarArchiveCollector) / [EdgarFactsCollector](/docs/spec/api/Collectors/Edgar/EdgarFactsCollector) / [EdgarBulkCollector](/docs/spec/api/Collectors/Edgar/EdgarBulkCollector) | SEC 収集 |
+| [EdinetConfig](/docs/spec/api/Collectors/Edinet/EdinetConfig) / [EdinetCollector](/docs/spec/api/Collectors/Edinet/EdinetCollector) | EDINET 収集 |
 
-## Flow
+## フロー（1 件ごと）
 
-1. **fetch_documents()** → yields `RawDocument` (content + meta).
-2. **parse_response(raw)** → returns `Parsed` (dict).
-3. **build_filing(parsed, raw)** → returns `Filing`.
-4. **add_to_collection(filing, content)** → calls `Collection.add`; returns `(Filing, path)`.
+1. `_fetch_documents(**criteria)` → `RawDocument` を yield  
+2. `_parse_response(raw)` → `Parsed`  
+3. `_build_filing(parsed, content)` → `Filing`（`content` は `raw.content`）  
+4. `_add_to_collection` → `Collection.add`  
 
-Documents are processed one by one; partial results are persisted before a later failure.
+途中で失敗しても、すでに yield 済みの分は Collection に残る。

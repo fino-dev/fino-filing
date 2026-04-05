@@ -9,26 +9,15 @@ Edgar 用のユーザー設定。各 Collector のコンストラクタで渡す
 
 ## Constructor
 
-```python
-EdgarConfig(
-    user_agent_email: str,
-    timeout: int = 30,
-) -> EdgarConfig
-```
-
-| 引数 | 型 | 既定 | 説明 |
-|------|-----|------|------|
-| `user_agent_email` | str | （必須） | SEC 連絡用メール。User-Agent は package 側で `fino-filing/0.1.0 (contact: {email})` の形で組み立てる |
-| `timeout` | int | 30 | HTTP リクエストのタイムアウト（秒） |
+`HttpClientConfig` を継承する dataclass。**必須フィールドは `user_agent_email` のみ**。`rate_limit_delay`, `timeout`, `max_retries`, `retry_status_codes` 等は親クラスと同じ意味・既定値を持つ。
 
 ## 使用例
 
 ```python
-from fino_filing import EdgarConfig, EdgarArchiveCollector
-from fino_filing.collection import Collection
+from fino_filing import Collection, EdgarArchiveCollector, EdgarConfig
 
 config = EdgarConfig(user_agent_email="your@email.com")
-coll = Collection("/path/to/root")
+coll = Collection()
 collector = EdgarArchiveCollector(coll, config)
 collector.collect(cik_list=["320193"], limit_per_company=2)
 ```

@@ -5,83 +5,32 @@ title: EdinetCollector
 
 # EdinetCollector
 
-EDINET の書類一覧APIで一覧を取得し、書類取得APIで実体を取得して Collection に保存する。`BaseCollector` を継承。ユーザーは `EdinetConfig` のみ渡し、内部で `EdinetClient` を生成する。
+書類一覧 API（日付ループ）→ 書類取得 API で `EDINETFiling` を保存する。内部で `EdinetClient` を生成する。
 
 ## Constructor
 
 ```python
-EdinetCollector(
-    collection: Collection,
-    config: EdinetConfig,
-) -> EdinetCollector
+EdinetCollector(collection: Collection, config: EdinetConfig) -> EdinetCollector
 ```
 
-- **collection**: 書類と Filing を保存する Collection。
-- **config**: EDINET API 用設定（API キー・タイムアウト）。api_base は不要。
-
-## Methods
-
-### iter_collect
-
-```python
-from datetime import date
-
-iter_collect(
-    *,
-    date_from: date,
-    date_to: date,
-    limit: int | None = None,
-    list_type: int = 2,
-    **kwargs: Any,
-) -> Iterator[tuple[EDINETFiling, str]]
-```
-
-`BaseCollector.iter_collect`。1 件ごとに Collection へ保存し `(EDINETFiling, path)` を yield する。進捗表示や早期終了に利用する。
-
-### collect
+## collect / iter_collect
 
 ```python
 collect(
     *,
     date_from: date,
     date_to: date,
+    document_type: EDINET_DOCUMENT_DOWNLOAD_TYPE = EDINET_DOCUMENT_DOWNLOAD_TYPE.XBRL,
     limit: int | None = None,
-    list_type: int = 2,
-    **kwargs: Any,
 ) -> list[tuple[EDINETFiling, str]]
 ```
 
-`list(iter_collect(...))` と同じ。収集条件は `date_from`, `date_to`, `limit` 等。
+- **date_from** / **date_to**: 両端含む。`date_to < date_from` なら `CollectorDateRangeValidationError`。  
+- **document_type**: `EDINET_DOCUMENT_DOWNLOAD_TYPE`（XBRL=1, PDF=2, …）。  
+- **limit**: 全体の最大取得件数。`limit <= 0` なら `CollectorLimitValidationError`。  
 
-### fetch_documents
+一覧 API の `type` は実装固定で **METADATA_AND_LIST**（メタ＋書類一覧）。
 
-```python
-from datetime import date
+## 内部
 
-fetch_documents(
-    *,
-    date_from: date,
-    date_to: date,
-    limit: int | None = None,
-    list_type: int = 2,
-    **kwargs: Any,
-) -> Iterator[RawDocument]
-```
-
-書類一覧APIで `date_from` 〜 `date_to` の日付範囲を 1 日ずつ取得し、各日の結果について書類取得APIで実体を取得して `RawDocument` を yield する。`date_from` が `None` の場合は何も返さない。`limit` で件数上限を指定可能。`list_type` は一覧APIの type（1=メタデータのみ、2=メタデータ+書類一覧）。
-
-### parse_response
-
-```python
-parse_response(raw: RawDocument) -> Parsed
-```
-
-`raw.meta` を EDINETFiling 用の Parsed 辞書に正規化する。
-
-### build_filing
-
-```python
-build_filing(parsed: Parsed, raw: RawDocument) -> EDINETFiling
-```
-
-Parsed と `raw.content` から [EDINETFiling](../../Filings/EDINETFiling) を生成する。
+`_fetch_documents` → `_parse_response` → `_build_filing(parsed, content)`。書式・ZIP 判定はダウンロード種別とコンテンツから推論する。
