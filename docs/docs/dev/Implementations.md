@@ -39,7 +39,7 @@ Summary of the current implementation by boundary. See [Codebase](/docs/dev/Code
 - **`BaseCollector`** (`collector/base.py`) — Template Method: `iter_collect()` yields per item from `_fetch_documents()` → `_parse_response(meta)` → `_build_filing(parsed, content)` → `add_to_collection(filing, content)`; `collect()` is `list(iter_collect(...))`. Subclasses implement the three abstract methods.
 - **`RawDocument`** — `content: bytes`, `meta: dict`. One item per fetch.
 - **`Parsed`** — `dict[str, Any]`; intermediate before building a Filing.
-- **Edgar** (`collector/edgar/`): 共有 **EdgarConfig**, **EdgarClient**, **_helpers**。`documents/`・`bulk/` → **EdgarDocumentsCollector** / **EdgarBulkCollector**（`EdgarFiling`）; `facts/` → **EdgarFactsCollector**（`EdgarCompanyFactsFiling`）。
+- **Edgar** (`collector/edgar/`): 共有 **EdgarConfig**, **EdgarClient**, **_helpers**。`documents/`・`bulk/` → **EdgarArchiveCollector** / **EdgarBulkCollector**（`EdgarFiling`）; `facts/` → **EdgarFactsCollector**（`EdgarCompanyFactsFiling`）。
 
 ## Errors
 

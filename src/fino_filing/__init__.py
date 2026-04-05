@@ -9,10 +9,10 @@ from .collection.storage import Storage
 from .collection.storages import LocalStorage
 from .collector.base import BaseCollector, Parsed, RawDocument
 from .collector.edgar import (
+    EdgarArchiveCollector,
     EdgarBulkCollector,
     EdgarClient,
     EdgarConfig,
-    EdgarDocumentsCollector,
     EdgarFactsCollector,
 )
 from .collector.edinet import EdinetCollector, EdinetConfig
@@ -43,7 +43,7 @@ __all__ = [
     "EdgarBulkCollector",
     "EdgarClient",
     "EdgarConfig",
-    "EdgarDocumentsCollector",
+    "EdgarArchiveCollector",
     "EdgarFactsCollector",
     "EdinetCollector",
     "EdinetConfig",

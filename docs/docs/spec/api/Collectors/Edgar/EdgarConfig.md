@@ -24,11 +24,11 @@ EdgarConfig(
 ## 使用例
 
 ```python
-from fino_filing import EdgarConfig, EdgarDocumentsCollector
+from fino_filing import EdgarConfig, EdgarArchiveCollector
 from fino_filing.collection import Collection
 
 config = EdgarConfig(user_agent_email="your@email.com")
 coll = Collection("/path/to/root")
-collector = EdgarDocumentsCollector(coll, config)
+collector = EdgarArchiveCollector(coll, config)
 collector.collect(cik_list=["320193"], limit_per_company=2)
 ```
