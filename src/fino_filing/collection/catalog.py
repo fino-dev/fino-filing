@@ -10,6 +10,7 @@ from fino_filing.collection.error import CatalogExprTypeError, CatalogRequiredVa
 from fino_filing.collection.filing_resolver import FilingResolver
 from fino_filing.filing.expr import Expr
 from fino_filing.filing.filing import Filing
+from fino_filing.util.json_dumps import json_dumps
 
 # 物理カラムとして常に存在するコアフィールド（INSERT 順序の先頭）
 _CORE_COLUMNS = (
@@ -288,7 +289,7 @@ class Catalog:
         columns = self._get_table_column_names()
         indexed_columns = set(columns) - {"data"}
         data_only = self._data_only_dict(filing_dict, indexed_columns)
-        filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
+        filing_json = json_dumps(data_only)
         indexed_set = set(type(filing).get_indexed_fields())
 
         values: list[Any] = []
@@ -331,7 +332,7 @@ class Catalog:
                 f"{type(filing).__module__}.{type(filing).__qualname__}"
             )
             data_only = self._data_only_dict(filing_dict, indexed_columns)
-            filing_json = json.dumps(data_only, ensure_ascii=False, default=str)
+            filing_json = json_dumps(data_only)
             indexed_set = set(type(filing).get_indexed_fields())
 
             values: list[Any] = []
