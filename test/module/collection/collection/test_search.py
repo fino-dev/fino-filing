@@ -571,3 +571,67 @@ class TestCollection_Search_Expr_DSL:
         assert len(results) == 2
         sources = {f.source for f in results}
         assert sources == {"EDGAR", "EDINET"}
+
+
+@pytest.mark.module
+@pytest.mark.collection
+class TestCollection_Search_NonIndexedDataJson:
+    """TestCollection_Search_NonIndexedDataJson Test. Non-indexed model fields stored only in data JSON."""
+
+    def test_search_edinet_form_code_stored_in_data_json_only(
+        self,
+        temp_storage: LocalStorage,
+        temp_catalog: Catalog,
+        datetime_now: datetime,
+    ) -> None:
+        """form_code は indexed でなく data JSON のみ；モデル左辺の等価検索が Conversion Error なく一致件を返す"""
+        content = b"content"
+        checksum = hashlib.sha256(content).hexdigest()
+        collection = Collection(storage=temp_storage, catalog=temp_catalog)
+        target = EDINETFiling(
+            id="edinet_form_053",
+            checksum=checksum,
+            name="fc.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+            doc_id="S100FC",
+            edinet_code="E99999",
+            sec_code="99999",
+            jcn="9999999999999",
+            filer_name="FC Test Co.",
+            ordinance_code="010",
+            form_code="053000",
+            doc_type_code="120",
+            doc_description="有価証券報告書",
+            period_start=datetime_now,
+            period_end=datetime_now,
+            submit_datetime=datetime_now,
+        )
+        other = EDINETFiling(
+            id="edinet_form_other",
+            checksum=checksum,
+            name="other.pdf",
+            is_zip=False,
+            format="pdf",
+            created_at=datetime_now,
+            doc_id="S100OT",
+            edinet_code="E88888",
+            sec_code="88888",
+            jcn="8888888888888",
+            filer_name="Other Co.",
+            ordinance_code="010",
+            form_code="030000",
+            doc_type_code="120",
+            doc_description="その他",
+            period_start=datetime_now,
+            period_end=datetime_now,
+            submit_datetime=datetime_now,
+        )
+        collection.add(target, content)
+        collection.add(other, content)
+
+        results = collection.search(expr=(EDINETFiling.form_code == "053000"), limit=10)
+        assert len(results) == 1
+        assert results[0].id == target.id
+        assert results[0].form_code == "053000"

@@ -314,7 +314,7 @@ class TestCatalog_Helper_expr_to_inline_sql:
     """
     Catalog._expr_to_inline_sql のテスト
     - Expr のプレースホルダをエスケープしたリテラルで置換した SQL を返す
-    - indexed_columns を渡すと json_extract(data, '$.col') を "col" に書き換える
+    - indexed_columns を渡すと json_extract / json_extract_string 等の data 式を "col" に書き換える
     """
 
     def test_replaces_single_placeholder_with_escaped_literal(
@@ -338,14 +338,15 @@ class TestCatalog_Helper_expr_to_inline_sql:
     def test_replaces_placeholder_with_datetime_literal(
         self, temp_catalog: Catalog, datetime_now: datetime
     ) -> None:
-        """datetime は ISO 形式のクォート付きリテラルに置換される"""
-        expected = f"x = '{datetime_now.isoformat()}'"
+        """datetime は TIMESTAMP '...' リテラルに置換される"""
+        esc = datetime_now.isoformat().replace("'", "''")
+        expected = f"x = TIMESTAMP '{esc}'"
         assert Catalog._expr_to_inline_sql(Expr("x = ?", [datetime_now])) == expected
 
     def test_replaces_json_extract_with_physical_column_when_indexed_columns_given(
         self, temp_catalog: Catalog
     ) -> None:
-        """indexed_columns を渡すと json_extract(data, '$.col') が "col" に書き換えられる"""
+        """indexed_columns を渡すと手書き Expr の json_extract(data, '$.col') も "col" に書き換えられる"""
         expr = Expr("json_extract(data, '$.source') = ?", ["EDINET"])
         got = Catalog._expr_to_inline_sql(expr, indexed_columns={"source"})
         assert got == "\"source\" = 'EDINET'"
@@ -362,7 +363,7 @@ class TestCatalog_Helper_expr_to_inline_sql:
     ) -> None:
         """Field から生成した Expr を _expr_to_inline_sql するとリテラル埋め込み SQL になる"""
         expr = Field("source") == "Edgar"
-        # Field は indexed でない場合 json_extract(data, '$.source') = ? を生成
+        # Field は indexed でない場合 json_extract_string(data, '$.source') = ? を生成
         got = Catalog._expr_to_inline_sql(expr)
         assert "?" not in got
         assert "'Edgar'" in got

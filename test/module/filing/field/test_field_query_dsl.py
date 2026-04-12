@@ -8,7 +8,7 @@ from fino_filing import EDINETFiling, Expr, Field
 @pytest.mark.module
 @pytest.mark.filing
 class TestField_QueryDSL_Comparison:
-    """比較演算子。indexed で sql が物理カラム / json_extract に分かれること。"""
+    """比較演算子。indexed で sql が物理カラム / json_extract_string に分かれること。"""
 
     def test_eq_indexed_uses_column_name(self) -> None:
         f = Field("col", indexed=True)
@@ -17,10 +17,10 @@ class TestField_QueryDSL_Comparison:
         assert e.sql == "col = ?"
         assert e.params == [1]
 
-    def test_eq_not_indexed_uses_json_extract(self) -> None:
+    def test_eq_not_indexed_uses_json_extract_string(self) -> None:
         f = Field("col", indexed=False)
         e = f == 1
-        assert e.sql == "json_extract(data, '$.col') = ?"
+        assert e.sql == "json_extract_string(data, '$.col') = ?"
         assert e.params == [1]
 
     def test_ne_gt_ge_lt_le_return_expr(self) -> None:
