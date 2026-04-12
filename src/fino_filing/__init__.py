@@ -25,6 +25,7 @@ from .filing.filing_edgar import (
     EdgarCompanyFactsFiling,
 )
 from .filing.filing_edinet import EDINETFiling
+from .util.json_dumps import json_dumps
 
 # 組み込み Filing サブクラスを default_resolver に明示登録
 default_resolver.register(EDINETFiling)
@@ -51,6 +52,7 @@ __all__ = [
     "Field",
     "Filing",
     "FilingResolver",
+    "json_dumps",
     "LocalStorage",
     "Parsed",
     "RawDocument",

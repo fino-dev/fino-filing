@@ -36,6 +36,18 @@ Filing(**kwargs) -> Filing
 | ------------------------------------ | --------------- | --------------------------------------------------------------------------------------------------- |
 | `from_dict(cls, data: dict) -> Self` | Filing instance | Restore from dict; datetime strings are parsed. Raises same as constructor when keys/types invalid. |
 
+## JSON display and custom storage
+
+`Filing` does not embed JSON serialization. Use `to_dict()` and the package helper **`json_dumps`** (same keyword arguments as `json.dumps`, with defaults `ensure_ascii=False` and `default=str` when omitted) so Japanese and other non-ASCII text stay readable in JSON text and nested values still serialize:
+
+```python
+from fino_filing import Filing, json_dumps
+
+print(json_dumps(filing.to_dict(), indent=2))
+```
+
+**Catalog** in this library already persists `data` with those defaults. If you insert JSON into DuckDB (or elsewhere) yourself using the standard library’s `json.dumps` without `ensure_ascii=False`, the stored JSON string may contain `\uXXXX` escapes; the Python values are still correct after `json.loads`. Raw column text can look escaped until you parse it.
+
 ## Attributes (core)
 
 All filings have these fields. Required unless noted.
