@@ -28,6 +28,7 @@ class Collection:
     - get_filing: Get Filing from the collection by ID
     - get_content: Get saved file bytes by ID (e.g. for arelle parsing)
     - search: Search Filing from the collection
+    - clear: Remove all filings from the catalog and delete stored content files
     """
 
     def __init__(
@@ -148,3 +149,27 @@ class Collection:
             order_by=order_by,
             desc=desc,
         )
+
+    def clear(self) -> None:
+        """
+        Clear the collection: delete every stored content file referenced in the
+        catalog, then remove all catalog rows.
+        """
+        batch_size = 500
+        offset = 0
+        while True:
+            filings = self._catalog.search(
+                expr=None,
+                limit=batch_size,
+                offset=offset,
+                order_by="id",
+                desc=False,
+            )
+            if not filings:
+                break
+            for filing in filings:
+                rel = self._locator.resolve(filing)
+                if rel:
+                    self._storage.delete(rel)
+            offset += len(filings)
+        self._catalog.clear()

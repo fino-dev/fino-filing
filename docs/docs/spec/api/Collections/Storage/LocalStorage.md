@@ -34,3 +34,11 @@ load_by_path(relative_path: str) -> bytes
 ```
 
 Reads the file at `base_dir / relative_path`. Raises if path is invalid or file not found.
+
+### delete
+
+```python
+delete(relative_path: str) -> None
+```
+
+Deletes the file at `base_dir / relative_path` when it exists and is a regular file. Invalid keys, missing files, or I/O errors are ignored (logged at debug).

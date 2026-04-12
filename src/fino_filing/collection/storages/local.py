@@ -36,3 +36,12 @@ class LocalStorage:
         """相対パス指定で読み込み。"""
         full_path = _sanitize_storage_key(relative_path, self.base_dir)
         return full_path.read_bytes()
+
+    def delete(self, relative_path: str) -> None:
+        """相対パス指定でファイルを削除する。存在しない・不正パスは無視する。"""
+        try:
+            full_path = _sanitize_storage_key(relative_path, self.base_dir)
+            if full_path.is_file():
+                full_path.unlink()
+        except (ValueError, FileNotFoundError, OSError):
+            logger.info("LocalStorage.delete skipped: relative_path=%r", relative_path)

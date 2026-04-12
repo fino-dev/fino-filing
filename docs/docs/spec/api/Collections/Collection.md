@@ -77,3 +77,12 @@ search(
 ```
 
 Catalog に委譲。`expr` に Python の `bool` を渡すと `CatalogExprTypeError`。`order_by` はコア列・インデックス列、または `data` JSON 内キー。戻り値は `Filing` のリスト。
+
+### clear
+
+```python
+clear() -> None
+```
+
+- カタログに載っている全 `Filing` について Locator で解決した相対パスを `Storage.delete` で削除し、最後に `Catalog.clear()` で索引行をすべて削除する。
+- 空のコレクションでも呼び出し可能。`Storage` は `delete` を実装する（`LocalStorage` は存在しないパスを無視）。
