@@ -30,7 +30,9 @@ class TestJsonDumps:
             obj = {"a": 1}
             assert json_dumps_public(obj) == json_dumps(obj)
 
-        def test_filing_to_dict_pretty_contains_japanese(self, datetime_now: datetime) -> None:
+        def test_filing_to_dict_pretty_contains_japanese(
+            self, datetime_now: datetime
+        ) -> None:
             """to_dict と json_dumps で日本語フィールドが読みやすい JSON になること"""
             filing = Filing(
                 id="id1",
