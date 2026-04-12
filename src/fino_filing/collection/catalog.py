@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime as dt
+from datetime import date, datetime
 from typing import Any, Optional, Type
 
 import duckdb
@@ -33,7 +33,7 @@ def _py_type_to_duckdb(py_type: Type[Any] | None) -> str:
         return "VARCHAR"
     if issubclass(py_type, bool):
         return "BOOLEAN"
-    if issubclass(py_type, dt):
+    if issubclass(py_type, datetime):
         return "TIMESTAMP"
     if issubclass(py_type, int):
         return "BIGINT"
@@ -203,8 +203,12 @@ class Catalog:
             return "TRUE" if value else "FALSE"
         if isinstance(value, (int, float)):
             return str(value)
-        if isinstance(value, dt):
-            return "'" + value.isoformat().replace("'", "''") + "'"
+        if isinstance(value, datetime):
+            esc = value.isoformat().replace("'", "''")
+            return f"TIMESTAMP '{esc}'"
+        if isinstance(value, date):
+            esc = value.isoformat().replace("'", "''")
+            return f"DATE '{esc}'"
         s = str(value).replace("'", "''")
         return f"'{s}'"
 
@@ -217,13 +221,24 @@ class Catalog:
         Expr のプレースホルダをエスケープしたリテラルで置換した SQL を返す。
         パラメータを execute に渡すと DuckDB が結果セットの JSON 変換に誤用することがあるため、
         WHERE 句はリテラル埋め込みにし、execute には空リストを渡す。
-        indexed_columns を渡すと json_extract(data, '$.col') を "col" に書き換え、
+        indexed_columns を渡すと data JSON 由来の式を物理カラム "col" に書き換え、
         WHERE で data を参照しないようにする（DuckDB の JSON 解釈誤用を防ぐ）。
         """
         sql = expr.sql
         if indexed_columns:
             for col in indexed_columns:
-                sql = sql.replace(f"json_extract(data, '$.{col}')", f'"{col}"')
+                if col == "data":
+                    continue
+                for pattern in (
+                    f"CAST(json_extract_string(data, '$.{col}') AS TIMESTAMP)",
+                    f"CAST(json_extract_string(data, '$.{col}') AS DATE)",
+                    f"CAST(json_extract(data, '$.{col}') AS BIGINT)",
+                    f"CAST(json_extract(data, '$.{col}') AS DOUBLE)",
+                    f"CAST(json_extract(data, '$.{col}') AS BOOLEAN)",
+                    f"json_extract_string(data, '$.{col}')",
+                    f"json_extract(data, '$.{col}')",
+                ):
+                    sql = sql.replace(pattern, f'"{col}"')
         for value in expr.params:
             literal = Catalog._escape_sql_value(value)
             sql = sql.replace("?", literal, 1)
@@ -413,12 +428,14 @@ class Catalog:
             )
             sql += f" WHERE {where_sql}"
 
-        # ORDER BY（物理カラムならそのまま、それ以外は json_extract）
+        # ORDER BY（物理カラムならそのまま、それ以外は json_extract_string）
         order_direction = "DESC" if desc else "ASC"
         if order_by in table_columns and order_by != "data":
             sql += f' ORDER BY "{order_by}" {order_direction}'
         else:
-            sql += f" ORDER BY json_extract(data, '$.{order_by}') {order_direction}"
+            sql += (
+                f" ORDER BY json_extract_string(data, '$.{order_by}') {order_direction}"
+            )
 
         # LIMIT/OFFSET
         sql += f" LIMIT {limit} OFFSET {offset}"

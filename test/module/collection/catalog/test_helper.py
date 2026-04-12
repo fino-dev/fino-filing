@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated
 
 import pytest
@@ -205,7 +205,7 @@ class TestCatalog_Helper_escape_sql_value:
     """
     Catalog._escape_sql_value のテスト
     - SQL のリテラルとして埋め込むために値をエスケープする
-        None, bool, int, float, datetime, str の型に対して適切にエスケープされる
+        None, bool, int, float, datetime, date, str の型に対して適切にエスケープされる
     """
 
     def test_escape_sql_value(
@@ -220,7 +220,8 @@ class TestCatalog_Helper_escape_sql_value:
         assert temp_catalog._escape_sql_value(100) == "100"
         assert temp_catalog._escape_sql_value(100.0) == "100.0"
         assert temp_catalog._escape_sql_value(datetime_now) == (
-            "'" + datetime_now.isoformat() + "'"
+            "TIMESTAMP '" + datetime_now.isoformat().replace("'", "''") + "'"
         )
+        assert temp_catalog._escape_sql_value(date(2024, 6, 15)) == "DATE '2024-06-15'"
         assert temp_catalog._escape_sql_value("test_string") == "'test_string'"
         assert temp_catalog._escape_sql_value("test's") == "'test''s'"

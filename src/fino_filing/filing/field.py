@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Any
 
 from fino_filing.filing.error import FieldValidationError
@@ -135,6 +136,28 @@ class Field:
                 actual_type=type(value),
             )
 
+    def _json_data_lhs_sql(self) -> str:
+        """Non-indexed field: DuckDB LHS from data JSON by _field_type."""
+        ft = self._field_type
+        jpath = f"'$.{self.name}'"
+        if ft is None or ft is str:
+            return f"json_extract_string(data, {jpath})"
+        if ft is bool:
+            return f"CAST(json_extract(data, {jpath}) AS BOOLEAN)"
+        if ft is int:
+            return f"CAST(json_extract(data, {jpath}) AS BIGINT)"
+        if ft is float:
+            return f"CAST(json_extract(data, {jpath}) AS DOUBLE)"
+        if isinstance(ft, type) and issubclass(ft, datetime):
+            return f"CAST(json_extract_string(data, {jpath}) AS TIMESTAMP)"
+        if isinstance(ft, type) and issubclass(ft, date):
+            return f"CAST(json_extract_string(data, {jpath}) AS DATE)"
+        return f"json_extract_string(data, {jpath})"
+
+    def _json_data_string_lhs_sql(self) -> str:
+        """Non-indexed field: string extraction for LIKE and IS NULL."""
+        return f"json_extract_string(data, '$.{self.name}')"
+
     def _create_expr(self, op: str, value: Any) -> Expr:
         """
         Expression生成（Collectionは知らない）
@@ -150,7 +173,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} {op} ?"
         else:
-            sql = f"json_extract(data, '$.{self.name}') {op} ?"
+            sql = f"{self._json_data_lhs_sql()} {op} ?"
 
         return Expr(sql, [value])
 
@@ -189,7 +212,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} LIKE ?"
         else:
-            sql = f"json_extract(data, '$.{self.name}') LIKE ?"
+            sql = f"{self._json_data_string_lhs_sql()} LIKE ?"
 
         return Expr(sql, [f"%{value}%"])
 
@@ -201,7 +224,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} LIKE ?"
         else:
-            sql = f"json_extract(data, '$.{self.name}') LIKE ?"
+            sql = f"{self._json_data_string_lhs_sql()} LIKE ?"
 
         return Expr(sql, [f"{value}%"])
 
@@ -213,7 +236,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} LIKE ?"
         else:
-            sql = f"json_extract(data, '$.{self.name}') LIKE ?"
+            sql = f"{self._json_data_string_lhs_sql()} LIKE ?"
 
         return Expr(sql, [f"%{value}"])
 
@@ -229,7 +252,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} IN ({placeholders})"
         else:
-            sql = f"json_extract(data, '$.{self.name}') IN ({placeholders})"
+            sql = f"{self._json_data_lhs_sql()} IN ({placeholders})"
 
         return Expr(sql, values)
 
@@ -243,7 +266,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} NOT IN ({placeholders})"
         else:
-            sql = f"json_extract(data, '$.{self.name}') NOT IN ({placeholders})"
+            sql = f"{self._json_data_lhs_sql()} NOT IN ({placeholders})"
 
         return Expr(sql, values)
 
@@ -256,7 +279,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} IS NULL"
         else:
-            sql = f"json_extract(data, '$.{self.name}') IS NULL"
+            sql = f"{self._json_data_string_lhs_sql()} IS NULL"
 
         return Expr(sql, [])
 
@@ -267,7 +290,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} IS NOT NULL"
         else:
-            sql = f"json_extract(data, '$.{self.name}') IS NOT NULL"
+            sql = f"{self._json_data_string_lhs_sql()} IS NOT NULL"
 
         return Expr(sql, [])
 
@@ -282,7 +305,7 @@ class Field:
         if self.indexed:
             sql = f"{self.name} BETWEEN ? AND ?"
         else:
-            sql = f"json_extract(data, '$.{self.name}') BETWEEN ? AND ?"
+            sql = f"{self._json_data_lhs_sql()} BETWEEN ? AND ?"
 
         return Expr(sql, [lower, upper])
 
